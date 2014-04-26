@@ -1,0 +1,19 @@
+* Subgoals can be proved in any order but it usually works best to prove them in the order that Coq chooses
+* (rnd (scaled_mantissa beta fexp x)) *  bpow (canoic_exp beta fexp x)
+  Definition canonic_exp x :=
+   fexp (ln_beta beta x).
+
+  Definition canonic (f : float beta) :=
+   Fexp f = canonic_exp (F2R f).
+
+  Definition scaled_mantissa x :=
+   (x * bpow (- canonic_exp x))%R.
+
+  Definition generic_format (x : R) :=
+   x = F2R (Float beta (Ztrunc (scaled_mantissa x)) (canonic_exp x)).
+* Theorem round_any_correct :
+  forall x m e l,
+  inbetween_float beta m e x l ->
+  (e = canonic_exp beta fexp x \/ (l = loc_Exact /\ format x)) ->
+  round beta fexp rnd x = F2R (Float beta (choice m l) e).
+* Z * Z * location = (2%Z, 2%Z, loc_Exact)

@@ -1,0 +1,2 @@
+* static type: the compiler knows the type of every value and expression at compile time.
+*

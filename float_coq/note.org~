@@ -1,0 +1,2 @@
+* Subgoals can be proved in any order but it usually works best to prove them in the order that Coq chooses
+* (rnd (scaled_mantissa beta fexp x)) *  bpow (canoic_exp beta fexp x)
