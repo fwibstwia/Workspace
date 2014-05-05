@@ -1,0 +1,903 @@
+#    -*- mode: org -*-
+
+
+Archived entries from file /home/fwibstwia/Dropbox/knowledge_graph/paper.org
+
+
+* Data processing
+  :PROPERTIES:
+  :ARCHIVE_TIME: 2014-04-17 Thu 00:51
+  :ARCHIVE_FILE: ~/Dropbox/knowledge_graph/paper.org
+  :ARCHIVE_CATEGORY: paper
+  :END:
+** Parallel Data Processing
+         - [[~/info_center/document/paper/mapreduce-osdi04.pdf]mapreduce-osdi04]]
+** A Hypergraph Approach for Comparing Clandestine Trust Networks in MMOGs
+    - State "DONE"       from "TODO"       [2013-09-19 Thu 13:47]
+    CLOCK: [2013-09-19 Thu 12:51]--[2013-09-19 Thu 13:47] =>  0:56
+    - PHASE1:
+      - Motivation 
+        - Detect gold farmers 
+	- Evaluating theories of clandestine organization by mapping social behavior in 
+          MMOGs back to test and inform theories clandestine social behavior and 
+          organization in offline contexts
+      - Contribution
+        - A hypergraph approach to model the multi-modal relationships of gold farmers
+          granting other players permission to use and modify objects they own
+	- Compare farmers' trust networks to the trust networks of both unidentified 
+          farmers and typical players.
+        - Examine trust relationships formed by gold farmers. We use permissions to
+	  reflect underlying trust relationships.
+        - Use a label-propagation technique to compare network sturctures and the behavioral
+          patterns of three classes of users.
+        - Perform network analyses on projections of hypergraph's to identify behavioral patterns
+          of granting and receiving trusted access amoung users.
+	- Using frequent subgraph mining techniques to identify structural pattern in the 
+          hypergraph associated with farmers
+** Understanding Trust Evolution in an Online World
+  - Phase 1:
+    - Motivation: What in general the paper is about
+      - Trust evolves as humans interact and most research assume static trust relations. Reason: most of
+        the information is not available for sociologist
+      - The more similar two persons are, the greater the trust between them
+    - What the claimed contribution
+      - eTrust exploits the dynamics of user preferences in the context of online product review
+      - modeling trust evolution
+      - exploit of trust evolution to improve the performance of online applications 
+      - Providing a methodology to study the evolution of trust in an online world.
+** [[file:~/Dropbox/paper/1304.2576v2.pdf][Shortest Path and Distance Queries on Road Networks]]
+  - Phase 1:
+    - Motivation: What in general the paper is about
+    - What the claimed contribution
+  - PHASE 2: find the exiting stuff in the paper
+    - How can I use this
+    - does this really do what the author claims
+    - what if 
+  - PHASE 3: read thoroughly
+    - the choices the author made
+    - whether the assumptions and formalizations are realistic
+    - the directions the work suggests
+    - implement the toy version of the programs
+** [[file:~/Dropbox/paper/2012SIGMOD.pdf][TreeSpan:Efficiently Computning Similarity All-Matching]]
+  - Phase 1:
+    - Motivation: What in general the paper is about
+      - users' queries are inaccurate to express their real demands.
+      - Use the Similarity all-matching to solve the above problem : retrieve all matches of q in G with the number of possible missing edges bounded by a given threshold \theta
+      - The existing method is slow especially when \theta increases to 3
+    - What the claimed contribution
+      - use a minimal set QT of spanning trees in q to cover all connected subgraphs q' of q missing at most \theta edges.
+        Conduct exact all-matching for each spanning tree in QT to induce all similarity matches
+  - PHASE 2: find the exiting stuff in the paper
+    - How can I use this
+    - does this really do what the author claims
+    - what if 
+  - PHASE 3: read thoroughly
+    - the choices the author made
+    - whether the assumptions and formalizations are realistic
+    - the directions the work suggests
+    - implement the toy version of the 
+** [[file:~/Dropbox/paper/interactiveregret-sigmod2012.pdf][Interactive Regret Minimization]]
+  - Phase 1:
+    - Motivation: What in general the paper is about
+    - What the claimed contribution
+  - PHASE 2: find the exiting stuff in the paper
+    - How can I use this
+    - does this really do what the author claims
+    - what if 
+  - PHASE 3: read thoroughly
+    - the choices the author made
+    - whether the assumptions and formalizations are realistic
+    - the directions the work suggests
+    - implement the toy version of the program
+** [[file:~/Dropbox/paper/Jorge_KDD_2012.pdf][Active Learning for online Bayesian Matrix Factorization]]
+  - Phase 1:
+    - Motivation: What in general the paper is about
+      - Matrix completion :: estimate unknown elements in matrices based on a subset of observed entries
+    - What the claimed contribution
+  - PHASE 2: find the exiting stuff in the paper
+    - How can I use this
+    - does this really do what the author claims
+    - what if 
+  - PHASE 3: read thoroughly
+    - the choices the author made
+    - whether the assumptions and formalizations are realistic
+    - the directions the work suggests
+    - implement the toy version of the program
+** [[file:~/Dropbox/paper/kdd12softcost.pdf][A simple Methodology for soft cost-sensitive classification]]
+  - Phase 1:
+    - Motivation: What in general the paper is about
+      - Existing cost-sensitive classification can minimize the cost but can result in a high error rate
+    - What the claimed contribution
+      - Propose a novel cost-sensitive classification methodology that takes both the cost and the error rate
+  - PHASE 2: find the exiting stuff in the paper
+    - How can I use this
+    - does this really do what the author claims
+    - what if 
+  - PHASE 3: read thoroughly
+    - the choices the author made
+    - whether the assumptions and formalizations are realistic
+    - the directions the work suggests
+    - implement the toy version of the programs
+** [[file:~/Dropbox/paper/kernelsigmod13.pdf][Quality and Efficiency in Kernel Density Estimates for Large Data]]
+  - Phase 1:
+    - Motivation: What in general the paper is about
+      - Existing kernel density estimates are expensive on massive datasets and only provide heuristic approximations without theoretical guarantees
+      - Kernel density estimates :: a statistically-sound method to estimate a continuous distribution from a finite set of points
+    - What the claimed contribution
+  - PHASE 2: find the exiting stuff in the paper
+    - How can I use this
+    - does this really do what the author claims
+    - what if 
+  - PHASE 3: read thoroughly
+    - the choices the author made
+    - whether the assumptions and formalizations are realistic
+    - the directions the work suggests
+    - implement the toy version of the programs
+** [[file:~/Dropbox/paper/main.pdf][Active Sampling for Entity Matching]]
+  - Phase 1:
+    - Motivation: What in general the paper is about
+      - Entity Matching :: determine if two entities in a data set refer to the same real-world object
+      - Previous active learning approaches minimized the misclassification rate, but is an unsuitable metric for entity matching 
+    - What the claimed contribution
+  - PHASE 2: find the exiting stuff in the paper
+    - How can I use this
+    - does this really do what the author claims
+    - what if 
+  - PHASE 3: read thoroughly
+    - the choices the author made
+    - whether the assumptions and formalizations are realistic
+    - the directions the work suggests
+    - implement the toy version of the programs
+** [[file:~/Dropbox/paper/ocs.pdf][Online Search of Overlapping Communities]]
+  - Phase 1:
+    - Motivation: What in general the paper is about
+    - What the claimed contribution
+  - PHASE 2: find the exiting stuff in the paper
+    - How can I use this
+    - does this really do what the author claims
+    - what if 
+  - PHASE 3: read thoroughly
+    - the choices the author made
+    - whether the assumptions and formalizations are realistic
+    - the directions the work suggests
+    - implement the toy version of the programs
+** [[file:~/Dropbox/paper/outlier.pdf][A Near-linear time approximation algorithm for angle-based outlier detection in high-dimensional data]]
+** [[file:~/Dropbox/paper/p49-cohen.pdf][Indexing for subtree similarity-search using Edit Distance]]
+** [[file:~/Dropbox/paper/p289.pdf][A shapelet transform for time series classification]]
+** [[file:~/Dropbox/paper/p298.pdf][Accelerated Singular Value Thresholding for Matrix Completion]]
+** [[file:~/Dropbox/paper/p457-cheng.pdf][Efficient Processing of Distance Queries in Large Graphs: A vertex cover approach]]
+** [[file:~/Dropbox/paper/p516.pdf][A structural cluster kernel for learning on graphs]]
+** [[file:~/Dropbox/paper/p553-yakout.pdf][Use Scalable automatic repairing with maximal likelihood and bounded changes]]
+** [[file:~/Dropbox/paper/p565-cao.pdf][Determining the Relative Accuracy of Attributes]]
+
+** [[file:~/Dropbox/paper/p637-cai.pdf][Simulation of Database-valued markov chains using simSQL]]
+** [[file:~/Dropbox/paper/p1059-zhou.pdf][Adversarial support vector machine learning]]
+** [[file:~/Dropbox/paper/02webguide.pdf][Large Scale Graph Algorithms]]
+  - Finding Strongest Connection :: Given a graph G and a vertex v, find a vertex u \in G such that
+       the number of P-paths from v to u is maximal.
+       - Example (any content-based similarity, keyword-similarity, co-occurence similarity)
+         - The most common coauthor of my coauthors
+         - The website that is most often co-cited with the given one(两个网页同时被第三者引用）
+         - The band that is most often co-listened with the given one(两个电台被一个人同时收听）
+         - System recommend things that are popular among my friends
+         - New Girlfriend suggest          
+** [[file:~/Dropbox/paper/ICDE12_conf_full_261.pdf][Optimization of Massive Pattern Queries by dynamic configuration morphing]]
+  - Phase 1:
+    - Motivation: What in general the paper is about
+    - What the claimed contribution
+  - PHASE 2: find the exiting stuff in the paper
+    - How can I use this
+    - does this really do what the author claims
+    - what if 
+  - PHASE 3: read thoroughly
+    - the choices the author made
+    - whether the assumptions and formalizations are realistic
+    - the directions the work suggests
+    - implement the toy version of the programs
+** [[file:~/Dropbox/paper/2010-ICDE-ModelSummaries.pdf][The Model-Summary Problem and a solution for Trees]]
+** [[file:~/Dropbox/paper/Bagging.pdf][Bagging Predictor]]
+** [[file:~/Dropbox/paper/ICDE12_conf_full_262.pdf][Approximate Shortest Distance Computing: A Query-Dependent Local Landmark Scheme]]
+** [[file:~/Dropbox/paper/ICDE2012a.pdf][Provenance-based Indexing Support in Micro-blog Platforms]]
+** [[file:~/Dropbox/paper/icdm06-rwr.pdf][Fast Random Walk with Restart and Its Applications]]
+** [[file:~/Dropbox/paper/IR-847.pdf][Inferring Query Aspects from Reformulations using clustering]]
+** [[file:~/Dropbox/paper/LanckrietCBGJ03.pdf][Learning the Kernel Matrix with Semidefinite Programming]]
+** [[file:~/Dropbox/paper/modf289-dassarma.pdf][Efficient Spatial Sampling of Large Geographical Tables]]
+** [[file:~/Dropbox/paper/p493-moerkotte.pdf][On the Correct and Complete Enumeration of the Core Search Space]]
+** [[file:~/Dropbox/paper/sigmod13-triangle.pdf][Massive Graph Triangulation]]
+** [[file:~/Dropbox/paper/SIGMOD2011_Tagliasacchi.pdf][Ranking with Uncertain Scoring Functions: Semantics and Sensitivity Measures]]
+** [[file:~/Dropbox/paper/sigmod13-worstCaseMatching.pdf][On Optimal Worst-Case Matching]]
+** Crowd Database
+*** [[file:~/Dropbox/paper/amsterdamer2013crowd.pdf][Crowd Mining]]
+  - Phase 1:
+    - Motivation: What in general the paper is about
+      - it is difficult to harness a crowd of Web users for data collection due to properties of the human memory
+      - How to exploit the unique capabilities of the crowd to mine data from the crowd?
+      - Ask users about personal rules, and infer about overall important rules and general trends
+    - What the claimed contribution
+  - PHASE 2: find the exiting stuff in the paper
+    - How can I use this
+    - does this really do what the author claims
+    - what if 
+  - PHASE 3: read thoroughly
+    - the choices the author made
+    - whether the assumptions and formalizations are realistic
+    - the directions the work suggests
+    - implement the toy version of the programs
+*** [[file:~/Dropbox/paper/crowddb_sigmod2011.pdf][CrowdDB:Answering Queries with Crowdsourcing]]
+  - Phase 1:
+    - Motivation: What in general the paper is about
+      - CrowdDB uses human input to process queries
+      - Human computation is good at Finding new Data and Comparing data.
+    - What the claimed contribution
+      - Exploit the extensibility of the iteratorbased query processing paradigm to add crowd functionality
+  - PHASE 2: find the exiting stuff in the paper
+    - How can I use this
+    - does this really do what the author claims
+    - what if 
+  - PHASE 3: read thoroughly
+    - the choices the author made
+    - whether the assumptions and formalizations are realistic
+    - the directions the work suggests
+    - implement the toy version of the program
+*** [[file:~/Dropbox/paper/CIDR13_Paper137.pdf][CrowdQ: Crowdsourced Query Understanding]]
+*** [[file:~/Dropbox/paper/sigmod2013-crowder-transitivity.pdf][Leveraging Transitive Relations for Crowdsourced Joins]]
+
+* Graph
+  :PROPERTIES:
+  :ARCHIVE_TIME: 2014-04-17 Thu 00:51
+  :ARCHIVE_FILE: ~/Dropbox/knowledge_graph/paper.org
+  :ARCHIVE_CATEGORY: paper
+  :END:
+** [[file:~/Dropbox/paper/ICDE12_conf_full_140.pdf][An Efficient Graph Indexing Method]] 
+** [[file:~/Dropbox/paper/HCL.pdf][A Highway-Centric Labeling Approach for Answering Distance Queries on Large Sparse Graphs]]
+  - Phase 1:
+    - Motivation: What in general the paper is about
+      - Distance query :: ask the length of the shortest path from a vertex u to another vertex v
+      - Can we construct distance labeling efficiently on general large sparse graphs? 
+    - What the claimed contribution
+      - Highway-Centric Labeling :: empowers the distance labeling with a highway structure and leverage a novel bipartite set cover algorithm
+      - Derive better distance labeling for the exact distance query than the 2-hop approach, in terms of both indexing size, query time, and
+	construction time
+      - Speed up 2-hop labeling without scrificing its optimal labeling size
+      - Develop an approximate distance labeling scheme which can estimate distance with user-desired accuracy 
+  - PHASE 2: find the exiting stuff in the paper
+    - How can I use this
+    - does this really do what the author claims
+    - what if 
+  - PHASE 3: read thoroughly
+    - the choices the author made
+    - whether the assumptions and formalizations are realistic
+    - the directions the work suggests
+    - implement the toy version of the programs
+** [[file:~/Dropbox/paper/p337-han.pdf][Towards UltraFast and Robust Subgraph Isomorphism Search in Large Graph Databases]]
+** Graph Reachability
+*** [[file:~/Dropbox/paper/SCARAB.pdf][SCARAB: Scaling Reachability Computation on Large Graphs]]
+** Graph Clustering
+*** 目标 & Motivation
+**** Cluster the users in a social network by considering both their global social relationships and personal profiles
+*** 研究方向
+**** Group vertices in a given graph based on vertex connections
+**** Group vertices in a given graph based on vertex attributes
+**** How to naturally combine and leverage these two types of information in the process of clustering.
+*** 主要方法
+**** Distance-based, design a distance measure that can take both structural and attribute information into consideration.
+     - limitation: assign weights to structural and attribute information
+**** Model-based, based on a probabilistic model which fuses both structural and attribute information
+*** [[file:~/Dropbox/paper/BAGC_sigmod12.pdf][A Model-based Approach to attributed graph clustering]]
+  - Phase 1:
+    - Motivation: What in general the paper is about
+      - Cluster attributed graphs :: leverage structural and attribute information to cluster. Existing works take a distance-based approach, 
+				     this paper propose a model-based approach (Bayesian probabilistic model)
+
+    - What the claimed contribution
+      - define a joint probability distribution over the space of all possible clusterings and all possible attributed graphs, and find the
+	clustering that gives the highest probability.
+
+      - propose an efficient approximate algorithm for probability inference. Starts from an initial guess of the clustering, and iteratively
+	improves the quality of the clustering until convergence
+  - PHASE 2: find the exiting stuff in the paper
+    - How can I use this
+    - does this really do what the author claims
+    - what if 
+  - PHASE 3: read thoroughly
+    - the choices the author made
+      - restrict to a computationally tractable family of distributions
+      - Cluster character: vertices within clusters are densely connected, vertices in different clusters are sparsely connected
+	                   vertices within clusters have low diversity in their attribute values, while the vertices in different clusters
+	                   may have diverse attribute values
+    - whether the assumptions and formalizations are realistic
+      - there exists a true but unknown clustering of the vertices underlying the data
+      - vertices from the same cluster behave similarly to each other, while vertices from different clusters behave differently
+      - for vertices from the same cluster, their attribute values and edge connections should follow the common distributions	       
+      - We are given the number of clusters
+    - the directions the work suggests
+    - implement the toy version of the programs
+
+* Large Database Query
+  :PROPERTIES:
+  :ARCHIVE_TIME: 2014-04-17 Thu 00:51
+  :ARCHIVE_FILE: ~/Dropbox/knowledge_graph/paper.org
+  :ARCHIVE_CATEGORY: paper
+  :END:
+** [[file:~/Dropbox/paper/18546B.pdf][The Researcher's guide to the data Deluge: querying a scientific database in just a few seconds]]
+  - Phase 1:
+    - Motivation: What in general the paper is about
+      - clear need for interactive exploration of extremely large database, especially in the area of scientific data management where
+	ingestion of multiple Terabytes on a daily basis.
+    - What the claimed contribution
+      - the requirement of next generation database: interpret queries by their intent. 
+	- The result set should aid the user in understanding the database's content and provide guidance to continue the data exploration journey.
+	- 
+  - PHASE 2: find the exiting stuff in the paper
+    - How can I use this
+    - does this really do what the author claims
+    - what if 
+  - PHASE 3: read thoroughly
+    - the choices the author made
+    - whether the assumptions and formalizations are realistic
+    - the directions the work suggests
+    - implement the toy version of the programs
+** [[file:~/Dropbox/paper/p1902_sameeragarwal_vldb2012.pdf][Blink and it's done: interactive queries on very large database]]
+  - Phase 1:
+    - Motivation: What in general the paper is about
+      - user need to run short exploratory queries on large volumes of
+        data (for example: root-cause analysis and problem diagnosis
+        on logs analyze the effectiveness of an ad campaign in real
+        time)
+      - The exploratory queries is adhoc and involve large volumes of
+        data.Timeliness is more important.
+      - Achieving small response times for queries on large volumes of
+        data is challenging (limited disk bandwidths, inability to fit
+        many of these datasets in memory, network communication
+        overhead during large data shuffles, and straggling
+        processes. For instance, just scanning and processing a few
+        ter-abytes of data spread across hundreds of machines may take
+        tens of minutes. This is often accompanied by unpredictable
+        delays due to stragglers or network congestion during large
+        data shuffles. Such delays impact an analyst’s ability to
+        carry out exploratory analysis on data.
+
+    - What the claimed contribution
+      - present a parallel sampling-based approximate query processing framework
+      - BlinkDB provides real-time answers along with statistical error guarantees
+      - BlinkDB can scale to petabytes of data and thousands of machines
+  - PHASE 2: find the exiting stuff in the paper
+    - How can I use this
+    - does this really do what the author claims
+    - what if 
+  - PHASE 3: read thoroughly
+    - the choices the author made
+      - pre-computing and maintaining a set of samples from the data, execute the queries on an appropriate
+      - create stratified samples for the "fact" table and for the join-columns of larger dimension tables.
+    - whether the assumptions and formalizations are realistic
+      - User one larger fact table and other smaller "dimension" tables (usually fit in the aggregate memory)
+      - query templates (the set of columns used in where clause) is stable 
+    - the directions the work suggests
+    - implement the toy version of the programs
+** [[file:~/Dropbox/paper/EECS-2012-214.pdf][Shark: SQL and Rich Analytics at Scale]]
+
+* Query Provenance
+  :PROPERTIES:
+  :ARCHIVE_TIME: 2014-04-17 Thu 00:51
+  :ARCHIVE_FILE: ~/Dropbox/knowledge_graph/paper.org
+  :ARCHIVE_CATEGORY: paper
+  :END:
+** 目标&Motivation
+   - Explain surprising data within a result set.
+   - Explain surprising missing data.
+** 研究方向
+   - Where data came from
+   - What happened to the data along the way
+   - How to handle missing data
+** 主要方法
+   - Lineage
+   - Structural Equations
+   - Query Relax
+** [[file:~/Dropbox/paper/scorpion-vldb13.pdf][Scorpion: Explain Away Outliers in Aggregate Queries]]
+  - Phase 1:
+    - Motivation: What in general the paper is about
+      - Existing methods use aggregate queries to reveal outliers (represent errors or surprisings), but do not provide a way to work backwards from an
+	outlier point to the common properties fo the unaggregated input tuples.
+      - the existing provenance system flag a significant portion of the dataset as the provenance.This is not informative.
+    - What the claimed contribution
+      - Find boolean predicates that when applied to the input data, cause the outliers to disappear from the output.
+      - Work with arbitrary user-defined aggregates.
+      - reduce the provenance of aggregate operators to a small set of influential inputs
+  - PHASE 2: find the exiting stuff in the paper
+    - How can I use this
+    - does this really do what the author claims
+    - what if 
+  - PHASE 3: read thoroughly
+    - the choices the author made
+      - use sensitivity analysis to identify the groups of input points that most influence the outlier aggregate outputs and generate a descriptive
+	predicate.
+      - define influence based on predicates
+      - use Merger to merge adjacent predicates until the resulting influence does not increase.
+    - whether the assumptions and formalizations are realistic
+      - input and output data sets are relations, and that outputs are generated by SQL group-by queries over the input.
+      - use properties (similar to distributive and algebraic properties of OLAP aggregates) common to many common aggregate 
+	functions that enable more efficient algorithms
+      - A_{agg} \cap A_{gb} = \emptyset
+      - Model join queries by materializing the join result.
+    - the directions the work suggests
+      - perturb input tuple values rather than deleting input tuples.
+    - implement the toy version of the programs
+** [[file:~/Dropbox/paper/Causes%20and%20Explanations:%20A%20Structural-Model%20Approach_1.pdf][Causes and Explanations:A structural-model approach_1]]
+** [[file:~/Dropbox/paper/Causes%20and%20Explanations:%20A%20Structural-Model%20Approach_2.pdf][Causes and Explanations:A strutural-model approach_2]]
+** [[file:~/Dropbox/paper/Efficient%20Provenance%20Support%20for%20Relational%20Databases.pdf][Efficient Provenance Support for Relational Databases]]
+** [[file:~/Dropbox/paper/Responsibility%20and%20Blame:%20A%20Structural-Model%20Approach.pdf][Responsibility and Blame: A structural-model approach]]
+** Query by output
+  - Phase 1:
+    - Motivation: What in general the paper is about
+      - Understand the hidden relationships among attributes.
+    - What the claimed contribution
+      - Generate the instance-equivalent queries by the at-least-one semantics 
+        that is inherent in the query derivation.
+  - PHASE 2: find the exiting stuff in the paper
+    - How can I use this
+    - does this really do what the author claims
+    - what if 
+  - PHASE 3: read thoroughly
+    - the choices the author made
+      - Reduce the minimization Circuit Size Problem to QBOs. "Ai op c"
+    - whether the assumptions and formalizations are realistic
+      - Q where the select-clause refer to only attributes (not to constants or 
+        arithmetic/aggregation/string expressions)
+      - consider only SPJ queries
+      - there are no multiple instances of a relation in Q and Q'
+    - the directions the work suggests
+    - implement the toy version of the programs
+
+** [[file:~/Dropbox/paper/Why%20not.pdf][Why not?]]
+  - Phase 1:
+    - Motivation
+      - the user does not have the ability to alter their query in any way to garner better understanding of the dataset and result set. Because 
+	the user are application users who have no access to the underlying dataset; the applications limit the type of queries the users can submit.
+	the applications have complex operations which obfuscate why data is not in the result set.
+    - What the claimed contribution
+      - Find the Frontier Picky Manipulations to answer "Why not"
+  - PHASE 2: find the exiting stuff in the paper
+    - How can I use this
+    - does this really do what the author claims
+    - what if 
+  - PHASE 3: read thoroughly
+    - the choices the author made
+      - Data processing is viewed as workflow consisting of a set of MANIPULATIONs.
+      - Using three kinds of information: the query, the result set, and the question.
+      - Positive predicate logic - atomic predicate is evaluated over a single attribute; atomic predicates are combined using AND and OR, but without
+	negation.
+      - The lineage of a MIN or MAX output data item is the data item containing the reported value, not the entire input set.
+    - whether the assumptions and formalizations are realistic
+    - the directions the work suggests
+    - implement the toy version of the programs
+** [[file:~/Dropbox/paper/paper_5.pdf][Generating Example Data for Dataflow Programs]]
+** [[file:~/Dropbox/paper/vldb06-p199-koudas.pdf][Relaxing Join and Selection Queries]]
+  - Phase 1:
+    - Motivation
+      - How to relax the conditions such that the query returns non-empty result
+    - What the claimed contribution
+  - PHASE 2: find the exiting stuff in the paper
+    - How can I use this
+    - does this really do what the author claims
+      - All the algorithms seem to based on existing index structures, I suspect that it cannot improve the performance.
+    - what if 
+  - PHASE 3: read thoroughly
+    - the choices the author made
+    - whether the assumptions and formalizations are realistic
+      - All the conditions are range conditions.
+    - the directions the work suggests
+    - implement the toy version of the programs
+
+* Query Reuse
+  :PROPERTIES:
+  :ARCHIVE_TIME: 2014-04-17 Thu 00:52
+  :ARCHIVE_FILE: ~/Dropbox/knowledge_graph/paper.org
+  :ARCHIVE_CATEGORY: paper
+  :END:
+  - Interactive Scientific Query Problem
+    - The result of some of these queries are large, averaging
+      millions of rows. Some long queries spend most of their time
+      returning large result sets to a user over the internet
+** [[file:~/Dropbox/paper/0502011v1.pdf][Where the Rubber meets the sky: bridging the gap between databases and science]]
+  - Phase 1:
+    - Motivation: What in general the paper is about
+      - the ftp-grep data analysis approach is breaking down as
+        datasets grow to terabyte and petabyte scale.
+      - the data is published on the internet and the literature
+        mostly simmarizes the data, is a guide to it, and presents
+        some interesting conclusions
+      - new results come from new combinations of existing data.
+    - What the claimed contribution
+  - PHASE 2: find the exiting stuff in the paper
+    - How can I use this
+    - does this really do what the author claims
+    - what if 
+  - PHASE 3: read thoroughly
+    - the choices the author made
+      - The portal has limits on how much processing a query can
+        consume and how large the outputs can be. For the public site
+        the limits are 90 seconds elapsed and 1,000 rows of
+        output. For the collaboration site the limits are 90 minutes
+        elapsed and 500,000 rows of output.
+    - whether the assumptions and formalizations are realistic
+    - the directions the work suggests
+    - implement the toy version of the programs
+** [[file:~/Dropbox/paper/ssdbm11-sqb.pdf][Session-based Browsing for more effective query reuse]]
+  - Phase 1:
+    - Motivation
+      - scientific data is generated and collected at unprecedented scale
+      - Composing SQL queries is a significant challenge for non-database experts
+      - scientists word in a shared database
+      - navigating a large log of queries can be difficult and overwhelming
+    - What the claimed contribution
+      - provide keyword search over a query log.
+  - PHASE 2: find the exiting stuff in the paper
+    - How can I use this
+    - does this really do what the author claims
+      - view each result query in the context of the task it aimed to complete. 有两个作用：
+	1. help the user more rapidly identify relevant queries
+	2. help the user to see how simple queries evolved into more complex ones.
+	3. help the user to discriminate between high-quality and low-quality queries.
+    - what if 
+  - PHASE 3: read thoroughly
+    - the choices the author made
+      - present the query search result as a set of query sessions (A
+        query session is a set of queries written by a user to achieve
+        a single task)
+      - 
+    - whether the assumptions and formalizations are realistic
+      - assumption: an astronomer who wants to find all the stars of a
+        certain brightness in the r-band within 2 arc minutes of a
+        known star need to write multiple SQL queries.
+    - the directions the work suggests
+    - implement the toy version of the programs
+** [[file:~/Dropbox/paper/p22-khoussainova.pdf][SnipSuggest:Context-Aware autocompletion for SQL]]
+  - Phase 1:
+    - Motivation: What in general the paper is about
+      - Scientists need to use advanced query features, including group-by's, outer-joins, user-defined functions,
+	functions returning tables, or spatial database operators.
+    - What the claimed contribution
+  - PHASE 2: find the exiting stuff in the paper
+    - How can I use this
+    - does this really do what the author claims
+    - what if 
+  - PHASE 3: read thoroughly
+    - the choices the author made
+    - whether the assumptions and formalizations are realistic
+    - the directions the work suggests
+    - implement the toy version of the programs
+** [[file:~/Dropbox/paper/isre.pdf][Is query reuse potentially harmful?]]
+** [[file:~/Dropbox/paper/edbt2011_QueryViz.pdf][QueryViz: Helping users understand SQL queries and their patterns]]
+** [[file:~/Dropbox/paper/0403017.pdf][Extending the SDSS Batch Query System to the national virtual observatory grid]]
+  - Phase 1:
+    - Motivation: What in general the paper is about
+    - What the claimed contribution
+  - PHASE 2: find the exiting stuff in the paper
+    - How can I use this
+    - does this really do what the author claims
+    - what if 
+  - PHASE 3: read thoroughly
+    - the choices the author made
+    - whether the assumptions and formalizations are realistic
+    - the directions the work suggests
+    - implement the toy version of the programs
+** [[file:~/Dropbox/paper/icde11-sqpr.pdf][SQPR: Stream Query Planning with Reuse]]
+
+* Query Rewrite
+  :PROPERTIES:
+  :ARCHIVE_TIME: 2014-04-17 Thu 00:52
+  :ARCHIVE_FILE: ~/Dropbox/knowledge_graph/paper.org
+  :ARCHIVE_CATEGORY: paper
+  :END:
+  - generate queries with arbitrary arithmetic expressions in the joins is PSPACE-hard
+  - Problem Definition :: Given database D, schema graph G, and output table O, we wish to
+    compute a generating join query Q that produces table Out
+** [[file:~/Dropbox/paper/2007-32.pdf][Query rewriting through link analysis of the click graph]]
+** [[file:~/Dropbox/paper/TD_100985.pdf][Reverse Engineering Complex Join Queries]]
+  - Phase 1:
+    - Motivation
+      - Given a database D with schema G and an output table
+        Out,compute a join query Q that generates Out from D
+      - prior work imposes conditions on the structure of Q
+    - What the claimed contribution
+      - 
+  - PHASE 2: find the exiting stuff in the paper
+    - How can I use this
+    - does this really do what the author claims
+    - what if 
+  - PHASE 3: read thoroughly
+    - the choices the author made
+      - any graph can be characterized by the combination of a star
+        and a series of merge steps over the star.
+    - whether the assumptions and formalizations are realistic
+    - the directions the work suggests
+    - implement the toy version of the programs
+** [[file:~/Dropbox/paper/konstantinidis2011-sigmod%20(2).pdf][Scalable Query Rewriting: A Graph-Based Approach]]
+  - Phase 1:
+    - Motivation: What in general the paper is about
+      - Query Rewriting :: Given a conjunctive query Q, over a database schema D and a set of view definitions V_1 , ..., V_n over 
+	   the same schema, the problem is to find answers to Q using only V_1 ,..., V_n.
+    - What the claimed contribution
+  - PHASE 2: find the exiting stuff in the paper
+    - How can I use this
+    - does this really do what the author claims
+    - what if 
+  - PHASE 3: read thoroughly
+    - the choices the author made
+    - whether the assumptions and formalizations are realistic
+    - the directions the work suggests
+    - implement the toy version of the programs
+
+* Query Optimization
+  :PROPERTIES:
+  :ARCHIVE_TIME: 2014-04-17 Thu 00:52
+  :ARCHIVE_FILE: ~/Dropbox/knowledge_graph/paper.org
+  :ARCHIVE_CATEGORY: paper
+  :END:
+** [[file:~/Dropbox/paper/8-query.pdf][Query Processing and Optimization]]
+** [[file:~/Dropbox/paper/atsgromar12%2B.pdf][Size bounds and query plans for relational joins]]
+** [[file:~/Dropbox/paper/icde02-plan-ordering.pdf][Efficient Ordering Query Plans for Data Integration]]
+** [[file:~/Dropbox/paper/p469-yu.pdf][CS2: A new database synopsis for query estimation]]
+
+* Query Clustering
+  :PROPERTIES:
+  :ARCHIVE_TIME: 2014-04-17 Thu 00:52
+  :ARCHIVE_FILE: ~/Dropbox/knowledge_graph/paper.org
+  :ARCHIVE_CATEGORY: paper
+  :END:
+  - Existing Methods
+    - Using Keywords. Document is represented as a vector. The research focuses on two problems:
+      - similarity function (cosine-similarity, Jaccard-similarity, Dice similarity, edit distance)
+      - algorithms for the clustering process (hierarchical and non-hierarchical)
+    - Using hyperlinks. Hyperlinks connect similar documents
+    - Using cross-reference between queries and documents
+** [[file:~/Dropbox/paper/qc-tois.pdf][Query Clustering Using User Logs]]
+  - Phase 1:
+    - Motivation
+      - many people are interested in the same questions
+      - if the system can correctly answer similar history questions,
+        then an important part of current users' questions will be
+        answered precisely
+      - need an automatic way to determine which queries are FAQs. we
+        can cluster similar queries/questions together in order to
+        discover FAQs
+      - need a system judge if two questions/queries are similar.
+      - existing similarity calculation based on keywords is not
+        accurate (with respect to semantic similarity) due to the
+        short lengths of the queries
+    - What the claimed contribution
+      - propose a query clustering based on user logs (make use of
+        cross-references between the users' queries and the documents
+        that the users have chosen to read)
+  - PHASE 2: find the exiting stuff in the paper
+    - How can I use this
+    - does this really do what the author claims
+    - what if
+      - For Sql query, the lengths of the queries is not short. Is the
+        similarity calculation based on keywords accurate?
+  - PHASE 3: read thoroughly
+    - the choices the author made
+    - whether the assumptions and formalizations are realistic
+      - There is a stronger relationship between the queries and the
+        selected documents than between the queries and other
+        documents
+	- If users clicked on the same documents for different
+          queries, then these queries are similar
+	- if a set of documents is often selected for the same
+          queries, then the terms in these documents are related to
+          the terms of the queries
+    - the directions the work suggests
+    - implement the toy version of the programs
+** [[file:~/Dropbox/paper/www2010.pdf][Clustering Query Refinements by user intent]]
+  - Phase 1:
+    - Motivation
+      - improve the selection of the query suggestions and summarize the different aspects of
+	information relevant to the original user query
+      - query refinements :: find other queries from the query log
+           that co-occur in sessions with the original query. Cluster
+           the query refinements such that each cluster represents
+           distinct information needs
+      - The result page can only display a few related queries and we
+        need to select diverse set of queries that corresponds to
+        different information needs
+      - current solutions to select related queries rely more on
+        frequency than on diversity
+      - the disadvantage of group queries based on search results
+        (group queries that shared many similar cliked documents) is
+        that queries with the same user intent may not share search
+        result.
+      - the disadvantages of group queries based on occurences within
+        user search sessions are session co-occurrences can be sparse
+        and there is a often "drift" in user intent within the same
+        session
+    - What the claimed contribution
+      - combine document-click analysis and session analysis
+      - model user behavior as a graph whose nodes are refinements and
+        clicked documents, clusters of nodes in the graph correspond
+        to different user intentions.
+  - PHASE 2: find the exiting stuff in the paper
+    - How can I use this
+    - does this really do what the author claims
+    - what if 
+  - PHASE 3: read thoroughly
+    - the choices the author made
+      - cluster the query refinements
+      - perform multiple random walks on a Markov graph that approximates user search behavior
+    - whether the assumptions and formalizations are realistic
+    - the directions the work suggests
+    - implement the toy version of the programs
+** [[file:~/Dropbox/paper/1104.3213.pdf][Query Expansion Based on Clustered Results]]
+
+
+* Similarity Search
+  :PROPERTIES:
+  :ARCHIVE_TIME: 2014-04-17 Thu 00:52
+  :ARCHIVE_FILE: ~/Dropbox/knowledge_graph/paper.org
+  :ARCHIVE_CATEGORY: paper
+  :END:
+  - Question :: Given queries in the form of points in the space, we are required to find the nearest object to the query
+  - Applications :: data compression, retrieve similar multimedia objects
+  - Similarity search in Spatial databases :: use the Euclidean distance and use R-trees in low dimensional space and specialized index data structures 
+					      in high dimensional space
+  - Similarity search in metric space :: use a metric index, such as M-tree. Metric similarity joins can base on the triangle inequality pruning and 
+					 metric index.
+  - Similarity search in sets and strings :: use the overlap, Jaccard, cosine, edit distance, Bregman Divergence, Earth Mover's Distance metrics 
+  - Methods used in Edit distance metric for similarity search of strings 
+    - Gram-based :: fixed-length q-grams (the signature is a substring
+                    of length q). Count filtering, prefix filtering,
+                    and mismatching q-grams is used to speed up the
+                    processing; variable-length grams; list-merging
+                    methods;
+    - Tree-based :: Builds a trie for the dataset
+    - Enumeration-based :: Enumerate all possible strings that are within \theta edit distance from data strings. Optimization methods including deletion
+	 neighbourhood and partitioning
+    - Approximate-based :: answer similarity queries approximately. Methods including LSH, heuristics and hashing
+** [[file:~/Dropbox/book/searching%20in%20high-dimensional%20spaces.pdf][Survey-Searching in high dimensional spaces]]
+   - High-dimensional index structure satisfy the following operations
+     - point queries - identity query
+     - range queries - \epsilon similarity queries
+     - nearest neighbor - NN-similarity queries
+   - Two kinds of Index: metric space index and vector space index
+     - metrix indexes : use the given metric properties to build a tree which can be used to
+       prune branches in processing the queries. FASTMAP maps the metric data into a lower 
+       dimensional vector space and use a vector space index structure to the transformed data
+   - Two classes for the vector space index structure
+     - Data organizing structures - R-trees
+     - Space organizing structures - Multidimensional Hashing, Grid-files, kd-tree-based methods
+
+** Index Structures
+*** [[file:~/Dropbox/paper/Gut84.pdf][R-tree-A dynamic index structure for spacial search]]   
+  - Phase 1:
+    - Motivation: What in general the paper is about
+      - classical one dimensional index structure are not appropriate to multi-dimensional spatial searching
+      - Structures based on exact matching of values (hashing) are not useful (do not support range query) 
+    - What the claimed contribution
+  - PHASE 2: find the exiting stuff in the paper
+    - How can I use this
+    - does this really do what the author claims
+    - what if 
+  - PHASE 3: read thoroughly
+    - the choices the author made
+    - whether the assumptions and formalizations are realistic
+    - the directions the work suggests
+    - implement the toy version of the programs
+*** [[file:~/Dropbox/paper/PK-tree.ps][Pk-tree-A spatial index structure for high dimensional point data]]
+  - Phase 1:
+    - Motivation: What in general the paper is about
+    - What the claimed contribution
+  - PHASE 2: find the exiting stuff in the paper
+    - How can I use this
+    - does this really do what the author claims
+    - what if 
+  - PHASE 3: read thoroughly
+    - the choices the author made
+    - whether the assumptions and formalizations are realistic
+    - the directions the work suggests
+    - implement the toy version of the programs
+*** [[file:~/Dropbox/paper/P426.PDF][M-tree-An Efficient Access Method for Similarity Search in Metric Spaces]]
+  - Phase 1:
+    - Motivation: What in general the paper is about
+      - Organize and search large data sets from a metric space where object proximity is defined by a distance function (Satisfying the positivity,
+	symmetry, and triangle inequality)
+    - What the claimed contribution
+      - Reduce the number of distance computation
+  - PHASE 2: find the exiting stuff in the paper
+    - How can I use this
+    - does this really do what the author claims
+    - what if 
+  - PHASE 3: read thoroughly
+    - the choices the author made
+    - whether the assumptions and formalizations are realistic
+    - the directions the work suggests
+    - implement the toy version of the programs
+** [[file:~/Dropbox/paper/SIGMOD11-Asymmetric-Final.pdf][Efficient Exact Edit Similarity Query Processing with the Asymmetric Signature Scheme]]
+  - Phase 1:
+    - Motivation: What in general the paper is about
+      - Edit similarity search :: Given a query string Q, edit similarity search find all strings in a database whose edit distance with Q is no more than
+	   a given threshhold \theta.
+      - Edit similarity joins :: find near duplicate records in a customer database
+      - Existing method rely on signature scheme to generate candidates, but the number of signatures is far greater than the lower bound
+      - Filter-and-verification paragiam :: A candidate set is generated for the query string by finding database strings that share at least a certain
+	   amount of common signatures with the query. Query results can be obtained by verifying the edit distance between each candidate and the query.
+    - What the claimed contribution
+      - prove that the minimum signature size lower bound is \theta + 1
+      - propose asymmetric signature schemes to achieve this lower bound
+      - develop candidate pruning techniques to reduce the number of candidates needing verification
+      - Asymmetric signature scheme :: asymmetric means uses different methods to generate signatures for data and query strings.
+  - PHASE 2: find the exiting stuff in the paper
+    - How can I use this
+    - does this really do what the author claims
+    - what if 
+  - PHASE 3: read thoroughly
+    - the choices the author made
+      - introduce a general framework to capture the commonalities of many existing algorithms
+      - IndexGram :: the query string is divided into multiple substrings and each substring is used to probe an index.
+    - whether the assumptions and formalizations are realistic
+      - AS_1 :: If two strings are similar by having a small edit distance between them, then part of them (signature) must be identical
+      - AS_2 :: The signature must be part of the string content (content signature)
+    - the directions the work suggests
+    - implement the toy version of the programs
+** [[file:~/Dropbox/paper/Gionis.pdf][Similarity Search in High Dimensions via Hashing]]
+   :PROPERTIES:
+   :CUSTOM_ID: high_dimension_hashing
+   :END:
+  - Phase 1:
+    - Motivation: What in general the paper is about
+      - Existing search/index structures scale poorly with data dimensionality.
+      - Indexing techniques based on space partitioning degrade to linear search for high dimensions
+      - approximate answer is enough (random sampling for histogram estimation, wavelets for selectivity estimation, approximate SVD)
+    - What the claimed contribution
+      - Hash the points from the database such that the probability of collision is much higher for objects that are close to each other than for those
+	that are far apart
+  - PHASE 2: find the exiting stuff in the paper
+    - How can I use this
+    - does this really do what the author claims
+    - what if 
+  - PHASE 3: read thoroughly
+    - the choices the author made
+    - whether the assumptions and formalizations are realistic
+    - the directions the work suggests
+    - implement the toy version of the programs
+** [[file:~/Dropbox/paper/p997-zhai.pdf][A probabilistic algorithm for high dimensional similarity search]]
+
+** [[file:~/Dropbox/paper/p.pdf][Nearest-Neighbor Searching and Metric Space Dimensions]]
+** [[file:~/Dropbox/paper/p517-r_hjaltason.pdf][Index-Driven Similarity Search in Metric Spaces]]
+** [[file:~/Dropbox/paper/p743-sarawagi.pdf][Efficient set joins on similarity predicates]]
+** [[file:~/Dropbox/paper/ssjoin.pdf][A Primitive Operator for Similarity Joins in Data Cleaning]]
+
+* TOP-k Queries
+  :PROPERTIES:
+  :ARCHIVE_TIME: 2014-04-17 Thu 00:52
+  :ARCHIVE_FILE: ~/Dropbox/knowledge_graph/paper.org
+  :ARCHIVE_CATEGORY: paper
+  :END:
+** 问题定义
+   - The result of the top-k query is a set of $k$ objects ordered by scores that are generated by some scoring function.
+** 研究方向
+   - How to avoid searching all the objects in the underlying dataset?
+** 主要方法
+   - threshold algorithm :: the scoring function is a monotone function composed by using various attributes 
+			    associated with the objects in the input dataset.
+** [[file:~/Dropbox/paper/p601-jin.pdf][Efficient and Generic evaluation of ranked queries]]
+** [[file:~/Dropbox/paper/icde2012.pdf][Answering Why-not Questions on Top-k Queries]]
+** [[file:~/Dropbox/paper/p385-kim.pdf][Efficient Top-k Algorithms for approximate substring matching]]
+** [[file:~/Dropbox/paper/preftopk.pdf][Processing a Large Number of Continuous Preference Top-k Queries]]
+** [[file:~/Dropbox/paper/SIGMOD2012_Tagliasacchi.pdf][Top-k Bounded Diversification]]
+
+* 测试数据
+  :PROPERTIES:
+  :ARCHIVE_TIME: 2014-04-17 Thu 00:52
+  :ARCHIVE_FILE: ~/Dropbox/knowledge_graph/paper.org
+  :ARCHIVE_CATEGORY: paper
+  :END:
+** Intel sensor deployment application
+** Campaign expenses dataset
+   - http://www.fec.gov/disclosurep/PDownload.do
+** [[document:ebird-ref-data_V1.pdf][ebird-ref]]
+** SKY Server
+*** [[file:~/Dropbox/paper/0701173v1.pdf][SkyServer Traffic Report - The first five years]]
+*** [[file:~/Dropbox/paper/0202014.pdf][Data Mining the SDSS skyserver database]]
+** [[file:~/Dropbox/paper/tpch2.14.4.pdf][TPCH]]
+** IMDB
+** Election Campaign Expenses 
+   - http://www.fec.gov/disclosurep/PDownload.do

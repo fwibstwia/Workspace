@@ -1,0 +1,7 @@
+* Floating Point Cluster
+  - The kind of floating point inputs which will show significant
+    deviation will be clustered within a close set of values. 
+  - The scope of "error inputs" may be decided by the predicate.  
+  - Estimating the error may be used to estimate the numerical scope of different addition order.
+  - The order of input number have an influence for the final result.
+* F-score

@@ -1,0 +1,91 @@
+- The first two years
+  * textbooks and journal articles
+  * 10 most important papers in the subfield
+  * flip through the last year's worth of technical report
+- make a note, keep a log of interesting references, pay attention
+    to paper which cited frequently
+- [[file:~/Dropbox/book/efficientReading.pdf][Efficient Reading]]
+* Theory of computation
+** [[file:~/Dropbox/paper/Cook1971_Letter.pdf][The complexity of theorem-proving procedures]]
+** [[file:~/Dropbox/paper/p155-ladner.pdf][On the Structure of Polynomial Time Reducibility]]
+
+** High-dimensionality
+    - the mathematical foundations to deal with high-dimensional data: high-dimension
+      geometry along with vectors, matrices, and linear algebra; the second is the
+      combination with probability.
+*** [[file:~/Dropbox/book/high_dimension_theory.pdf][High Dimension Theory]]
+  - Effects in high dimension space
+    - Pure geometric effects: the volume of a cube grows exponentially with increasing dimension
+      the volume of a sphere grows exponentially with the dimension; most of the volume of a cube
+      is very close to the (d-1)-dimensional surface of the cube.
+*** Curse of dimensionality
+**** Dimension-reduction technique
+**** Karhunen-Loeve transform
+**** Principal components analysis
+**** latent semantic indexing
+**** Locality Sensitive Hashing
+    - [[#high_dimension_hashing][Similarity Search in High Dimensions via Hashing]]
+*** High Dimension Cluster
+    - Random Projection Theorem: finding neareast neighbors.If each web page is a
+      d-dimensional vector, then instead of spending time d to read the vector in 
+      its entirety, once the random projection to a k-dimensional space is done, one
+      needs only read k entries per vector.
+**** [[file:~/Dropbox/paper/jl.pdf][Database-friendly random projections: Johnson-Lindenstrauss with binary coins]]
+**** [[file:~/Dropbox/paper/KDD06_rp.pdf][Very Sparse Random Projections]]
+* Algorithms
+** [[file:~/Dropbox/paper/skiplists%20(1).pdf][Skip Lists-A probability alternative to balanced trees]]
+  - Phase 1:
+    - Motivation: What in general the paper is about
+      - random permute the input is impractical
+    - What the claimed contribution
+      - no input sequence consistently produces the worst-case performance
+      - balance a data structure probabilistically is easier than explicitly maintaining the balance
+      - skip lists are more natural representation than trees
+      - easier to implement and provides constant factor speed improvements over balanced tree and self-adjusting tree
+      - skip lists are very space efficient
+  - PHASE 2: find the exiting stuff in the paper
+    - How can I use this
+    - does this really do what the author claims
+    - what if 
+  - PHASE 3: read thoroughly
+    - the choices the author made
+    - whether the assumptions and formalizations are realistic
+    - the directions the work suggests
+    - implement the toy version of the programs
+* Floating Point - Reasoning
+** Combining Coq and Gappa for certifying floating-point program
+   - Gappa is very efficient at proving bounds, especially on rounding errors.
+   - the why platform structure is similar with what we want to implement.
+   - Caduceus cannot handle pointer casts and unions.
+   - Computations on real goals can be addressed using the "interval"
+     tactic which based on interval arithmetic. It decides
+     inequalities by bounding real expressions. "Once done with method
+     error, the user is left with VCs related to rounding errors"
+** Formalisms for Certifying Floating-Point Algorithms
+   - potential automative proofs :: verify that no overflows occur; forward error analysis
+   - forward error analysis :: prove that the |computed_result - ideal_result| is bounded by a specified constant.
+* Constructive Analysis
+** basic concepts
+   - Set :: A set exists only when it has been defined. To define a
+            set we prescribe,what we must do in order to construct an
+            element of the set, and what we must do to show that two
+            elements are equal.
+   - Axiom of choice :: It is an axiom of set theory equivalent to the
+        statement that the cartesian product of a collection of
+        non-empty sets is non-empty.
+* OpenCL
+** Basic Concepts
+   - Kernel :: a function that is executed on the device; kernels are
+               entry points to the device program and the only
+               functions that can be called from the host.
+   - SIMT :: single instruction multiple thread
+   - Work-item :: the smallest execution entity Every time a Kernel is
+                  launched, lots of work-items (a number specifyed by
+                  the programmer) are launched, each one executing the
+                  same code. Each work-item has an ID, which is
+                  accessible from the kernel, and which is used to
+                  distinguish the data to be processessed by each
+                  work-item
+   - Work-group :: allow communication and cooperation between
+                   work-items; reflect how work-items are organized.
+   - ND-Range :: specify how work-groups are organized
