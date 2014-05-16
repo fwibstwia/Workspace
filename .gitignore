@@ -1,4 +1,5 @@
 knowledge_graph/research/report/*
+opencl/tools-master/*
 *.vo
 *.glob
 *.class
