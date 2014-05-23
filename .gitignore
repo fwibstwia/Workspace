@@ -6,6 +6,7 @@ opencl/tools-master/*
 *.jar
 *.war
 *.ear
+*.out
 *~
 .#*
 .project

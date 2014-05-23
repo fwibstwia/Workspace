@@ -17,4 +17,5 @@
     - combine symbolic techniques and heuristics
   - Padding constant to handle the case that the exact value is 0 and
     we cannot compute the relative error in that situation.
+  - Use fast2Sum to get more accurate error bound.
 * F-score
