@@ -18,4 +18,6 @@
   - Padding constant to handle the case that the exact value is 0 and
     we cannot compute the relative error in that situation.
   - Use fast2Sum to get more accurate error bound.
+  - All threads try to access the same variable. This can lead to a race condition.
+  - Intel Math Kernel Library: floating point test example
 * F-score

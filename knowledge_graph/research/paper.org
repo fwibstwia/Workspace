@@ -73,7 +73,7 @@
    - Axiom of choice :: It is an axiom of set theory equivalent to the
         statement that the cartesian product of a collection of
         non-empty sets is non-empty.
-* OpenCL
+* OpenCL & OpenMP
 ** Basic Concepts
    - Kernel :: a function that is executed on the device; kernels are
                entry points to the device program and the only
@@ -89,3 +89,22 @@
    - Work-group :: allow communication and cooperation between
                    work-items; reflect how work-items are organized.
    - ND-Range :: specify how work-groups are organized
+** Restrictions for OpenMP Reductions:
+   - a is a scalar variable in the list
+   - expr is a scalar expression that does not reference a
+   - only +, *, - allowed
+   - vars in list have to be shared
+   for(int i = 0; i < 10; i ++){
+    a = a op expr
+   }
+   - typical reduction statements:
+     x = x op expr
+     x binop= expr
+     x = expr op x (except for subtraction)
+* Reproducible Arithmetics
+** [[file:~/Documents/Dropbox/study/Numerical%20Analysis/repsum.pdf][Parallel Reproducible Summation]]
+   - Higher precision cannot guarantee reproducibility when the result
+     is close to half-way between two floating point numbers in the
+     output precision; ill-conditioned inputs, a tiny sum resulting
+     from a lot of cancellation.
+
