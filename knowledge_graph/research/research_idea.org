@@ -20,4 +20,8 @@
   - Use fast2Sum to get more accurate error bound.
   - All threads try to access the same variable. This can lead to a race condition.
   - Intel Math Kernel Library: floating point test example
-* F-score
+* Other
+** Using "axiom of choice", every set can be well-ordered; but nobody has yet been able to define an explicit relation 
+  that well-orders the real numbers.
+[2014-05-27 Tue 12:11]*
+ F-score
