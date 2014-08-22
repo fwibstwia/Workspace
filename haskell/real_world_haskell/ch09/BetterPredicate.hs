@@ -1,9 +1,9 @@
 {-- snippet Predicate --}
 import Control.Monad (filterM)
 import System.Directory (Permissions(..), getModificationTime, getPermissions)
-import System.Time (ClockTime(..))
+import Data.Time.Clock (UTCTime(..))
 import System.FilePath (takeExtension)
-import Control.Exception (bracket, handle)
+import Control.Exception (SomeException(..), bracket, handle)
 import System.IO (IOMode(..), hClose, hFileSize, openFile)
 
 -- the function we wrote earlier
@@ -12,7 +12,7 @@ import RecursiveContents (getRecursiveContents)
 type Predicate =  FilePath      -- path to directory entry
                -> Permissions   -- permissions
                -> Maybe Integer -- file size (Nothing if not file)
-               -> ClockTime     -- last modified
+               -> UTCTime     -- last modified
                -> Bool
 {-- /snippet Predicate --}
 
@@ -27,7 +27,7 @@ simpleFileSize path = do
 {-- /snippet simpleFileSize --}
 
 {-- snippet getFileSize --}
-getFileSize path = handle (\_ -> return Nothing) $
+getFileSize path = handle (\(SomeException _) -> return Nothing) $
   bracket (openFile path ReadMode) hClose $ \h -> do
     size <- hFileSize h
     return (Just size)
@@ -36,7 +36,7 @@ getFileSize path = handle (\_ -> return Nothing) $
 {-- snippet saferFileSize --}
 saferFileSize :: FilePath -> IO (Maybe Integer)
 
-saferFileSize path = handle (\_ -> return Nothing) $ do
+saferFileSize path = handle (\(SomeException _) -> return Nothing) $ do
   h <- openFile path ReadMode
   size <- hFileSize h
   hClose h
@@ -67,7 +67,7 @@ myTest _ _ _ _ = False
 type InfoP a =  FilePath        -- path to directory entry
              -> Permissions     -- permissions
              -> Maybe Integer   -- file size (Nothing if not file)
-             -> ClockTime       -- last modified
+             -> UTCTime       -- last modified
              -> a
 
 pathP :: InfoP FilePath

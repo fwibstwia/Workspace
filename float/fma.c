@@ -386,8 +386,8 @@ int main(int argc, char *argv[]){
   printf("%s\n", constructParens(0, COUNT - 1));
   g_array_free(allResults, TRUE);
   
-  float max = 4 * rsMin * rsMin - 4 * rMin * (sMin - 14.128791f);
-  float min = 4 * rsMax * rsMax - 4 * rMax * (sMax - 14.128791f);
+  float max = 4 * rsMin * rsMin - 4 * rMin * (sMin - 14.128790f);
+  float min = 4 * rsMax * rsMax - 4 * rMax * (sMax - 14.128790f);
   printf("%f\n", max);
   printf("%f\n", min);
   
