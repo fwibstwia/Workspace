@@ -34,3 +34,9 @@ local.properties
 /float/FloatSumError/
 /float/fpa-heterogeneous/
 /openCl/tools-master/
+/haskell/c2smt
+/java/
+*.cabal-sandbox*
+dist/
+
+/haskell/c2smt
