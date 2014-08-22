@@ -1,0 +1,3 @@
+[submodule "haskell/c2smt"]
+	path = haskell/c2smt
+	url = https://github.com/fwibstwia/c2smt.git

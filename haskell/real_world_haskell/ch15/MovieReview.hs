@@ -5,7 +5,7 @@ data MovieReview = MovieReview {
       revTitle :: String
     , revUser :: String
     , revReview :: String
-    }
+    } deriving(Show)
 {-- /snippet MovieReview --}
 
 {-- snippet simpleReview --}
