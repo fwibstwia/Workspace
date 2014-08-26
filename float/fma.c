@@ -3,8 +3,9 @@
 #include <math.h>
 #include <glib.h>
 #include <mpfr.h>
+#include "reorder.h"
 
-#define COUNT 3
+#define COUNT 500
 #define MIN_RAND -10.0
 #define MAX_RAND 10.0
 
@@ -25,15 +26,7 @@ int choice[COUNT][COUNT];
 float cost[COUNT][COUNT];
 
 
-void init(){
-  srand((unsigned int) time(NULL));
 
-  for(int i = 0; i < COUNT; i ++){
-    nums[i].left = MIN_RAND + (float)rand()/(float)(RAND_MAX) * (MAX_RAND - MIN_RAND);
-    nums[i].right = MIN_RAND + (float)rand()/(float)(RAND_MAX) * (MAX_RAND - MIN_RAND);
-    inter_nums[i] = nums[i].left * nums[i].right;
-  }
-}
 /*
 GArray* getAllInterOrderResults(int i, int j){
   int k;
@@ -217,6 +210,27 @@ void getBound(int direction){
     }    
   }
 }
+
+float getMaxWithFMA(int round_mode, float* fs1, float* fs2, int size){
+  fesetround(round_mode);
+  for(int i = 0; i < size; i ++){
+    nums[i].left = fs1[i];
+    nums[i].right = fs2[i];
+  }
+  getBound(0);
+  return cost[0][COUNT-1];
+}
+
+float getMinWithFMA(int round_mode, float* fs1, float* fs2, int size){
+  fesetround(round_mode);
+  for(int i = 0; i < size; i ++){
+    nums[i].left = fs1[i];
+    nums[i].right = fs2[i];
+  }
+  getBound(1);
+  return cost[0][COUNT-1];
+}
+
 /*
 char* constructParens(int i, int j){
   char bufl[1024];
@@ -308,122 +322,4 @@ void compareResults(){
   printf("fma result: %f\n", fmaR);
   }*/
 
-int main(int argc, char *argv[]){
-  init();
- float radius = 28.7847158754,
- sz = 1.6603170116,
- sy = 4.8326674,
- sx = -1.6350498,
- rz = 3.2025185,
- ry = -1.0450602,
-  rx = 0.125;
-
-  GArray* allResults;
-  GArray* allInterResults;
-  nums[0].left = rx;
-  nums[0].right = rx;
-  nums[1].left = ry;
-  nums[1].right = ry;
-  nums[2].left = rz;
-  nums[2].right = rz;
-  allResults = getAllOrderResults(0, COUNT - 1);
-  g_array_sort(allResults, float_sort);
-  printf("All fma min: %f\n", g_array_index(allResults, gfloat, 0));
-  printf("All fma max: %f\n", g_array_index(allResults, gfloat, (allResults -> len) - 1));
-  getBound(0);
-  float rMin = cost[0][COUNT-1];
-  printf("%f\n", cost[0][COUNT-1]);
-  //printf("%s\n", constructParens(0, COUNT - 1));
-  getBound(1);
-  float rMax = cost[0][COUNT-1];
-  printf("%f\n", cost[0][COUNT-1]);
-  //printf("%s\n", constructParens(0, COUNT - 1));
-  g_array_free(allResults, TRUE);
-  
-
-  nums[0].left = rx;
-  nums[0].right = sx;
-  nums[1].left = ry;
-  nums[1].right = sy;
-  nums[2].left = rz;
-  nums[2].right = sz;
-  allResults = getAllOrderResults(0, COUNT - 1);
-  g_array_sort(allResults, float_sort);
-  printf("All fma min: %f\n", g_array_index(allResults, gfloat, 0));
-  printf("All fma max: %f\n", g_array_index(allResults, gfloat, (allResults -> len) - 1));
-  getBound(0);
-  float rsMin = (-2.0) * cost[0][COUNT-1];
-  printf("%f\n", cost[0][COUNT-1]);
-  //printf("%s\n", constructParens(0, COUNT - 1));
-  getBound(1);
-  float rsMax = (-2.0) * cost[0][COUNT-1];
-  printf("%f\n", cost[0][COUNT-1]);
-  //printf("%s\n", constructParens(0, COUNT - 1));
-  g_array_free(allResults, TRUE);
-  /*
-  inter_nums[0] = nums[0].left * nums[0].right;
-  inter_nums[1] = nums[1].left * nums[1].right;
-  inter_nums[2] = nums[2].left * nums[2].right;
-  allInterResults = getAllInterOrderResults(0, COUNT - 1);
-  g_array_sort(allInterResults, order_sort); 
-  struct orderInfo nonFMAMin = g_array_index(allInterResults, struct orderInfo, 0);
-  printf("All non-fma min: %f\n", nonFMAMin.value);
-  printf("All non-fma min: %s\n", nonFMAMin.order);
-  struct orderInfo nonFMAMax = g_array_index(allInterResults, struct orderInfo, (allInterResults -> len) - 1);
-  printf("All non-fma max: %f\n", nonFMAMax.value);
-  printf("All non-fma max: %s\n", nonFMAMax.order);
-  */
-
-  nums[0].left = sx;
-  nums[0].right = sx;
-  nums[1].left = sy;
-  nums[1].right = sy;
-  nums[2].left = sz;
-  nums[2].right =sz;
-  allResults = getAllOrderResults(0, COUNT - 1);
-  g_array_sort(allResults, float_sort);
-  printf("All fma min: %f\n", g_array_index(allResults, gfloat, 0));
-  printf("All fma max: %f\n", g_array_index(allResults, gfloat, (allResults -> len) - 1));
-  getBound(0);
-  float sMin = cost[0][COUNT-1];
-  printf("%f\n", cost[0][COUNT-1]);
-  //printf("%s\n", constructParens(0, COUNT - 1));
-  getBound(1);
-  float sMax = cost[0][COUNT-1];
-  printf("%f\n", cost[0][COUNT-1]);
-  // printf("%s\n", constructParens(0, COUNT - 1));
-  g_array_free(allResults, TRUE);
- 
-  float dMin = rsMin * rsMin - 4 * rMin * (sMin - radius);
-  float dMax = rsMax * rsMax - 4 * rMax * (sMax - radius);
-  float ldist = (-rsMin - sqrt(dMin))/(2 * rMin);
-  printf("%f\n", ldist);
- 
-/*compareResults();
-  getInfResult();
-  for(int i = 0; i < COUNT; i ++){
-    printf("%f\n", nums[i].left);
-    printf("%f\n", nums[i].right);
-  }
-  allInterResults = getAllInterOrderResults(0, COUNT - 1);
-  g_array_sort(allInterResults, order_sort); 
-  struct orderInfo nonFMAMin = g_array_index(allInterResults, struct orderInfo, 0);
-  printf("All non-fma min: %f\n", nonFMAMin.value);
-  printf("All non-fma min: %s\n", nonFMAMin.order);
-  struct orderInfo nonFMAMax = g_array_index(allInterResults, struct orderInfo, (allInterResults -> len) - 1);
-  printf("All non-fma max: %f\n", nonFMAMax.value);
-  printf("All non-fma max: %s\n", nonFMAMax.order);
-  allResults = getAllOrderResults(0, COUNT - 1);
-  g_array_sort(allResults, float_sort);
-  printf("All fma min: %f\n", g_array_index(allResults, gfloat, 0));
-  printf("All fma max: %f\n", g_array_index(allResults, gfloat, (allResults -> len) - 1));
-  getBound(0);
-  printf("%f\n", cost[0][COUNT-1]);
-  printf("%s\n", constructParens(0, COUNT - 1));
-  getBound(1);
-  printf("%f\n", cost[0][COUNT-1]);
-  printf("%s\n", constructParens(0, COUNT - 1));
-  g_array_free(allResults, TRUE);
-  g_array_free(allInterResults, TRUE);*/
-}
 
