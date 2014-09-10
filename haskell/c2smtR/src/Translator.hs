@@ -25,7 +25,7 @@ translate :: CTranslUnit -> Script
 translate tu = Script cmds
   where
     CCompound _ block_items _ = fnBody . fromJust $ findFn tu "main"
-    cmds = concatMap translateTopLevel block_items
+    cmds = concatMap translateTopLevel block_items 
 
 -- | Translates statements and declarations in the body of the "main"
 -- function.
@@ -40,7 +40,7 @@ translateTopLevel (CBlockDecl decl) = fmap floatDecl ids
 
 -- | Translates a statement and asserts it.
 translateTopLevelStmt :: CStat -> Command
-translateTopLevelStmt (CReturn _ _) = CmdExit
+translateTopLevelStmt (CReturn _ _) = CmdCheckSat
 translateTopLevelStmt stmt = CmdAssert . translateStmt $ stmt
 
 -- | Translates each of the statements in the list of block items to
