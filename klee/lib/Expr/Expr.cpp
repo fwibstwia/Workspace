@@ -175,14 +175,6 @@ unsigned Expr::computeHash() {
   hashValue = res;
   return hashValue;
 }
-unsigned FConstantExpr::computeHash() {
-#if LLVM_VERSION_CODE >= LLVM_VERSION(3, 1)
-  hashValue = hash_value(value) ^ (getWidth() * MAGIC_HASH_CONSTANT);
-#else
-  hashValue = value.getHashValue() ^ (getWidth() * MAGIC_HASH_CONSTANT);
-#endif
-  return hashValue;
-}
 
 unsigned ConstantExpr::computeHash() {
 #if LLVM_VERSION_CODE >= LLVM_VERSION(3, 1)
@@ -369,6 +361,15 @@ ref<ConstantExpr> ConstantExpr::Concat(const ref<ConstantExpr> &RHS) {
   return ConstantExpr::alloc(Tmp);
 }
 
+const llvm::APFloat ConstantExpr::getAPFValue() const{
+#if LLVM_VERSION_CODE >= LLVM_VERSION(3,3)
+    llvm::APFloat res(ConstantExpr::fpWidthToSemantics(width), value);
+#else
+    llvm::APFloat res(value);
+#endif
+    return res;
+}
+
 ref<ConstantExpr> ConstantExpr::Extract(unsigned Offset, Width W) {
   return ConstantExpr::alloc(APInt(value.ashr(Offset)).zextOrTrunc(W));
 }
@@ -385,6 +386,18 @@ ref<ConstantExpr> ConstantExpr::Add(const ref<ConstantExpr> &RHS) {
   return ConstantExpr::alloc(value + RHS->value);
 }
 
+ref<ConstantExpr> ConstantExpr::FAdd(const ref<ConstantExpr> &RHS){
+  assert(getWidth() == RHS->getWidth() && "Unsupported FAdd operation");
+#if LLVM_VERSION_CODE >= LLVM_VERSION(3, 3)
+  llvm::APFloat Res(ConstantExpr::fpWidthToSemantics(getWidth()), getAPValue());
+  Res.add(APFloat(ConstantExpr::fpWidthToSemantics(RHS->getWidth()), RHS->getAPValue()), APFloat::rmNearestTiesToEven);
+#else
+  llvm::APFloat Res(getAPValue());
+  Res.add(APFloat(RHS->getAPValue()), APFloat::rmNearestTiesToEven);
+#endif
+  return ConstantExpr::alloc(Res);
+}
+
 ref<ConstantExpr> ConstantExpr::Neg() {
   return ConstantExpr::alloc(-value);
 }
@@ -393,8 +406,15 @@ ref<ConstantExpr> ConstantExpr::Sub(const ref<ConstantExpr> &RHS) {
   return ConstantExpr::alloc(value - RHS->value);
 }
 
+ref<ConstantExpr> ConstantExpr::FSub(const ref<ConstantExpr> &RHS) {
+
+}
+
 ref<ConstantExpr> ConstantExpr::Mul(const ref<ConstantExpr> &RHS) {
   return ConstantExpr::alloc(value * RHS->value);
+}
+
+ref<ConstantExpr> ConstantExpr::FMul(const ref<ConstantExpr> &RHS) {
 }
 
 ref<ConstantExpr> ConstantExpr::UDiv(const ref<ConstantExpr> &RHS) {
@@ -405,12 +425,19 @@ ref<ConstantExpr> ConstantExpr::SDiv(const ref<ConstantExpr> &RHS) {
   return ConstantExpr::alloc(value.sdiv(RHS->value));
 }
 
+ref<ConstantExpr> ConstantExpr::FDiv(const ref<ConstantExpr> &RHS) {
+}
+
 ref<ConstantExpr> ConstantExpr::URem(const ref<ConstantExpr> &RHS) {
   return ConstantExpr::alloc(value.urem(RHS->value));
 }
 
 ref<ConstantExpr> ConstantExpr::SRem(const ref<ConstantExpr> &RHS) {
   return ConstantExpr::alloc(value.srem(RHS->value));
+}
+
+ref<ConstantExpr> ConstantExpr::FRem(const ref<ConstantExpr> &RHS) {
+
 }
 
 ref<ConstantExpr> ConstantExpr::And(const ref<ConstantExpr> &RHS) {
@@ -739,6 +766,28 @@ static ref<Expr> AddExpr_create(Expr *l, Expr *r) {
   }  
 }
 
+static ref<Expr> FAddExpr_createPartialR(const ref<ConstantExpr> &cl, Expr *r) {
+  llvm::APFloat v = cl->getAPFValue();
+  if (v.isZero()) {
+    return r;
+  } else {
+    return FAddExpr::alloc(cl, r);
+  }
+}
+
+static ref<Expr> FAddExpr_createPartial(Expr *l, const ref<ConstantExpr> &cr) {
+  llvm::APFloat v = cr->getAPFValue();
+  if (v.isZero()) {
+    return l;
+  } else {
+    return FAddExpr::alloc(l, cr);
+  }
+}
+
+static ref<Expr> FAddExpr_create(Expr *l, Expr *r) {
+  return FAddExpr::alloc(l, r);
+}
+
 static ref<Expr> SubExpr_createPartialR(const ref<ConstantExpr> &cl, Expr *r) {
   Expr::Width type = cl->getWidth();
 
@@ -943,6 +992,7 @@ ref<Expr>  _e_op ::create(const ref<Expr> &l, const ref<Expr> &r) { \
 }
 
 BCREATE_R(AddExpr, Add, AddExpr_createPartial, AddExpr_createPartialR)
+BCREATE_R(FAddExpr, FAdd, FAddExpr_createPartial, FAddExpr_createPartialR)
 BCREATE_R(SubExpr, Sub, SubExpr_createPartial, SubExpr_createPartialR)
 BCREATE_R(MulExpr, Mul, MulExpr_createPartial, MulExpr_createPartialR)
 BCREATE_R(AndExpr, And, AndExpr_createPartial, AndExpr_createPartialR)

@@ -137,6 +137,13 @@ public:
     URem,
     SRem,
 
+    // Floating-point Arithmetic
+    FAdd,
+    FSub,
+    FMul,
+    FDiv,
+    FRem,
+
     // Bit
     Not,
     And,
@@ -323,65 +330,36 @@ inline std::stringstream &operator<<(std::stringstream &os, const Expr::Kind kin
 }
 
 // Terminal Exprs
-class FConstantExpr : public Expr {
-public:
-  static const Kind kind = Constant;
-  static const unsigned numKids = 0;
-private:
-  llvm::APFloat value;
-  FConstantExpr(const llvm::APFloat &v) : value(v) {}
-public:
-  ~FConstantExpr() {}
 
-  Width getWidth() const { return value.bitcastToAPInt.getBitWidth; }
-  Kind getKind() const { return Constant; }
-
-  unsigned getNumKids() const { return 0; }
-  ref<Expr> getKid(unsigned i) const {return 0;}
-
-  const llvm::APFloat &getAPValue() const { return value; }
-
-  void toString() const;
-
-  virtual ref<Expr> rebuild(ref<Expr> kids[]) const{
-    assert(0 && "rebuild() on FConstantExpr");
-    return const_cast<FConstantExpr*>(this);
-  }
-
-  virtual unsigned computeHash();
-
-  //static ref<Expr> fromMemory(void *address, Width w);
-  //void toMemory(void *address);
-
-  static ref<FConstantExpr> alloc(const llvm::APFloat &v) {
-    ref<FConstantExpr> r(new FConstantExpr(v));
-    r -> computeHash();
-    return r;
-  }
-
-  static bool classof(const Expr *E) {
-    return E->getKind() == Expr::Constant;
-  }
-
-  static bool classof(const FConstantExpr *) { return true; }
-
-};
 
 
 class ConstantExpr : public Expr {
 public:
   static const Kind kind = Constant;
   static const unsigned numKids = 0;
-
 private:
   llvm::APInt value;
-  ConstantExpr(const llvm::APInt &v) : value(v) {}
-
+  ConstantExpr(const llvm::APInt &v) : value(v){}
+  static const llvm::fltSemantics * fpWidthToSemantics(unsigned width) {
+    switch(width) {
+    case Expr::Int32:
+      return &llvm::APFloat::IEEEsingle;
+    case Expr::Int64:
+      return &llvm::APFloat::IEEEdouble;
+    case Expr::Fl80:
+      return &llvm::APFloat::x87DoubleExtended;
+    default:
+      return 0;
+    }
+  }
 public:
   ~ConstantExpr() {}
   
-  Width getWidth() const { return value.getBitWidth(); }
-  Kind getKind() const { return Constant; }
+  Width getWidth() const { 
+    return value.getBitWidth(); 
+  }
+
+  Kind getKind() const { return kind; }
 
   unsigned getNumKids() const { return 0; }
   ref<Expr> getKid(unsigned i) const { return 0; }
@@ -391,7 +369,7 @@ public:
   /// Clients should generally not use the APInt value directly and instead use
   /// native ConstantExpr APIs.
   const llvm::APInt &getAPValue() const { return value; }
-
+  const llvm::APFloat getAPFValue() const;
 
   /// getZExtValue - Returns the constant value zero extended to the
   /// return type of this method.
@@ -418,8 +396,6 @@ public:
   /// \param radix specifies the base (e.g. 2,10,16). The default is base 10
   void toString(std::string &Res, unsigned radix=10) const;
 
-
- 
   int compareContents(const Expr &b) const { 
     const ConstantExpr &cb = static_cast<const ConstantExpr&>(b);
     if (getWidth() != cb.getWidth()) 
@@ -492,12 +468,17 @@ public:
   ref<ConstantExpr> ZExt(Width W);
   ref<ConstantExpr> SExt(Width W);
   ref<ConstantExpr> Add(const ref<ConstantExpr> &RHS);
+  ref<ConstantExpr> FAdd(const ref<ConstantExpr> &RHS);
   ref<ConstantExpr> Sub(const ref<ConstantExpr> &RHS);
+  ref<ConstantExpr> FSub(const ref<ConstantExpr> &RHS);
   ref<ConstantExpr> Mul(const ref<ConstantExpr> &RHS);
+  ref<ConstantExpr> FMul(const ref<ConstantExpr> &RHS);
   ref<ConstantExpr> UDiv(const ref<ConstantExpr> &RHS);
   ref<ConstantExpr> SDiv(const ref<ConstantExpr> &RHS);
+  ref<ConstantExpr> FDiv(const ref<ConstantExpr> &RHS);
   ref<ConstantExpr> URem(const ref<ConstantExpr> &RHS);
   ref<ConstantExpr> SRem(const ref<ConstantExpr> &RHS);
+  ref<ConstantExpr> FRem(const ref<ConstantExpr> &RHS);
   ref<ConstantExpr> And(const ref<ConstantExpr> &RHS);
   ref<ConstantExpr> Or(const ref<ConstantExpr> &RHS);
   ref<ConstantExpr> Xor(const ref<ConstantExpr> &RHS);
@@ -522,7 +503,6 @@ public:
   ref<ConstantExpr> Not();
 };
 
-  
 // Utility classes
 
 class NonConstantExpr : public Expr {
@@ -1074,12 +1054,17 @@ public:                                                              \
 };                                                                   \
 
 ARITHMETIC_EXPR_CLASS(Add)
+ARITHMETIC_EXPR_CLASS(FAdd)
 ARITHMETIC_EXPR_CLASS(Sub)
+ARITHMETIC_EXPR_CLASS(FSub)
 ARITHMETIC_EXPR_CLASS(Mul)
+ARITHMETIC_EXPR_CLASS(FMul)
 ARITHMETIC_EXPR_CLASS(UDiv)
 ARITHMETIC_EXPR_CLASS(SDiv)
+ARITHMETIC_EXPR_CLASS(FDiv)
 ARITHMETIC_EXPR_CLASS(URem)
 ARITHMETIC_EXPR_CLASS(SRem)
+ARITHMETIC_EXPR_CLASS(FRem)
 ARITHMETIC_EXPR_CLASS(And)
 ARITHMETIC_EXPR_CLASS(Or)
 ARITHMETIC_EXPR_CLASS(Xor)

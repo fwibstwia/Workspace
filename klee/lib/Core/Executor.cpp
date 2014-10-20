@@ -972,7 +972,7 @@ ref<klee::ConstantExpr> Executor::evalConstant(const Constant *c) {
     if (const ConstantInt *ci = dyn_cast<ConstantInt>(c)) {
       return ConstantExpr::alloc(ci->getValue());
     } else if (const ConstantFP *cf = dyn_cast<ConstantFP>(c)) {      
-      return ConstantExpr::alloc(cf->getValueAPF().bitcastToAPInt());
+      return ConstantExpr::alloc(cf->getValueAPF());
     } else if (const GlobalValue *gv = dyn_cast<GlobalValue>(c)) {
       return globalAddresses.find(gv)->second;
     } else if (isa<ConstantPointerNull>(c)) {
@@ -2028,6 +2028,10 @@ void Executor::executeInstruction(ExecutionState &state, KInstruction *ki) {
     // Floating point instructions
 
   case Instruction::FAdd: {
+    ref<Expr> left = eval(ki, 0, state).value;
+    ref<Expr> right = eval(ki, 1, state).value;
+    bindLocal(ki, state, FAddExpr::create(left, right));
+    /*
     ref<ConstantExpr> left = toConstant(state, eval(ki, 0, state).value,
                                         "floating point");
     ref<ConstantExpr> right = toConstant(state, eval(ki, 1, state).value,
@@ -2044,6 +2048,7 @@ void Executor::executeInstruction(ExecutionState &state, KInstruction *ki) {
     Res.add(APFloat(right->getAPValue()), APFloat::rmNearestTiesToEven);
 #endif
     bindLocal(ki, state, ConstantExpr::alloc(Res.bitcastToAPInt()));
+    */
     break;
   }
 
