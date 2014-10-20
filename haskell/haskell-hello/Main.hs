@@ -1,10 +1,14 @@
-muller :: Float -> Float -> Float
-muller y z = 108 - (815 - 1500/z)/y
+module CritCmpFinder where
 
-ce :: Float -> Float -> Int -> Float
-ce x y 0 = x
-ce x y 1 = y
-ce x y n = ce y (muller y x) m
-           where m = n - 1
+import Control.Monad
+import MiniSat
+
+
+
+
+
+  
+
+
   
 

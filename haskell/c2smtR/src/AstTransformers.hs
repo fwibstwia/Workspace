@@ -28,7 +28,7 @@ import           Unsafe.Coerce
 
 import           Config
 import           Utils
-
+import           MiniSat
 -- For playing in the REPL
 import           CExamples
 

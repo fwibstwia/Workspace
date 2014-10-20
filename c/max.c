@@ -15,5 +15,6 @@ int main(){
   double sy = 4.8326674;
   double sz = -3.6311855;
   double r = cal(rx, ry, rz, sx, sy, sz);
-  printf("%20.18f\n", r);
+  double h = 0.9375*0.9375;
+  printf("%20.18f\n", h);
 }

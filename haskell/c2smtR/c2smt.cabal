@@ -15,6 +15,7 @@ executable c2smtR
 
   build-depends: base,
                  cmdargs,
+                 minisat,
                  language-c ==0.4.5,
                  syb,
                  smtLib,
@@ -22,3 +23,4 @@ executable c2smtR
                  containers,
                  mtl,
                  pretty
+
