@@ -338,8 +338,10 @@ public:
   static const Kind kind = Constant;
   static const unsigned numKids = 0;
 private:
+  bool isFloat;
   llvm::APInt value;
-  ConstantExpr(const llvm::APInt &v) : value(v){}
+  ConstantExpr(const llvm::APInt &v) : value(v), isFloat(false){}
+  ConstantExpr(const llvm::APInt &v, bool _isFloat) : value(v), isFloat(_isFloat){}
   static const llvm::fltSemantics * fpWidthToSemantics(unsigned width) {
     switch(width) {
     case Expr::Int32:
@@ -394,7 +396,7 @@ public:
   /// toString - Return the constant value as a string
   /// \param Res specifies the string for the result to be placed in
   /// \param radix specifies the base (e.g. 2,10,16). The default is base 10
-  void toString(std::string &Res, unsigned radix=10) const;
+  void toString(std::string &Res, unsigned radix=10, unsigned logic=0) const;
 
   int compareContents(const Expr &b) const { 
     const ConstantExpr &cb = static_cast<const ConstantExpr&>(b);
@@ -420,9 +422,15 @@ public:
     r->computeHash();
     return r;
   }
+  
+  static ref<ConstantExpr> alloc(const llvm::APInt &v, bool isFloat){
+    ref<ConstantExpr> r(new ConstantExpr(v, isFloat));
+    r->computeHash();
+    return r;
+  }
 
   static ref<ConstantExpr> alloc(const llvm::APFloat &f) {
-    return alloc(f.bitcastToAPInt());
+    return alloc(f.bitcastToAPInt(), true);
   }
 
   static ref<ConstantExpr> alloc(uint64_t v, Width w) {
@@ -627,7 +635,7 @@ public:
   const std::string name;
   // FIXME: Not 64-bit clean.
   unsigned size;  
-
+  unsigned sort; //the sort:bv, int, real
   /// constantValues - The constant initial values for this array, or empty for
   /// a symbolic array. If non-empty, this size of this array is equivalent to
   /// the array size.
@@ -646,8 +654,8 @@ public:
   Array(const std::string &_name, uint64_t _size, 
         const ref<ConstantExpr> *constantValuesBegin = 0,
         const ref<ConstantExpr> *constantValuesEnd = 0,
-        Expr::Width _domain = Expr::Int32, Expr::Width _range = Expr::Int8)
-    : name(_name), size(_size), 
+        Expr::Width _domain = Expr::Int32, Expr::Width _range = Expr::Int8, unsigned _sort = 0)
+    : name(_name), size(_size), sort(_sort),
       constantValues(constantValuesBegin, constantValuesEnd),
       domain(_domain), range(_range) {
     assert((isSymbolicArray() || constantValues.size() == size) &&
@@ -660,6 +668,7 @@ public:
              "Invalid initial constant value!");
 #endif
   }
+
   ~Array();
 
   bool isSymbolicArray() const { return constantValues.empty(); }

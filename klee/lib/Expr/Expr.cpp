@@ -352,8 +352,16 @@ void ConstantExpr::toMemory(void *address) {
   }
 }
 
-void ConstantExpr::toString(std::string &Res, unsigned radix) const {
-  Res = value.toString(radix, false);
+void ConstantExpr::toString(std::string &Res, unsigned radix, unsigned logic) const {
+  if(logic == 0){ //print the bit vector value
+    Res = value.toString(radix, false);
+  }else{
+    if(isFloat){
+      
+    }else{
+      Res = value.toString(radix, true);
+    }
+  }
 }
 
 ref<ConstantExpr> ConstantExpr::Concat(const ref<ConstantExpr> &RHS) {
@@ -793,6 +801,7 @@ static ref<Expr> FAddExpr_create(Expr *l, Expr *r) {
   return FAddExpr::alloc(l, r);
 }
 
+
 static ref<Expr> SubExpr_createPartialR(const ref<ConstantExpr> &cl, Expr *r) {
   Expr::Width type = cl->getWidth();
 
@@ -843,6 +852,13 @@ static ref<Expr> SubExpr_create(Expr *l, Expr *r) {
   }  
 }
 
+static ref<Expr> FSubExpr_createPartialR(const ref<ConstantExpr> &cl, Expr *r) {
+}
+static ref<Expr> FSubExpr_createPartial(Expr *l, const ref<ConstantExpr> &cr) {
+}
+static ref<Expr> FSubExpr_create(Expr *l, Expr *r) {
+}
+
 static ref<Expr> MulExpr_createPartialR(const ref<ConstantExpr> &cl, Expr *r) {
   Expr::Width type = cl->getWidth();
 
@@ -867,6 +883,13 @@ static ref<Expr> MulExpr_create(Expr *l, Expr *r) {
   } else {
     return MulExpr::alloc(l, r);
   }
+}
+
+static ref<Expr> FMulExpr_createPartialR(const ref<ConstantExpr> &cl, Expr *r) {
+}
+static ref<Expr> FMulExpr_createPartial(Expr *l, const ref<ConstantExpr> &cr) {
+}
+static ref<Expr> FMulExpr_create(Expr *l, Expr *r) {
 }
 
 static ref<Expr> AndExpr_createPartial(Expr *l, const ref<ConstantExpr> &cr) {
@@ -934,6 +957,9 @@ static ref<Expr> SDivExpr_create(const ref<Expr> &l, const ref<Expr> &r) {
   }
 }
 
+static ref<Expr> FDivExpr_create(const ref<Expr> &l, const ref<Expr> &r) {
+}
+
 static ref<Expr> URemExpr_create(const ref<Expr> &l, const ref<Expr> &r) {
   if (l->getWidth() == Expr::Bool) { // r must be 1
     return ConstantExpr::create(0, Expr::Bool);
@@ -948,6 +974,9 @@ static ref<Expr> SRemExpr_create(const ref<Expr> &l, const ref<Expr> &r) {
   } else{
     return SRemExpr::alloc(l, r);
   }
+}
+
+static ref<Expr> FRemExpr_create(const ref<Expr> &l, const ref<Expr> &r) {
 }
 
 static ref<Expr> ShlExpr_create(const ref<Expr> &l, const ref<Expr> &r) {
@@ -999,14 +1028,18 @@ ref<Expr>  _e_op ::create(const ref<Expr> &l, const ref<Expr> &r) { \
 BCREATE_R(AddExpr, Add, AddExpr_createPartial, AddExpr_createPartialR)
 BCREATE_R(FAddExpr, FAdd, FAddExpr_createPartial, FAddExpr_createPartialR)
 BCREATE_R(SubExpr, Sub, SubExpr_createPartial, SubExpr_createPartialR)
+BCREATE_R(FSubExpr, FSub, FSubExpr_createPartial, FSubExpr_createPartialR)
 BCREATE_R(MulExpr, Mul, MulExpr_createPartial, MulExpr_createPartialR)
+BCREATE_R(FMulExpr, FMul, FMulExpr_createPartial, MulExpr_createPartialR)
 BCREATE_R(AndExpr, And, AndExpr_createPartial, AndExpr_createPartialR)
 BCREATE_R(OrExpr, Or, OrExpr_createPartial, OrExpr_createPartialR)
 BCREATE_R(XorExpr, Xor, XorExpr_createPartial, XorExpr_createPartialR)
 BCREATE(UDivExpr, UDiv)
 BCREATE(SDivExpr, SDiv)
+BCREATE(FDivExpr, FDiv)
 BCREATE(URemExpr, URem)
 BCREATE(SRemExpr, SRem)
+BCREATE(FRemExpr, FRem)
 BCREATE(ShlExpr, Shl)
 BCREATE(LShrExpr, LShr)
 BCREATE(AShrExpr, AShr)

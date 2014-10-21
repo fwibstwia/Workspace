@@ -136,9 +136,19 @@ void ExprSMTLIBPrinter::printConstant(const ref<ConstantExpr> &e) {
     break;
 
   case DECIMAL:
-    e->toString(value, 10);
-    *p << "(_ bv" << value << " " << e->getWidth() << ")";
-    break;
+    switch (logicToUse){
+    case QF_ABV:
+    case QF_AUFBV:
+      e->toString(value, 10);
+      *p << "(_ bv" << value << " " << e->getWidth() << ")";
+      break;
+    case AUFNIRA:
+      e->toString(value, 10, 1);
+      *p << value;
+      break;
+    default:
+      llvm::errs() << "ExprSMTLIBPrinter::printConstant() : Unexpected Logic ";
+    }
 
   default:
     llvm::errs() << "ExprSMTLIBPrinter::printConstant() : Unexpected Constant "

@@ -67,12 +67,17 @@ namespace klee {
     case Instruction::ZExt:  return op1->ZExt(getWidthForLLVMType(type));
     case Instruction::SExt:  return op1->SExt(getWidthForLLVMType(type));
     case Instruction::Add:   return op1->Add(op2);
+    case Instruction::FAdd:  return op1->FAdd(op2);
     case Instruction::Sub:   return op1->Sub(op2);
+    case Instruction::FSub:   return op1->FSub(op2);
     case Instruction::Mul:   return op1->Mul(op2);
+    case Instruction::FMul:   return op1->FMul(op2);
     case Instruction::SDiv:  return op1->SDiv(op2);
     case Instruction::UDiv:  return op1->UDiv(op2);
+    case Instruction::FDiv:  return op1->FDiv(op2);
     case Instruction::SRem:  return op1->SRem(op2);
     case Instruction::URem:  return op1->URem(op2);
+    case Instruction::FRem:  return op1->FRem(op2);
     case Instruction::And:   return op1->And(op2);
     case Instruction::Or:    return op1->Or(op2);
     case Instruction::Xor:   return op1->Xor(op2);

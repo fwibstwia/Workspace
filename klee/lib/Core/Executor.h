@@ -271,6 +271,9 @@ private:
                               ref<Expr> value /* undef if read */,
                               KInstruction *target /* undef if write */);
 
+  void executeMakeSymbolicWithSort(ExecutionState &state, const MemoryObject *mo,
+                           const std::string &name, const unsigned sort);
+
   void executeMakeSymbolic(ExecutionState &state, const MemoryObject *mo,
                            const std::string &name);
 

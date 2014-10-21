@@ -78,6 +78,7 @@ static SpecialFunctionHandler::HandlerInfo handlerInfo[] = {
   add("klee_get_errno", handleGetErrno, true),
   add("klee_is_symbolic", handleIsSymbolic, true),
   add("klee_make_symbolic", handleMakeSymbolic, false),
+  add("klee_make_symbolic_with_sort", handleMakeSymbolicWithSort, false),
   add("klee_mark_global", handleMarkGlobal, false),
   add("klee_merge", handleMerge, false),
   add("klee_prefer_cex", handlePreferCex, false),
@@ -648,9 +649,9 @@ void SpecialFunctionHandler::handleMakeSymbolic(ExecutionState &state,
     name = "unnamed";
   } else {
     // FIXME: Should be a user.err, not an assert.
-    assert(arguments.size() == 4 &&
+    assert(arguments.size() == 3 &&
            "invalid number of arguments to klee_make_symbolic");  
-    name = readStringAtAddress(state, arguments[3]);
+    name = readStringAtAddress(state, arguments[2]);
   }
 
   Executor::ExactResolutionList rl;
@@ -686,6 +687,64 @@ void SpecialFunctionHandler::handleMakeSymbolic(ExecutionState &state,
     } else {      
       executor.terminateStateOnError(*s, 
                                      "wrong size given to klee_make_symbolic[_name]", 
+                                     "user.err");
+    }
+  }
+}
+
+void SpecialFunctionHandler::handleMakeSymbolicWithSort(ExecutionState &state,
+                                                KInstruction *target,
+                                                std::vector<ref<Expr> > &arguments) {
+  std::string name;
+  unsigned sort = 0;
+  if(ConstantExpr *CE = dyn_cast<ConstantExpr>(arguments[2])){
+    sort = CE->getZExtValue();
+  }
+
+  // FIXME: For backwards compatibility, we should eventually enforce the
+  // correct arguments.
+  if (arguments.size() == 3) {
+    name = "unnamed";
+  } else {
+    // FIXME: Should be a user.err, not an assert.
+    assert(arguments.size() == 4 &&
+           "invalid number of arguments to klee_make_symbolic");  
+    name = readStringAtAddress(state, arguments[3]);
+  }
+
+  Executor::ExactResolutionList rl;
+  executor.resolveExact(state, arguments[0], rl, "make_symbolic");
+  
+  for (Executor::ExactResolutionList::iterator it = rl.begin(), 
+         ie = rl.end(); it != ie; ++it) {
+    const MemoryObject *mo = it->first.first;
+    mo->setName(name);
+    
+    const ObjectState *old = it->first.second;
+    ExecutionState *s = it->second;
+    
+    if (old->readOnly) {
+      executor.terminateStateOnError(*s, 
+                                     "cannot make readonly object symbolic", 
+                                     "user.err");
+      return;
+    } 
+
+    // FIXME: Type coercion should be done consistently somewhere.
+    bool res;
+    bool success =
+      executor.solver->mustBeTrue(*s, 
+                                  EqExpr::create(ZExtExpr::create(arguments[1],
+                                                                  Context::get().getPointerWidth()),
+                                                 mo->getSizeExpr()),
+                                  res);
+    assert(success && "FIXME: Unhandled solver failure");
+    
+    if (res) {
+      executor.executeMakeSymbolicWithSort(*s, mo, name, sort);
+    } else {      
+      executor.terminateStateOnError(*s, 
+                                     "wrong size given to klee_make_symbolic_with_sort[_name]", 
                                      "user.err");
     }
   }
