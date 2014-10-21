@@ -648,9 +648,9 @@ void SpecialFunctionHandler::handleMakeSymbolic(ExecutionState &state,
     name = "unnamed";
   } else {
     // FIXME: Should be a user.err, not an assert.
-    assert(arguments.size()==3 &&
+    assert(arguments.size() == 4 &&
            "invalid number of arguments to klee_make_symbolic");  
-    name = readStringAtAddress(state, arguments[2]);
+    name = readStringAtAddress(state, arguments[3]);
   }
 
   Executor::ExactResolutionList rl;

@@ -111,7 +111,7 @@ public:
   };
 
   /// Different supported SMTLIBv2 sorts (a.k.a type) in QF_AUFBV
-  enum SMTLIB_SORT { SORT_BITVECTOR, SORT_BOOL };
+  enum SMTLIB_SORT { SORT_BITVECTOR, SORT_BOOL, SORT_INT, SORT_REAL};
 
   /// Allows the way Constant bitvectors are printed to be changed.
   /// This setting is persistent across queries.

@@ -259,12 +259,17 @@ ref<Expr> Expr::createFromKind(Kind k, std::vector<CreateArg> args) {
       CAST_EXPR_CASE(SExt);
       
       BINARY_EXPR_CASE(Add);
+      BINARY_EXPR_CASE(FAdd);
       BINARY_EXPR_CASE(Sub);
+      BINARY_EXPR_CASE(FSub);
       BINARY_EXPR_CASE(Mul);
+      BINARY_EXPR_CASE(FMul);
       BINARY_EXPR_CASE(UDiv);
       BINARY_EXPR_CASE(SDiv);
+      BINARY_EXPR_CASE(FDiv);
       BINARY_EXPR_CASE(URem);
       BINARY_EXPR_CASE(SRem);
+      BINARY_EXPR_CASE(FRem);
       BINARY_EXPR_CASE(And);
       BINARY_EXPR_CASE(Or);
       BINARY_EXPR_CASE(Xor);
