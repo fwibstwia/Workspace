@@ -88,7 +88,7 @@ Todo: Shouldn't bool \c Xor just be written as not equal?
 class Expr {
 public:
   static unsigned count;
-  static const unsigned MAGIC_HASH_CONSTANT = 44;
+  static const unsigned MAGIC_HASH_CONSTANT = 47;
 
   /// The type of an expression is simply its width, in bits. 
   typedef unsigned Width; 
@@ -164,6 +164,10 @@ public:
     Sle,
     Sgt, ///< Not used in canonical form
     Sge, ///< Not used in canonical form
+
+    //Floating-point compare
+    FOgt,
+    FOlt,
 
     LastKind=Sge,
 
@@ -331,15 +335,31 @@ inline std::stringstream &operator<<(std::stringstream &os, const Expr::Kind kin
 
 // Terminal Exprs
 
+class InvalidExpr : public Expr{
+public:
+  static const Kind kind = InvalidKind;
+public:
+  Kind getKind() const {return kind;}
+  
+  Width getWidth() const {return 0;}
+  
+  unsigned getNumKids() const {return 0;}
+  ref<Expr> getKid(unsigned i) const{return 0;}
+  unsigned computeHash(){return 0;}
 
+  virtual ref<Expr> rebuild(ref<Expr> kids[]) const { 
+    assert(0 && "rebuild() on InvalidExpr"); 
+    return const_cast<InvalidExpr*>(this);
+  }
+};
 
 class ConstantExpr : public Expr {
 public:
   static const Kind kind = Constant;
   static const unsigned numKids = 0;
 private:
-  bool isFloat;
   llvm::APInt value;
+  bool isFloat;
   ConstantExpr(const llvm::APInt &v) : value(v), isFloat(false){}
   ConstantExpr(const llvm::APInt &v, bool _isFloat) : value(v), isFloat(_isFloat){}
   static const llvm::fltSemantics * fpWidthToSemantics(unsigned width) {
@@ -506,6 +526,8 @@ public:
   ref<ConstantExpr> Sle(const ref<ConstantExpr> &RHS);
   ref<ConstantExpr> Sgt(const ref<ConstantExpr> &RHS);
   ref<ConstantExpr> Sge(const ref<ConstantExpr> &RHS);
+  ref<ConstantExpr> FOgt(const ref<ConstantExpr> &RHS);
+  ref<ConstantExpr> FOlt(const ref<ConstantExpr> &RHS);
 
   ref<ConstantExpr> Neg();
   ref<ConstantExpr> Not();
@@ -597,7 +619,8 @@ public:
 };
 
 
-/// Class representing a byte update of an array.
+/// Class representing one update if the array is non-aggregate type or one element update for an array.
+/// The index is no use for non-aggregate array type (int, float)
 class UpdateNode {
   friend class UpdateList;  
 
@@ -617,6 +640,8 @@ public:
   UpdateNode(const UpdateNode *_next, 
              const ref<Expr> &_index, 
              const ref<Expr> &_value);
+  UpdateNode(const UpdateNode *_next,
+	     const ref<Expr> &_value);
 
   unsigned getSize() const { return size; }
 
@@ -635,7 +660,6 @@ public:
   const std::string name;
   // FIXME: Not 64-bit clean.
   unsigned size;  
-  unsigned sort; //the sort:bv, int, real
   /// constantValues - The constant initial values for this array, or empty for
   /// a symbolic array. If non-empty, this size of this array is equivalent to
   /// the array size.
@@ -654,8 +678,8 @@ public:
   Array(const std::string &_name, uint64_t _size, 
         const ref<ConstantExpr> *constantValuesBegin = 0,
         const ref<ConstantExpr> *constantValuesEnd = 0,
-        Expr::Width _domain = Expr::Int32, Expr::Width _range = Expr::Int8, unsigned _sort = 0)
-    : name(_name), size(_size), sort(_sort),
+        Expr::Width _domain = Expr::Int32, Expr::Width _range = Expr::Int64)
+    : name(_name), size(_size),
       constantValues(constantValuesBegin, constantValuesEnd),
       domain(_domain), range(_range) {
     assert((isSymbolicArray() || constantValues.size() == size) &&
@@ -679,7 +703,6 @@ public:
   
   unsigned computeHash();
   unsigned hash() const { return hashValue; }
-   
 private:
   unsigned hashValue;
 };
@@ -705,12 +728,13 @@ public:
   unsigned getSize() const { return (head ? head->getSize() : 0); }
   
   void extend(const ref<Expr> &index, const ref<Expr> &value);
+  void extend(const ref<Expr> &value); // for non aggregate type
 
   int compare(const UpdateList &b) const;
   unsigned hash() const;
 };
 
-/// Class representing a one byte read from an array. 
+/// Class representing one read from an array. 
 class ReadExpr : public NonConstantExpr {
 public:
   static const Kind kind = Read;
@@ -726,8 +750,14 @@ public:
     r->computeHash();
     return r;
   }
+  static ref<Expr> alloc(const UpdateList &updates){
+    ref<Expr> r(new ReadExpr(updates));
+    r->computeHash();
+    return r;
+  }
   
   static ref<Expr> create(const UpdateList &updates, ref<Expr> i);
+  static ref<Expr> create(const UpdateList &updates);
   
   Width getWidth() const { assert(updates.root); return updates.root->getRange(); }
   Kind getKind() const { return Read; }
@@ -746,6 +776,9 @@ public:
 private:
   ReadExpr(const UpdateList &_updates, const ref<Expr> &_index) : 
     updates(_updates), index(_index) { assert(updates.root); }
+
+  ReadExpr(const UpdateList &_updates) :
+    updates(_updates), index(new InvalidExpr()) {assert(updates.root);}
 
 public:
   static bool classof(const Expr *E) {
@@ -1120,7 +1153,8 @@ COMPARISON_EXPR_CLASS(Slt)
 COMPARISON_EXPR_CLASS(Sle)
 COMPARISON_EXPR_CLASS(Sgt)
 COMPARISON_EXPR_CLASS(Sge)
-
+COMPARISON_EXPR_CLASS(FOgt)
+COMPARISON_EXPR_CLASS(FOlt)
 // Implementations
 
 inline bool Expr::isZero() const {

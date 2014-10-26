@@ -247,7 +247,9 @@ private:
                     bool isLocal,
                     KInstruction *target,
                     bool zeroMemory=false,
-                    const ObjectState *reallocFrom=0);
+                    const ObjectState *reallocFrom=0,
+		    bool isArrayType=true,
+		    unsigned arraySize=0);
 
   /// Free the given address with checking for errors. If target is
   /// given it will be bound to 0 in the resulting states (this is a
@@ -272,7 +274,7 @@ private:
                               KInstruction *target /* undef if write */);
 
   void executeMakeSymbolicWithSort(ExecutionState &state, const MemoryObject *mo,
-                           const std::string &name, const unsigned sort);
+				   const std::string &name, const unsigned domain, const unsigned range);
 
   void executeMakeSymbolic(ExecutionState &state, const MemoryObject *mo,
                            const std::string &name);

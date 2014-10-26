@@ -144,11 +144,6 @@ namespace klee {
     case Instruction::Select:
       return op1->isTrue() ? op2 : op3;
 
-    case Instruction::FAdd:
-    case Instruction::FSub:
-    case Instruction::FMul:
-    case Instruction::FDiv:
-    case Instruction::FRem:
     case Instruction::FPTrunc:
     case Instruction::FPExt:
     case Instruction::UIToFP:

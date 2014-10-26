@@ -696,9 +696,14 @@ void SpecialFunctionHandler::handleMakeSymbolicWithSort(ExecutionState &state,
                                                 KInstruction *target,
                                                 std::vector<ref<Expr> > &arguments) {
   std::string name;
-  unsigned sort = 0;
-  if(ConstantExpr *CE = dyn_cast<ConstantExpr>(arguments[2])){
-    sort = CE->getZExtValue();
+  unsigned domain = 0;
+  unsigned range = 32;
+  if(ConstantExpr *CE = dyn_cast<ConstantExpr>(arguments[3])){
+    domain = CE->getZExtValue();
+  }
+
+  if(ConstantExpr *CE = dyn_cast<ConstantExpr>(arguments[4])){
+    range = CE->getZExtValue();
   }
 
   // FIXME: For backwards compatibility, we should eventually enforce the
@@ -707,9 +712,9 @@ void SpecialFunctionHandler::handleMakeSymbolicWithSort(ExecutionState &state,
     name = "unnamed";
   } else {
     // FIXME: Should be a user.err, not an assert.
-    assert(arguments.size() == 4 &&
+    assert(arguments.size() == 5 &&
            "invalid number of arguments to klee_make_symbolic");  
-    name = readStringAtAddress(state, arguments[3]);
+    name = readStringAtAddress(state, arguments[2]);
   }
 
   Executor::ExactResolutionList rl;
@@ -741,7 +746,7 @@ void SpecialFunctionHandler::handleMakeSymbolicWithSort(ExecutionState &state,
     assert(success && "FIXME: Unhandled solver failure");
     
     if (res) {
-      executor.executeMakeSymbolicWithSort(*s, mo, name, sort);
+      executor.executeMakeSymbolicWithSort(*s, mo, name, domain, range);
     } else {      
       executor.terminateStateOnError(*s, 
                                      "wrong size given to klee_make_symbolic_with_sort[_name]", 

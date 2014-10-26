@@ -4,18 +4,17 @@
 
 #include <klee/klee.h>
 
-int get_sign(int x) {
-  if (x == 0)
+int get_sign(float x, float y) {
+  x = x + 2.0;
+  x = x * 2.0;
+  y = x * 3;
+  if (x + y > 0)
      return 0;
-  
-  if (x < 0)
-     return -1;
-  else 
-     return 1;
 } 
 
 int main() {
-  int a;
-  klee_make_symbolic(&a, sizeof(a), "a");
-  return get_sign(a);
+  float a, b;
+  klee_make_symbolic_with_sort(&a, sizeof(a), "a", 0, 32);
+  klee_make_symbolic_with_sort(&b, sizeof(b), "a", 0, 32);
+  return get_sign(a, b);
 } 

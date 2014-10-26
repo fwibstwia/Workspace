@@ -108,13 +108,23 @@ ObjectState::ObjectState(const MemoryObject *mo)
     knownSymbolics(0),
     updates(0, 0),
     size(mo->size),
+    arraySize(mo->arraySize),
     readOnly(false) {
   mo->refCount++;
-  if (!UseConstantArrays) {
-    // FIXME: Leaked.
-    static unsigned id = 0;
-    const Array *array = new Array("tmp_arr" + llvm::utostr(++id), size);
-    updates = UpdateList(array, 0);
+  if(mo->isArrayType){
+    if (!UseConstantArrays) {
+      // FIXME: Leaked.
+      static unsigned id = 0;
+      const Array *array = new Array("tmp_arr" + llvm::utostr(++id), size);
+      updates = UpdateList(array, 0);
+    }  
+  }else{
+    if (!UseConstantArrays) {
+      // FIXME: Leaked.
+      static unsigned id = 0;
+      const Array *array = new Array("tmp_arr" + llvm::utostr(++id), size, 0, 0, Expr::InvalidWidth);
+      updates = UpdateList(array, 0);
+    }  
   }
   memset(concreteStore, 0, size);
 }
@@ -130,6 +140,7 @@ ObjectState::ObjectState(const MemoryObject *mo, const Array *array)
     knownSymbolics(0),
     updates(array, 0),
     size(mo->size),
+    arraySize(mo->arraySize),
     readOnly(false) {
   mo->refCount++;
   makeSymbolic();
@@ -141,19 +152,20 @@ ObjectState::ObjectState(const ObjectState &os)
     refCount(0),
     object(os.object),
     concreteStore(new uint8_t[os.size]),
-    concreteMask(os.concreteMask ? new BitArray(*os.concreteMask, os.size) : 0),
-    flushMask(os.flushMask ? new BitArray(*os.flushMask, os.size) : 0),
+    concreteMask(os.concreteMask ? new BitArray(*os.concreteMask, os.arraySize) : 0),
+    flushMask(os.flushMask ? new BitArray(*os.flushMask, os.arraySize) : 0),
     knownSymbolics(0),
     updates(os.updates),
     size(os.size),
+    arraySize(os.arraySize),
     readOnly(false) {
   assert(!os.readOnly && "no need to copy read only object?");
   if (object)
     object->refCount++;
 
   if (os.knownSymbolics) {
-    knownSymbolics = new ref<Expr>[size];
-    for (unsigned i=0; i<size; i++)
+    knownSymbolics = new ref<Expr>[arraySize];
+    for (unsigned i=0; i<arraySize; i++)
       knownSymbolics[i] = os.knownSymbolics[i];
   }
 
@@ -195,11 +207,11 @@ const UpdateList &ObjectState::getUpdates() const {
       Writes[i] = std::make_pair(un->index, un->value);
     }
 
-    std::vector< ref<ConstantExpr> > Contents(size);
+    std::vector< ref<ConstantExpr> > Contents(arraySize);
 
     // Initialize to zeros.
-    for (unsigned i = 0, e = size; i != e; ++i)
-      Contents[i] = ConstantExpr::create(0, Expr::Int8);
+    for (unsigned i = 0, e = arraySize; i != e; ++i)
+      Contents[i] = ConstantExpr::create(0, Expr::Int64);
 
     // Pull off as many concrete writes as we can.
     unsigned Begin = 0, End = Writes.size();
@@ -249,7 +261,7 @@ void ObjectState::makeSymbolic() {
          "XXX makeSymbolic of objects with symbolic values is unsupported");
 
   // XXX simplify this, can just delete various arrays I guess
-  for (unsigned i=0; i<size; i++) {
+  for (unsigned i=0; i<arraySize; i++) {
     markByteSymbolic(i);
     setKnownSymbolic(i, 0);
     markByteFlushed(i);
@@ -281,18 +293,36 @@ void ObjectState::fastRangeCheckOffset(ref<Expr> offset,
                                        unsigned *base_r,
                                        unsigned *size_r) const {
   *base_r = 0;
-  *size_r = size;
+  *size_r = arraySize;
 }
 
 void ObjectState::flushRangeForRead(unsigned rangeBase, 
                                     unsigned rangeSize) const {
-  if (!flushMask) flushMask = new BitArray(size, true);
+  if (!flushMask) flushMask = new BitArray(arraySize, true);
  
   for (unsigned offset=rangeBase; offset<rangeBase+rangeSize; offset++) {
     if (!isByteFlushed(offset)) {
       if (isByteConcrete(offset)) {
-        updates.extend(ConstantExpr::create(offset, Expr::Int32),
-                       ConstantExpr::create(concreteStore[offset], Expr::Int8));
+        unsigned elementSize = size/arraySize;
+        switch(elementSize){
+	case 8:
+	  updates.extend(ConstantExpr::create(offset, Expr::Int8),
+                       ConstantExpr::create(concreteStore[offset], elementSize));
+	  break;
+        case 16:
+	  updates.extend(ConstantExpr::create(offset, Expr::Int16),
+			 ConstantExpr::create(((uint16_t*) concreteStore)[offset], elementSize));
+	  break;
+	case 32:
+	  updates.extend(ConstantExpr::create(offset, Expr::Int32),
+			 ConstantExpr::create(((uint32_t*) concreteStore)[offset], elementSize));
+	  break;
+	case 64:
+	  updates.extend(ConstantExpr::create(offset, Expr::Int64),
+			 ConstantExpr::create(((uint64_t*) concreteStore)[offset], elementSize));
+	  break;
+	}
+
       } else {
         assert(isByteKnownSymbolic(offset) && "invalid bit set in flushMask");
         updates.extend(ConstantExpr::create(offset, Expr::Int32),
@@ -306,13 +336,30 @@ void ObjectState::flushRangeForRead(unsigned rangeBase,
 
 void ObjectState::flushRangeForWrite(unsigned rangeBase, 
                                      unsigned rangeSize) {
-  if (!flushMask) flushMask = new BitArray(size, true);
+  if (!flushMask) flushMask = new BitArray(arraySize, true);
 
   for (unsigned offset=rangeBase; offset<rangeBase+rangeSize; offset++) {
     if (!isByteFlushed(offset)) {
       if (isByteConcrete(offset)) {
-        updates.extend(ConstantExpr::create(offset, Expr::Int32),
-                       ConstantExpr::create(concreteStore[offset], Expr::Int8));
+        unsigned elementSize = size/arraySize;
+        switch(elementSize){
+	case 8:
+	  updates.extend(ConstantExpr::create(offset, Expr::Int8),
+                       ConstantExpr::create(concreteStore[offset], elementSize));
+	  break;
+        case 16:
+	  updates.extend(ConstantExpr::create(offset, Expr::Int16),
+                       ConstantExpr::create(((uint16_t*) concreteStore)[offset], elementSize));
+	  break;
+	case 32:
+	  updates.extend(ConstantExpr::create(offset, Expr::Int32),
+                       ConstantExpr::create(((uint32_t*) concreteStore)[offset], elementSize));
+	  break;
+	case 64:
+	  updates.extend(ConstantExpr::create(offset, Expr::Int64),
+                       ConstantExpr::create(((uint64_t*) concreteStore)[offset], elementSize));
+	  break;
+	}
         markByteSymbolic(offset);
       } else {
         assert(isByteKnownSymbolic(offset) && "invalid bit set in flushMask");
@@ -376,7 +423,7 @@ void ObjectState::setKnownSymbolic(unsigned offset,
     knownSymbolics[offset] = value;
   } else {
     if (value) {
-      knownSymbolics = new ref<Expr>[size];
+      knownSymbolics = new ref<Expr>[arraySize];
       knownSymbolics[offset] = value;
     }
   }
@@ -453,7 +500,6 @@ void ObjectState::write8(ref<Expr> offset, ref<Expr> value) {
 }
 
 /***/
-
 ref<Expr> ObjectState::read(ref<Expr> offset, Expr::Width width) const {
   // Truncate offset to 32-bits.
   offset = ZExtExpr::create(offset, Expr::Int32);
@@ -557,7 +603,7 @@ void ObjectState::write(unsigned offset, ref<Expr> value) {
     unsigned idx = Context::get().isLittleEndian() ? i : (NumBytes - i - 1);
     write8(offset + idx, ExtractExpr::create(value, 8 * i, Expr::Int8));
   }
-} 
+}
 
 void ObjectState::write16(unsigned offset, uint16_t value) {
   unsigned NumBytes = 2;
@@ -604,3 +650,164 @@ void ObjectState::print() {
     llvm::errs() << "\t\t[" << un->index << "] = " << un->value << "\n";
   }
 }
+
+
+/** our Function **/
+ref<Expr> ObjectState::readWhole(ref<Expr> offset, Expr::Width width) const {
+ 
+  // Truncate offset to 32-bits.
+  offset = ZExtExpr::create(offset, Expr::Int32);
+
+  // Check for reads at constant offsets.
+  if (ConstantExpr *CE = dyn_cast<ConstantExpr>(offset))
+    return readWhole(CE->getZExtValue(32), width);
+
+  //  if (width == Expr::Bool)
+  //    return ExtractExpr::create(read8(offset), 0, Expr::Bool);
+
+  // Otherwise, follow the slow general case.
+  assert(!isa<ConstantExpr>(offset) && "constant offset passed to symbolic read8");
+  unsigned base, size;
+  fastRangeCheckOffset(offset, &base, &size);
+  flushRangeForRead(base, size);
+  if (size>4096) {
+    std::string allocInfo;
+    object->getAllocInfo(allocInfo);
+    klee_warning_once(0, "flushing %d bytes on read, may be slow and/or crash: %s", 
+                      size,
+                      allocInfo.c_str());
+  }
+  return ReadExpr::create(getUpdates(), ZExtExpr::create(offset, Expr::Int32));
+}
+
+ref<Expr> ObjectState::readWhole(unsigned offset, Expr::Width width) const {
+  // Treat bool specially, it is the only non-byte sized write we allow.
+  //  if (width == Expr::Bool)
+  //    return ExtractExpr::create(read8(offset), 0, Expr::Bool);
+
+  // Otherwise, follow the slow general case.
+  if (isByteConcrete(offset)) {
+      switch(width){
+      case 8:
+	return ConstantExpr::create(concreteStore[offset], Expr::Int8);
+      case 16:
+	return ConstantExpr::create( ((uint16_t*) concreteStore)[offset], Expr::Int16);
+      case 32:
+	return ConstantExpr::create(((uint32_t*) concreteStore)[offset], Expr::Int32);
+      case 64:
+	return ConstantExpr::create( ((uint64_t*) concreteStore)[offset], Expr::Int64);
+      }
+  } else if (isByteKnownSymbolic(offset)) {
+    return knownSymbolics[offset];
+  } else {
+    assert(isByteFlushed(offset) && "unflushed byte without cache value");
+    
+    return ReadExpr::create(getUpdates(), 
+                            ConstantExpr::create(offset, Expr::Int32));
+  }    
+}
+
+ref<Expr> ObjectState::readWhole(Expr::Width width) const{
+  // Treat bool specially, it is the only non-byte sized write we allow.
+  //if (width == Expr::Bool)
+  //return ExtractExpr::create(read8(offset), 0, Expr::Bool);
+
+  // Otherwise, follow the slow general case.
+  if (isByteConcrete(0)) {
+      switch(width){
+	case 8:
+	  return ConstantExpr::create(concreteStore[0], Expr::Int8);
+        case 16:
+	  return ConstantExpr::create(((uint16_t*) concreteStore)[0], Expr::Int16);
+	case 32:
+	  return ConstantExpr::create(((uint32_t*) concreteStore)[0], Expr::Int32);
+	case 64:
+	  return ConstantExpr::create(((uint64_t*) concreteStore)[0], Expr::Int64);
+	}
+
+  } else if (isByteKnownSymbolic(0)) {
+    return knownSymbolics[0];
+  } else {
+    assert(isByteFlushed(0) && "unflushed byte without cache value");
+    return ReadExpr::create(getUpdates());
+  }   
+}
+
+void ObjectState::writeWhole(ref<Expr> offset, ref<Expr> value) {
+  // Truncate offset to 32-bits.
+  offset = ZExtExpr::create(offset, Expr::Int32);
+
+  // Check for writes at constant offsets.
+  if (ConstantExpr *CE = dyn_cast<ConstantExpr>(offset)) {
+    writeWhole(CE->getZExtValue(32), value);
+    return;
+  }
+
+  // Treat bool specially, it is the only non-byte sized write we allow.
+  // Expr::Width w = value->getWidth();
+  //  if (w == Expr::Bool) {
+  //    write8(offset, ZExtExpr::create(value, Expr::Int8));
+  //    return;
+  //  }
+
+
+  // Otherwise, follow the slow general case.
+  assert(!isa<ConstantExpr>(offset) && "constant offset passed to symbolic write8");
+  unsigned base, size;
+  fastRangeCheckOffset(offset, &base, &size);
+  flushRangeForWrite(base, size);
+
+  if (size>4096) {
+    std::string allocInfo;
+    object->getAllocInfo(allocInfo);
+    klee_warning_once(0, "flushing %d bytes on read, may be slow and/or crash: %s", 
+                      size,
+                      allocInfo.c_str());
+  }
+  updates.extend(ZExtExpr::create(offset, Expr::Int32), value);
+}
+
+void ObjectState::writeWhole(unsigned offset, ref<Expr> value) {
+  // Check for writes of constant values.
+  if (ConstantExpr *CE = dyn_cast<ConstantExpr>(value)) {
+    Expr::Width w = CE->getWidth();
+    if (w <= 64) {
+      switch (w) {
+      default: assert(0 && "Invalid write size!"); break;
+      case  Expr::Bool:
+      case  Expr::Int8:
+	concreteStore[offset] = (uint8_t)CE->getZExtValue(8);
+	break;
+      case Expr::Int16: 
+	 ((uint16_t*)concreteStore)[offset] = (uint16_t)CE->getZExtValue(16);
+	break;
+      case Expr::Int32: 
+        ((uint32_t*)concreteStore)[offset] = (uint32_t)CE->getZExtValue(32);
+	break;
+      case Expr::Int64: 
+	((uint64_t*)concreteStore)[offset] =  (uint64_t)CE->getZExtValue(64);
+	break;
+      }
+      setKnownSymbolic(offset, 0);
+      markByteConcrete(offset);
+      markByteUnflushed(offset);
+      return;
+    }
+  }
+
+  // Treat bool specially, it is the only non-byte sized write we allow.
+  //  Expr::Width w = value->getWidth();
+  //  if (w == Expr::Bool) {
+  //    write8(offset, ZExtExpr::create(value, Expr::Int8));
+  //    return;
+  //  }
+
+  setKnownSymbolic(offset, value.get());    
+  markByteSymbolic(offset);
+  markByteUnflushed(offset);
+} 
+
+void ObjectState::writeWhole(ref<Expr> value) {
+  writeWhole(0, value);
+}
+

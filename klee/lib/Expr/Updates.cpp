@@ -36,19 +36,47 @@ UpdateNode::UpdateNode(const UpdateNode *_next,
   else size = 1;
 }
 
+UpdateNode::UpdateNode(const UpdateNode *_next, 
+                       const ref<Expr> &_value) 
+  : refCount(0),    
+    next(_next),
+    index(new InvalidExpr()),
+    value(_value) {
+  // FIXME: What we need to check here instead is that _value is of the same width 
+  // as the range of the array that the update node is part of.
+  /*
+  assert(_value->getWidth() == Expr::Int8 && 
+         "Update value should be 8-bit wide.");
+  */
+  computeHash();
+  if (next) {
+    ++next->refCount;
+    size = 1 + next->size;
+  }
+  else size = 1;
+}
+
 extern "C" void vc_DeleteExpr(void*);
 
 UpdateNode::~UpdateNode() {
 }
 
 int UpdateNode::compare(const UpdateNode &b) const {
-  if (int i = index.compare(b.index)) 
-    return i;
-  return value.compare(b.value);
+  if(index->getKind() != -1){
+    if (int i = index.compare(b.index)) 
+      return i;
+    return value.compare(b.value);
+  }else{
+    return value.compare(b.value);
+  }
 }
 
 unsigned UpdateNode::computeHash() {
-  hashValue = index->hash() ^ value->hash();
+  if(index->getKind() != -1){
+    hashValue = index->hash() ^ value->hash();
+  }else{
+    hashValue = value->hash();
+  }
   if (next)
     hashValue ^= next->hash();
   return hashValue;
@@ -96,6 +124,17 @@ void UpdateList::extend(const ref<Expr> &index, const ref<Expr> &value) {
 
   if (head) --head->refCount;
   head = new UpdateNode(head, index, value);
+  ++head->refCount;
+}
+
+void UpdateList::extend(const ref<Expr> &value) {
+  
+  if (root) {
+    assert(root->getRange() == value->getWidth());
+  }
+
+  if (head) --head->refCount;
+  head = new UpdateNode(head, NULL, value);
   ++head->refCount;
 }
 

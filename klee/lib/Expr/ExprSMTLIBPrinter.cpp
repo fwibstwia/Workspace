@@ -37,10 +37,11 @@ namespace klee {
 
 ExprSMTLIBPrinter::ExprSMTLIBPrinter()
     : usedArrays(), o(NULL), query(NULL), p(NULL), haveConstantArray(false),
-      logicToUse(QF_AUFBV),
+      logicToUse(AUFNIRA),
       humanReadable(ExprSMTLIBOptions::humanReadableSMTLIB),
       smtlibBoolOptions(), arraysToCallGetValueOn(NULL) {
-  setConstantDisplayMode(ExprSMTLIBOptions::argConstantDisplayMode);
+  setConstantDisplayMode(ExprSMTLIBPrinter::DECIMAL);
+  //setConstantDisplayMode(ExprSMTLIBOptions::argConstantDisplayMode);
 }
 
 ExprSMTLIBPrinter::~ExprSMTLIBPrinter() {
@@ -149,6 +150,7 @@ void ExprSMTLIBPrinter::printConstant(const ref<ConstantExpr> &e) {
     default:
       llvm::errs() << "ExprSMTLIBPrinter::printConstant() : Unexpected Logic ";
     }
+    break;
 
   default:
     llvm::errs() << "ExprSMTLIBPrinter::printConstant() : Unexpected Constant "
@@ -159,10 +161,10 @@ void ExprSMTLIBPrinter::printConstant(const ref<ConstantExpr> &e) {
 void ExprSMTLIBPrinter::printExpression(
     const ref<Expr> &e, ExprSMTLIBPrinter::SMTLIB_SORT expectedSort) {
   // check if casting might be necessary
-  if (getSort(e) != expectedSort) {
-    printCastToSort(e, expectedSort);
-    return;
-  }
+  //  if (getSort(e) != expectedSort) {
+  //printCastToSort(e, expectedSort);
+  //return;
+  //  }
 
   switch (e->getKind()) {
   case Expr::Constant:
@@ -228,21 +230,25 @@ void ExprSMTLIBPrinter::printExpression(
 }
 
 void ExprSMTLIBPrinter::printReadExpr(const ref<ReadExpr> &e) {
-  *p << "(" << getSMTLIBKeyword(e) << " ";
-  p->pushIndent();
+  if((e->updates.root)->getDomain() != Expr::InvalidWidth){
+    *p << "(" << getSMTLIBKeyword(e) << " ";
+    p->pushIndent();
 
-  printSeperator();
+    printSeperator();
 
-  // print array with updates recursively
-  printUpdatesAndArray(e->updates.head, e->updates.root);
+    // print array with updates recursively
+    printUpdatesAndArray(e->updates.head, e->updates.root);
 
   // print index
-  printSeperator();
-  printExpression(e->index, SORT_BITVECTOR);
+    printSeperator();
+    printExpression(e->index, SORT_BITVECTOR);
 
-  p->popIndent();
-  printSeperator();
+    p->popIndent();
+    printSeperator();
   *p << ")";
+  }else{
+    printUpdatesAndArray(e->updates.head, e->updates.root);
+  }
 }
 
 void ExprSMTLIBPrinter::printExtractExpr(const ref<ExtractExpr> &e) {
@@ -337,19 +343,50 @@ const char *ExprSMTLIBPrinter::getSMTLIBKeyword(const ref<Expr> &e) {
     return "sign_extend";
 
   case Expr::Add:
+    if(logicToUse == AUFNIRA){
+      return "+";
+    }
     return "bvadd";
+  case Expr::FAdd:
+    return "+";
   case Expr::Sub:
+    if(logicToUse == AUFNIRA){
+      return "-";
+    }
     return "bvsub";
+  case Expr::FSub:
+    return "-";
   case Expr::Mul:
+    if(logicToUse == AUFNIRA){
+      return "*";
+    }
     return "bvmul";
+  case Expr::FMul:
+    return "*";
   case Expr::UDiv:
+    if(logicToUse == AUFNIRA){
+      return "/";
+    }
     return "bvudiv";
   case Expr::SDiv:
+    if(logicToUse == AUFNIRA){
+      return "/";
+    }
     return "bvsdiv";
+  case Expr::FDiv:
+    return "/";
   case Expr::URem:
+    if(logicToUse == AUFNIRA){
+      return "%";
+    }
     return "bvurem";
   case Expr::SRem:
+    if(logicToUse == AUFNIRA){
+      return "%";
+    }
     return "bvsrem";
+  case Expr::FRem:
+    return "%";
 
   /* And, Xor, Not and Or are not handled here because there different versions
    * for different sorts. See printLogicalOrBitVectorExpr()
@@ -368,22 +405,52 @@ const char *ExprSMTLIBPrinter::getSMTLIBKeyword(const ref<Expr> &e) {
   // Not Equal does not exist directly in SMTLIBv2
 
   case Expr::Ult:
+    if(logicToUse == AUFNIRA){
+      return "<";
+    }
     return "bvult";
   case Expr::Ule:
+    if(logicToUse == AUFNIRA){
+      return "<=";
+    }
     return "bvule";
   case Expr::Ugt:
+    if(logicToUse == AUFNIRA){
+      return ">";
+    }
     return "bvugt";
   case Expr::Uge:
+    if(logicToUse == AUFNIRA){
+      return ">=";
+    }
     return "bvuge";
 
   case Expr::Slt:
+    if(logicToUse == AUFNIRA){
+      return "<";
+    }
     return "bvslt";
   case Expr::Sle:
+    if(logicToUse == AUFNIRA){
+      return "<=";
+    }
     return "bvsle";
   case Expr::Sgt:
+    if(logicToUse == AUFNIRA){
+      return ">";
+    }
     return "bvsgt";
   case Expr::Sge:
+    if(logicToUse == AUFNIRA){
+      return ">=";
+    }
     return "bvsge";
+
+  case Expr::FOgt:
+    return ">";
+
+  case Expr::FOlt:
+    return "<";
 
   default:
     return "<error>";
@@ -393,25 +460,34 @@ const char *ExprSMTLIBPrinter::getSMTLIBKeyword(const ref<Expr> &e) {
 void ExprSMTLIBPrinter::printUpdatesAndArray(const UpdateNode *un,
                                              const Array *root) {
   if (un != NULL) {
-    *p << "(store ";
-    p->pushIndent();
-    printSeperator();
+    if(root->getDomain() != Expr::InvalidWidth){
+      *p << "(store ";
+      p->pushIndent();
+      printSeperator();
 
-    // recurse to get the array or update that this store operations applies to
-    printUpdatesAndArray(un->next, root);
+      // recurse to get the array or update that this store operations applies to
+      printUpdatesAndArray(un->next, root);
 
-    printSeperator();
+      printSeperator();
 
-    // print index
-    printExpression(un->index, SORT_BITVECTOR);
-    printSeperator();
+      // print index
+      printExpression(un->index, SORT_BITVECTOR);
+      printSeperator();
 
-    // print value that is assigned to this index of the array
-    printExpression(un->value, SORT_BITVECTOR);
+      // print value that is assigned to this index of the array
+      printExpression(un->value, SORT_BITVECTOR);
 
-    p->popIndent();
-    printSeperator();
-    *p << ")";
+      p->popIndent();
+      printSeperator();
+      *p << ")";
+    }else{
+	*p << "(";
+	printUpdatesAndArray(un->next, root);
+        printSeperator();
+	printExpression(un->value, SORT_BITVECTOR);
+	p->popIndent();
+        *p << ")";
+    }
   } else {
     // The base case of the recursion
     *p << root->name;
@@ -455,6 +531,9 @@ void ExprSMTLIBPrinter::printSetLogic() {
   case QF_AUFBV:
     *o << "QF_AUFBV";
     break;
+  case AUFNIRA:
+    *o << "AUFNIRA";
+    break;
   }
   *o << " )\n";
 }
@@ -479,11 +558,22 @@ void ExprSMTLIBPrinter::printArrayDeclarations() {
   std::sort(sortedArrays.begin(), sortedArrays.end(), ArrayPtrsByName());
   for (std::vector<const Array *>::iterator it = sortedArrays.begin();
        it != sortedArrays.end(); it++) {
-    *o << "(declare-fun " << (*it)->name << " () "
-                                            "(Array (_ BitVec "
-       << (*it)->getDomain() << ") "
-                                "(_ BitVec " << (*it)->getRange() << ") ) )"
-       << "\n";
+    if((*it) -> getDomain() != Expr::InvalidWidth){
+      if(logicToUse == AUFNIRA){
+	*o << "(declare-fun " << (*it)->name << " () "
+	  "(Array Int Real)) "
+	   << "\n";
+      }else{
+	*o << "(declare-fun " << (*it)->name << " () "
+	  "(Array (_ BitVec "
+	   << (*it)->getDomain() << ") "
+	  "(_ BitVec " << (*it)->getRange() << ") ) )"
+	   << "\n";
+      }
+    }else{
+      *o << "(declare-fun " << (*it)-> name << " () Real)"
+         << "\n";
+    }
   }
 
   // Set array values for constant values
@@ -608,7 +698,7 @@ void ExprSMTLIBPrinter::scan(const ref<Expr> &e) {
 
 void ExprSMTLIBPrinter::scanUpdates(const UpdateNode *un) {
   while (un != NULL) {
-    scan(un->index);
+    //scan(un->index);
     scan(un->value);
     un = un->next;
   }
@@ -617,7 +707,7 @@ void ExprSMTLIBPrinter::scanUpdates(const UpdateNode *un) {
 void ExprSMTLIBPrinter::printExit() { *o << "(exit)\n"; }
 
 bool ExprSMTLIBPrinter::setLogic(SMTLIBv2Logic l) {
-  if (l > QF_AUFBV)
+  if (l > AUFNIRA)
     return false;
 
   logicToUse = l;

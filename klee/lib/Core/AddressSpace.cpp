@@ -13,6 +13,7 @@
 #include "TimingSolver.h"
 
 #include "klee/Expr.h"
+#include "Common.h"
 #include "klee/TimerStatIncrementer.h"
 
 using namespace klee;
@@ -37,6 +38,7 @@ const ObjectState *AddressSpace::findObject(const MemoryObject *mo) const {
 
 ObjectState *AddressSpace::getWriteable(const MemoryObject *mo,
                                         const ObjectState *os) {
+
   assert(!os->readOnly);
 
   if (cowKey==os->copyOnWriteOwner) {

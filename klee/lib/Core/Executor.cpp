@@ -556,7 +556,6 @@ void Executor::initializeGlobals(ExecutionState &state) {
                      << i->getName() 
                      << " (use will result in out of bounds access)\n";
       }
-
       MemoryObject *mo = memory->allocate(size, false, true, i);
       ObjectState *os = bindObjectInState(state, mo, false);
       globalObjects.insert(std::make_pair(i, mo));
@@ -741,6 +740,15 @@ Executor::fork(ExecutionState &current, ref<Expr> condition, bool isInternal) {
   if (isSeeding)
     timeout *= it->second.size();
   solver->setTimeout(timeout);
+  klee_message("smt log");
+  std::string Str;
+  llvm::raw_string_ostream info(Str);
+  ExprSMTLIBPrinter *printer = new ExprSMTLIBPrinter();
+  printer->setOutput(info);
+  Query query(current.constraints, condition);
+  printer->setQuery(query);
+  printer->generateOutput();
+  klee_message("%s", info.str().c_str());
   bool success = solver->evaluate(current, condition, res);
   solver->setTimeout(0);
   if (!success) {
@@ -1938,13 +1946,19 @@ void Executor::executeInstruction(ExecutionState &state, KInstruction *ki) {
     unsigned elementSize = 
       kmodule->targetData->getTypeStoreSize(ai->getAllocatedType());
     ref<Expr> size = Expr::createPointer(elementSize);
+    ref<Expr> count;
     if (ai->isArrayAllocation()) {
-      ref<Expr> count = eval(ki, 0, state).value;
+      count = eval(ki, 0, state).value;
       count = Expr::createZExtToPointerWidth(count);
       size = MulExpr::create(size, count);
     }
     bool isLocal = i->getOpcode()==Instruction::Alloca;
-    executeAlloc(state, size, isLocal, ki);
+    if(ai->isArrayAllocation()){
+      ConstantExpr *CE = dyn_cast<ConstantExpr>(count);
+      executeAlloc(state, size, isLocal, ki, false, NULL, ai->isArrayAllocation(), CE->getZExtValue());
+    }else{
+      executeAlloc(state, size, isLocal, ki, false, NULL, ai->isArrayAllocation(), 1);
+    }
     break;
   }
 
@@ -2053,81 +2067,30 @@ void Executor::executeInstruction(ExecutionState &state, KInstruction *ki) {
   }
 
   case Instruction::FSub: {
-    ref<ConstantExpr> left = toConstant(state, eval(ki, 0, state).value,
-                                        "floating point");
-    ref<ConstantExpr> right = toConstant(state, eval(ki, 1, state).value,
-                                         "floating point");
-    if (!fpWidthToSemantics(left->getWidth()) ||
-        !fpWidthToSemantics(right->getWidth()))
-      return terminateStateOnExecError(state, "Unsupported FSub operation");
-#if LLVM_VERSION_CODE >= LLVM_VERSION(3, 3)
-    llvm::APFloat Res(*fpWidthToSemantics(left->getWidth()), left->getAPValue());
-    Res.subtract(APFloat(*fpWidthToSemantics(right->getWidth()), right->getAPValue()), APFloat::rmNearestTiesToEven);
-#else
-    llvm::APFloat Res(left->getAPValue());
-    Res.subtract(APFloat(right->getAPValue()), APFloat::rmNearestTiesToEven);
-#endif
-    bindLocal(ki, state, ConstantExpr::alloc(Res.bitcastToAPInt()));
+    ref<Expr> left = eval(ki, 0, state).value;
+    ref<Expr> right = eval(ki, 1, state).value;
+    bindLocal(ki, state, FSubExpr::create(left, right));
     break;
   }
  
   case Instruction::FMul: {
-    ref<ConstantExpr> left = toConstant(state, eval(ki, 0, state).value,
-                                        "floating point");
-    ref<ConstantExpr> right = toConstant(state, eval(ki, 1, state).value,
-                                         "floating point");
-    if (!fpWidthToSemantics(left->getWidth()) ||
-        !fpWidthToSemantics(right->getWidth()))
-      return terminateStateOnExecError(state, "Unsupported FMul operation");
-
-#if LLVM_VERSION_CODE >= LLVM_VERSION(3, 3)
-    llvm::APFloat Res(*fpWidthToSemantics(left->getWidth()), left->getAPValue());
-    Res.multiply(APFloat(*fpWidthToSemantics(right->getWidth()), right->getAPValue()), APFloat::rmNearestTiesToEven);
-#else
-    llvm::APFloat Res(left->getAPValue());
-    Res.multiply(APFloat(right->getAPValue()), APFloat::rmNearestTiesToEven);
-#endif
-    bindLocal(ki, state, ConstantExpr::alloc(Res.bitcastToAPInt()));
+    ref<Expr> left = eval(ki, 0, state).value;
+    ref<Expr> right = eval(ki, 1, state).value;
+    bindLocal(ki, state, FMulExpr::create(left, right));
     break;
   }
 
   case Instruction::FDiv: {
-    ref<ConstantExpr> left = toConstant(state, eval(ki, 0, state).value,
-                                        "floating point");
-    ref<ConstantExpr> right = toConstant(state, eval(ki, 1, state).value,
-                                         "floating point");
-    if (!fpWidthToSemantics(left->getWidth()) ||
-        !fpWidthToSemantics(right->getWidth()))
-      return terminateStateOnExecError(state, "Unsupported FDiv operation");
-
-#if LLVM_VERSION_CODE >= LLVM_VERSION(3, 3)
-    llvm::APFloat Res(*fpWidthToSemantics(left->getWidth()), left->getAPValue());
-    Res.divide(APFloat(*fpWidthToSemantics(right->getWidth()), right->getAPValue()), APFloat::rmNearestTiesToEven);
-#else
-    llvm::APFloat Res(left->getAPValue());
-    Res.divide(APFloat(right->getAPValue()), APFloat::rmNearestTiesToEven);
-#endif
-    bindLocal(ki, state, ConstantExpr::alloc(Res.bitcastToAPInt()));
+    ref<Expr> left = eval(ki, 0, state).value;
+    ref<Expr> right = eval(ki, 1, state).value;
+    bindLocal(ki, state, FDivExpr::create(left, right));
     break;
   }
 
   case Instruction::FRem: {
-    ref<ConstantExpr> left = toConstant(state, eval(ki, 0, state).value,
-                                        "floating point");
-    ref<ConstantExpr> right = toConstant(state, eval(ki, 1, state).value,
-                                         "floating point");
-    if (!fpWidthToSemantics(left->getWidth()) ||
-        !fpWidthToSemantics(right->getWidth()))
-      return terminateStateOnExecError(state, "Unsupported FRem operation");
-#if LLVM_VERSION_CODE >= LLVM_VERSION(3, 3)
-    llvm::APFloat Res(*fpWidthToSemantics(left->getWidth()), left->getAPValue());
-    Res.mod(APFloat(*fpWidthToSemantics(right->getWidth()),right->getAPValue()),
-            APFloat::rmNearestTiesToEven);
-#else
-    llvm::APFloat Res(left->getAPValue());
-    Res.mod(APFloat(right->getAPValue()), APFloat::rmNearestTiesToEven);
-#endif
-    bindLocal(ki, state, ConstantExpr::alloc(Res.bitcastToAPInt()));
+    ref<Expr> left = eval(ki, 0, state).value;
+    ref<Expr> right = eval(ki, 1, state).value;
+    bindLocal(ki, state, FRemExpr::create(left, right));
     break;
   }
 
@@ -2248,26 +2211,16 @@ void Executor::executeInstruction(ExecutionState &state, KInstruction *ki) {
 
   case Instruction::FCmp: {
     FCmpInst *fi = cast<FCmpInst>(i);
-    ref<ConstantExpr> left = toConstant(state, eval(ki, 0, state).value,
-                                        "floating point");
-    ref<ConstantExpr> right = toConstant(state, eval(ki, 1, state).value,
-                                         "floating point");
-    if (!fpWidthToSemantics(left->getWidth()) ||
-        !fpWidthToSemantics(right->getWidth()))
-      return terminateStateOnExecError(state, "Unsupported FCmp operation");
-
-#if LLVM_VERSION_CODE >= LLVM_VERSION(3, 3)
-    APFloat LHS(*fpWidthToSemantics(left->getWidth()),left->getAPValue());
-    APFloat RHS(*fpWidthToSemantics(right->getWidth()),right->getAPValue());
-#else
-    APFloat LHS(left->getAPValue());
-    APFloat RHS(right->getAPValue());
-#endif
-    APFloat::cmpResult CmpRes = LHS.compare(RHS);
-
-    bool Result = false;
     switch( fi->getPredicate() ) {
       // Predicates which only care about whether or not the operands are NaNs.
+    case FCmpInst::FCMP_OGT:{
+      ref<Expr> left = eval(ki, 0, state).value;
+      ref<Expr> right = eval(ki, 1, state).value;
+      ref<Expr> result = FOgtExpr::create(left, right);
+      bindLocal(ki, state,result);
+      break;
+    }
+      /*
     case FCmpInst::FCMP_ORD:
       Result = CmpRes != APFloat::cmpUnordered;
       break;
@@ -2292,9 +2245,7 @@ void Executor::executeInstruction(ExecutionState &state, KInstruction *ki) {
         Result = true;
         break;
       }
-    case FCmpInst::FCMP_OGT:
-      Result = CmpRes == APFloat::cmpGreaterThan;
-      break;
+
 
     case FCmpInst::FCMP_UGE:
       if (CmpRes == APFloat::cmpUnordered) {
@@ -2329,18 +2280,21 @@ void Executor::executeInstruction(ExecutionState &state, KInstruction *ki) {
     case FCmpInst::FCMP_ONE:
       Result = CmpRes != APFloat::cmpUnordered && CmpRes != APFloat::cmpEqual;
       break;
+      
 
-    default:
-      assert(0 && "Invalid FCMP predicate!");
     case FCmpInst::FCMP_FALSE:
       Result = false;
       break;
     case FCmpInst::FCMP_TRUE:
       Result = true;
       break;
+
+      */
+    default:
+      assert(0 && "Invalid FCMP predicate!");
     }
 
-    bindLocal(ki, state, ConstantExpr::alloc(Result, Expr::Bool));
+    //bindLocal(ki, state, ConstantExpr::alloc(Result, Expr::Bool));
     break;
   }
   case Instruction::InsertValue: {
@@ -2943,11 +2897,14 @@ void Executor::executeAlloc(ExecutionState &state,
                             bool isLocal,
                             KInstruction *target,
                             bool zeroMemory,
-                            const ObjectState *reallocFrom) {
+                            const ObjectState *reallocFrom,
+                            bool isArrayType,
+			    unsigned arraySize) {
   size = toUnique(state, size);
   if (ConstantExpr *CE = dyn_cast<ConstantExpr>(size)) {
-    MemoryObject *mo = memory->allocate(CE->getZExtValue(), isLocal, false, 
-                                        state.prevPC->inst);
+    int sizeV = CE->getZExtValue();
+    MemoryObject *mo = memory->allocate(sizeV, isLocal, false, 
+                                        state.prevPC->inst, isArrayType, arraySize);
     if (!mo) {
       bindLocal(target, state, 
                 ConstantExpr::alloc(0, Context::get().getPointerWidth()));
@@ -3013,7 +2970,7 @@ void Executor::executeAlloc(ExecutionState &state,
       (void) success;
       if (res) {
         executeAlloc(*fixedSize.second, tmp, isLocal,
-                     target, zeroMemory, reallocFrom);
+                     target, zeroMemory, reallocFrom, isArrayType, arraySize);
       } else {
         // See if a *really* big value is possible. If so assume
         // malloc will fail for it, so lets fork and return 0.
@@ -3044,7 +3001,7 @@ void Executor::executeAlloc(ExecutionState &state,
 
     if (fixedSize.first) // can be zero when fork fails
       executeAlloc(*fixedSize.first, example, isLocal, 
-                   target, zeroMemory, reallocFrom);
+                   target, zeroMemory, reallocFrom, isArrayType, arraySize);
   }
 }
 
@@ -3141,48 +3098,67 @@ void Executor::executeMemoryOperation(ExecutionState &state,
 
   if (success) {
     const MemoryObject *mo = op.first;
-
-    if (MaxSymArraySize && mo->size>=MaxSymArraySize) {
-      address = toConstant(state, address, "max-sym-array-size");
-    }
+    if(mo->isArrayType){
+      if (MaxSymArraySize && mo->size>=MaxSymArraySize) {
+	address = toConstant(state, address, "max-sym-array-size");
+      }
     
-    ref<Expr> offset = mo->getOffsetExpr(address);
+      ref<Expr> offset = mo->getOffsetExpr(address);
 
-    bool inBounds;
-    solver->setTimeout(coreSolverTimeout);
-    bool success = solver->mustBeTrue(state, 
+      bool inBounds;
+      solver->setTimeout(coreSolverTimeout);
+      bool success = solver->mustBeTrue(state, 
                                       mo->getBoundsCheckOffset(offset, bytes),
                                       inBounds);
-    solver->setTimeout(0);
-    if (!success) {
-      state.pc = state.prevPC;
-      terminateStateEarly(state, "Query timed out (bounds check).");
-      return;
-    }
-
-    if (inBounds) {
-      const ObjectState *os = op.second;
-      if (isWrite) {
-        if (os->readOnly) {
-          terminateStateOnError(state,
-                                "memory error: object read only",
-                                "readonly.err");
-        } else {
-          ObjectState *wos = state.addressSpace.getWriteable(mo, os);
-          wos->write(offset, value);
-        }          
-      } else {
-        ref<Expr> result = os->read(offset, type);
-        
-        if (interpreterOpts.MakeConcreteSymbolic)
-          result = replaceReadWithSymbolic(state, result);
-        
-        bindLocal(target, state, result);
+      solver->setTimeout(0);
+      if (!success) {
+	state.pc = state.prevPC;
+	terminateStateEarly(state, "Query timed out (bounds check).");
+	return;
       }
 
-      return;
+      if (inBounds) {
+	const ObjectState *os = op.second;
+	if (isWrite) {
+	  if (os->readOnly) {
+	    terminateStateOnError(state,
+                                "memory error: object read only",
+                                "readonly.err");
+	  } else {
+	    ObjectState *wos = state.addressSpace.getWriteable(mo, os);
+	    wos->writeWhole(offset, value);
+	  }          
+	} else {
+	  ref<Expr> result = os->readWhole(offset, type);
+        
+	  if (interpreterOpts.MakeConcreteSymbolic)
+	    result = replaceReadWithSymbolic(state, result);
+        
+	  bindLocal(target, state, result);
+	}
+      }
+    } else {//not array type
+      const ObjectState *os = op.second;
+
+      if (isWrite) {
+	if (os->readOnly) {
+	  terminateStateOnError(state,
+                                "memory error: object read only",
+                                "readonly.err");
+	} else {
+	  ObjectState *wos = state.addressSpace.getWriteable(mo, os);
+	  wos->writeWhole(value);
+	}          
+      } else {
+	ref<Expr> result = os->readWhole(type);
+	if (interpreterOpts.MakeConcreteSymbolic)
+	  result = replaceReadWithSymbolic(state, result);
+        
+	bindLocal(target, state, result);
+      }
     }
-  } 
+    return;  
+  }
 
   // we are on an error path (no resolution, multiple resolution, one
   // resolution with out of bounds)
@@ -3318,9 +3294,10 @@ void Executor::executeMakeSymbolic(ExecutionState &state,
 }
 
 void Executor::executeMakeSymbolicWithSort(ExecutionState &state, 
-                                   const MemoryObject *mo,
-                                   const std::string &name,
-				   const unsigned sort) {
+					   const MemoryObject *mo,
+					   const std::string &name,
+					   const unsigned domain,
+					   const unsigned range) {
   // Create a new object state for the memory object (instead of a copy).
   if (!replayOut) {
     // Find a unique name for this array.  First try the original name,
@@ -3331,12 +3308,7 @@ void Executor::executeMakeSymbolicWithSort(ExecutionState &state,
       uniqueName = name + "_" + llvm::utostr(++id);
     }
     const Array *array = NULL;
-    if(sort == 0){
-      array = new Array(uniqueName, mo->size);
-    }else{
-      array = new Array(uniqueName, mo->size, 0, 0, Expr::Int32, Expr::Int8, sort);
-    }
-
+    array = new Array(uniqueName, mo->size, 0, 0, domain, range);
     bindObjectInState(state, mo, false, array);
     state.addSymbolic(mo, array);
     

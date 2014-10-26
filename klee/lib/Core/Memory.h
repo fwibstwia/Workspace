@@ -41,7 +41,7 @@ public:
   unsigned id;
   uint64_t address;
 
-  /// size in bytes
+  /// total size in bytes
   unsigned size;
   mutable std::string name;
 
@@ -66,6 +66,9 @@ public:
   /// should sensibly be only at creation time).
   mutable std::vector< ref<Expr> > cexPreferences;
 
+  bool isArrayType;
+  unsigned arraySize;
+
   // DO NOT IMPLEMENT
   MemoryObject(const MemoryObject &b);
   MemoryObject &operator=(const MemoryObject &b);
@@ -80,7 +83,29 @@ public:
       size(0),
       isFixed(true),
       parent(NULL),
-      allocSite(0) {
+      allocSite(0),
+      isArrayType(false),
+      arraySize(0){
+  }
+
+  MemoryObject(uint64_t _address, unsigned _size, 
+               bool _isLocal, bool _isGlobal, bool _isFixed,
+               const llvm::Value *_allocSite,
+               MemoryManager *_parent, bool _isArrayType, unsigned _arraySize)
+    : refCount(0), 
+      id(counter++),
+      address(_address),
+      size(_size),
+      name("unnamed"),
+      isLocal(_isLocal),
+      isGlobal(_isGlobal),
+      isFixed(_isFixed),
+      fake_object(false),
+      isUserSpecified(false),
+      parent(_parent), 
+      allocSite(_allocSite),
+      isArrayType(_isArrayType),
+      arraySize(_arraySize) {
   }
 
   MemoryObject(uint64_t _address, unsigned _size, 
@@ -98,7 +123,9 @@ public:
       fake_object(false),
       isUserSpecified(false),
       parent(_parent), 
-      allocSite(_allocSite) {
+      allocSite(_allocSite),
+      isArrayType(true),
+      arraySize(1) {
   }
 
   ~MemoryObject();
@@ -169,7 +196,7 @@ private:
 
 public:
   unsigned size;
-
+  unsigned arraySize;
   bool readOnly;
 
 public:
@@ -194,14 +221,19 @@ public:
   // make contents all concrete and random
   void initializeToRandom();
 
-  ref<Expr> read(ref<Expr> offset, Expr::Width width) const;
+  ref<Expr> read(ref<Expr> offset, Expr::Width width) const; 
   ref<Expr> read(unsigned offset, Expr::Width width) const;
+  ref<Expr> readWhole(Expr::Width width) const;
+  ref<Expr> readWhole(ref<Expr> offset, Expr::Width width) const; 
+  ref<Expr> readWhole(unsigned offset, Expr::Width width) const;
   ref<Expr> read8(unsigned offset) const;
 
   // return bytes written.
   void write(unsigned offset, ref<Expr> value);
   void write(ref<Expr> offset, ref<Expr> value);
-
+  void writeWhole(ref<Expr> value);
+  void writeWhole(unsigned offset, ref<Expr> value);
+  void writeWhole(ref<Expr> offset, ref<Expr> value);
   void write8(unsigned offset, uint8_t value);
   void write16(unsigned offset, uint16_t value);
   void write32(unsigned offset, uint32_t value);

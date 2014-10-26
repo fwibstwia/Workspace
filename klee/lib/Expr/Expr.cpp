@@ -199,7 +199,9 @@ unsigned ExtractExpr::computeHash() {
 }
 
 unsigned ReadExpr::computeHash() {
-  unsigned res = index->hash() * Expr::MAGIC_HASH_CONSTANT;
+  unsigned res = 1* Expr::MAGIC_HASH_CONSTANT;
+  if(index->getKind() != -1)
+    res = index->hash() * Expr::MAGIC_HASH_CONSTANT;
   res ^= updates.hash();
   hashValue = res;
   return hashValue;
@@ -357,7 +359,14 @@ void ConstantExpr::toString(std::string &Res, unsigned radix, unsigned logic) co
     Res = value.toString(radix, false);
   }else{
     if(isFloat){
-      
+        llvm::SmallVector<char, 100> Buffer;
+#if LLVM_VERSION_CODE >= LLVM_VERSION(3,3)
+	llvm::APFloat F(ConstantExpr::fpWidthToSemantics(width), value);
+#else
+	llvm::APFloat F(value);
+#endif
+	F.toString(Buffer);
+	Res = std::string(Buffer.data(), Buffer.size());
     }else{
       Res = value.toString(radix, true);
     }
@@ -420,7 +429,15 @@ ref<ConstantExpr> ConstantExpr::Sub(const ref<ConstantExpr> &RHS) {
 }
 
 ref<ConstantExpr> ConstantExpr::FSub(const ref<ConstantExpr> &RHS) {
-
+  assert(getWidth() == RHS->getWidth() && "Unsupported FSub operation");
+#if LLVM_VERSION_CODE >= LLVM_VERSION(3, 3)
+  llvm::APFloat Res(ConstantExpr::fpWidthToSemantics(getWidth()), getAPValue());
+  Res.subtract(APFloat(ConstantExpr::fpWidthToSemantics(RHS->getWidth()), RHS->getAPValue()), APFloat::rmNearestTiesToEven);
+#else
+  llvm::APFloat Res(getAPValue());
+  Res.subtract(APFloat(RHS->getAPValue()), APFloat::rmNearestTiesToEven);
+#endif
+  return ConstantExpr::alloc(Res);
 }
 
 ref<ConstantExpr> ConstantExpr::Mul(const ref<ConstantExpr> &RHS) {
@@ -428,6 +445,15 @@ ref<ConstantExpr> ConstantExpr::Mul(const ref<ConstantExpr> &RHS) {
 }
 
 ref<ConstantExpr> ConstantExpr::FMul(const ref<ConstantExpr> &RHS) {
+  assert(getWidth() == RHS->getWidth() && "Unsupported FMul operation");
+#if LLVM_VERSION_CODE >= LLVM_VERSION(3, 3)
+  llvm::APFloat Res(ConstantExpr::fpWidthToSemantics(getWidth()), getAPValue());
+  Res.multiply(APFloat(ConstantExpr::fpWidthToSemantics(RHS->getWidth()), RHS->getAPValue()), APFloat::rmNearestTiesToEven);
+#else
+  llvm::APFloat Res(getAPValue());
+  Res.multiply(APFloat(RHS->getAPValue()), APFloat::rmNearestTiesToEven);
+#endif
+  return ConstantExpr::alloc(Res);
 }
 
 ref<ConstantExpr> ConstantExpr::UDiv(const ref<ConstantExpr> &RHS) {
@@ -439,6 +465,15 @@ ref<ConstantExpr> ConstantExpr::SDiv(const ref<ConstantExpr> &RHS) {
 }
 
 ref<ConstantExpr> ConstantExpr::FDiv(const ref<ConstantExpr> &RHS) {
+  assert(getWidth() == RHS->getWidth() && "Unsupported FDiv operation");
+#if LLVM_VERSION_CODE >= LLVM_VERSION(3, 3)
+  llvm::APFloat Res(ConstantExpr::fpWidthToSemantics(getWidth()), getAPValue());
+  Res.divide(APFloat(ConstantExpr::fpWidthToSemantics(RHS->getWidth()), RHS->getAPValue()), APFloat::rmNearestTiesToEven);
+#else
+  llvm::APFloat Res(getAPValue());
+  Res.divide(APFloat(RHS->getAPValue()), APFloat::rmNearestTiesToEven);
+#endif
+  return ConstantExpr::alloc(Res);
 }
 
 ref<ConstantExpr> ConstantExpr::URem(const ref<ConstantExpr> &RHS) {
@@ -450,7 +485,15 @@ ref<ConstantExpr> ConstantExpr::SRem(const ref<ConstantExpr> &RHS) {
 }
 
 ref<ConstantExpr> ConstantExpr::FRem(const ref<ConstantExpr> &RHS) {
-
+  assert(getWidth() == RHS->getWidth() && "Unsupported FRem operation");
+#if LLVM_VERSION_CODE >= LLVM_VERSION(3, 3)
+  llvm::APFloat Res(ConstantExpr::fpWidthToSemantics(getWidth()), getAPValue());
+  Res.mod(APFloat(ConstantExpr::fpWidthToSemantics(RHS->getWidth()), RHS->getAPValue()), APFloat::rmNearestTiesToEven);
+#else
+  llvm::APFloat Res(getAPValue());
+  Res.mod(APFloat(RHS->getAPValue()), APFloat::rmNearestTiesToEven);
+#endif
+  return ConstantExpr::alloc(Res);
 }
 
 ref<ConstantExpr> ConstantExpr::And(const ref<ConstantExpr> &RHS) {
@@ -521,6 +564,51 @@ ref<ConstantExpr> ConstantExpr::Sge(const ref<ConstantExpr> &RHS) {
   return ConstantExpr::alloc(value.sge(RHS->value), Expr::Bool);
 }
 
+ref<ConstantExpr> ConstantExpr::FOgt(const ref<ConstantExpr> &RHS) {
+  assert(getWidth() == RHS->getWidth() && "Unsupported FRem operation");
+  bool result;
+#if LLVM_VERSION_CODE >= LLVM_VERSION(3, 3)
+  llvm::APFloat Res(ConstantExpr::fpWidthToSemantics(getWidth()), getAPValue());
+  if(Res.compare(APFloat(ConstantExpr::fpWidthToSemantics(RHS->getWidth()), RHS->getAPValue())) == llvm::APFloat::cmpGreaterThan){
+    result = true;
+  }else{
+    result = false;
+  }
+#else
+  llvm::APFloat Res(getAPValue());
+  if(Res.compare(APFloat(RHS->getAPValue())) == llvm::APFloat::cmpGreaterThan){
+     result = true;
+  }
+  else{
+    result = false;
+  }
+#endif
+  return ConstantExpr::alloc(result, Expr::Bool);
+}
+
+ref<ConstantExpr> ConstantExpr::FOlt(const ref<ConstantExpr> &RHS) {
+  assert(getWidth() == RHS->getWidth() && "Unsupported FRem operation");
+  bool result;
+#if LLVM_VERSION_CODE >= LLVM_VERSION(3, 3)
+  llvm::APFloat Res(ConstantExpr::fpWidthToSemantics(getWidth()), getAPValue());
+  if(Res.compare(APFloat(ConstantExpr::fpWidthToSemantics(RHS->getWidth()), RHS->getAPValue())) == llvm::APFloat::cmpLessThan){
+    result = true;
+  }else{
+    result = false;
+  }
+#else
+  llvm::APFloat Res(getAPValue());
+  if(Res.compare(APFloat(RHS->getAPValue())) == llvm::APFloat::cmpLessThan){
+     result = true;
+  }
+  else{
+    result = false;
+  }
+#endif
+  return ConstantExpr::alloc(result, Expr::Bool);
+}
+
+
 /***/
 
 ref<Expr>  NotOptimizedExpr::create(ref<Expr> src) {
@@ -566,6 +654,24 @@ ref<Expr> ReadExpr::create(const UpdateList &ul, ref<Expr> index) {
   }
 
   return ReadExpr::alloc(ul, index);
+}
+
+ref<Expr> ReadExpr::create(const UpdateList &ul) {
+  // rollback index when possible... 
+
+  // XXX this doesn't really belong here... there are basically two
+  // cases, one is rebuild, where we want to optimistically try various
+  // optimizations when the index has changed, and the other is 
+  // initial creation, where we expect the ObjectState to have constructed
+  // a smart UpdateList so it is not worth rescanning.
+
+  const UpdateNode *un = ul.head;
+
+  if(un){
+    return un -> value;
+  }
+
+  return ReadExpr::alloc(ul);
 }
 
 int ReadExpr::compareContents(const Expr &b) const { 
@@ -853,10 +959,23 @@ static ref<Expr> SubExpr_create(Expr *l, Expr *r) {
 }
 
 static ref<Expr> FSubExpr_createPartialR(const ref<ConstantExpr> &cl, Expr *r) {
+  llvm::APFloat v = cl->getAPFValue();
+  if (v.isZero()) {
+    return r;
+  } else {
+    return FSubExpr::alloc(cl, r);
+  }
 }
 static ref<Expr> FSubExpr_createPartial(Expr *l, const ref<ConstantExpr> &cr) {
+  llvm::APFloat v = cr->getAPFValue();
+  if (v.isZero()) {
+    return l;
+  } else {
+    return FSubExpr::alloc(l, cr);
+  }
 }
 static ref<Expr> FSubExpr_create(Expr *l, Expr *r) {
+  return FSubExpr::alloc(l, r);
 }
 
 static ref<Expr> MulExpr_createPartialR(const ref<ConstantExpr> &cl, Expr *r) {
@@ -886,10 +1005,25 @@ static ref<Expr> MulExpr_create(Expr *l, Expr *r) {
 }
 
 static ref<Expr> FMulExpr_createPartialR(const ref<ConstantExpr> &cl, Expr *r) {
+  llvm::APFloat v = cl->getAPFValue();
+  if (v.isZero()) {
+    return cl;
+  } else {
+    return FMulExpr::alloc(cl, r);
+  }
 }
 static ref<Expr> FMulExpr_createPartial(Expr *l, const ref<ConstantExpr> &cr) {
+
+  llvm::APFloat v = cr->getAPFValue();
+  if (v.isZero()) {
+    return cr;
+  } else {
+    return FMulExpr::alloc(l, cr);
+  }
+
 }
 static ref<Expr> FMulExpr_create(Expr *l, Expr *r) {
+ return FMulExpr::alloc(l, r);
 }
 
 static ref<Expr> AndExpr_createPartial(Expr *l, const ref<ConstantExpr> &cr) {
@@ -958,6 +1092,7 @@ static ref<Expr> SDivExpr_create(const ref<Expr> &l, const ref<Expr> &r) {
 }
 
 static ref<Expr> FDivExpr_create(const ref<Expr> &l, const ref<Expr> &r) {
+  return FDivExpr::alloc(l, r);
 }
 
 static ref<Expr> URemExpr_create(const ref<Expr> &l, const ref<Expr> &r) {
@@ -977,6 +1112,7 @@ static ref<Expr> SRemExpr_create(const ref<Expr> &l, const ref<Expr> &r) {
 }
 
 static ref<Expr> FRemExpr_create(const ref<Expr> &l, const ref<Expr> &r) {
+  return FRemExpr::alloc(l, r);
 }
 
 static ref<Expr> ShlExpr_create(const ref<Expr> &l, const ref<Expr> &r) {
@@ -1207,6 +1343,10 @@ ref<Expr> SgtExpr::create(const ref<Expr> &l, const ref<Expr> &r) {
 ref<Expr> SgeExpr::create(const ref<Expr> &l, const ref<Expr> &r) {
   return SleExpr::create(r, l);
 }
+ref<Expr> FOgtExpr::create(const ref<Expr> &l, const ref<Expr> &r) {
+  return FOltExpr::create(r, l);
+}
+
 
 static ref<Expr> UltExpr_create(const ref<Expr> &l, const ref<Expr> &r) {
   Expr::Width t = l->getWidth();
@@ -1241,8 +1381,13 @@ static ref<Expr> SleExpr_create(const ref<Expr> &l, const ref<Expr> &r) {
   }
 }
 
+static ref<Expr> FOltExpr_create(const ref<Expr> &l, const ref<Expr> &r) {
+    return FOltExpr::alloc(l, r);
+}
+
 CMPCREATE_T(EqExpr, Eq, EqExpr, EqExpr_createPartial, EqExpr_createPartialR)
 CMPCREATE(UltExpr, Ult)
 CMPCREATE(UleExpr, Ule)
 CMPCREATE(SltExpr, Slt)
 CMPCREATE(SleExpr, Sle)
+CMPCREATE(FOltExpr, FOlt)
