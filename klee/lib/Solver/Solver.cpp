@@ -12,6 +12,7 @@
 
 #include "SolverStats.h"
 #include "STPBuilder.h"
+#include "Z3Builder.h"
 #include "MetaSMTBuilder.h"
 
 #include "klee/Constraints.h"
@@ -593,6 +594,12 @@ void STPSolver::setCoreSolverTimeout(double timeout) {
     impl->setCoreSolverTimeout(timeout);
 }
 
+
+Z3Solver::Z3Solver(bool useForkedZ3, bool optimizeDivides)
+  :Solver(new Z3SolverImpl(useForkedZ3, optimizeDivides))
+{
+}
+
 /***/
 
 char *STPSolverImpl::getConstraintLog(const Query &query) {
@@ -844,6 +851,184 @@ STPSolverImpl::computeInitialValues(const Query &query,
 
 SolverImpl::SolverRunStatus STPSolverImpl::getOperationStatusCode() {
    return runStatusCode;
+}
+
+/***/
+class Z3SolverImpl : public SolverImpl {
+private:
+  z3::context c;
+  z3::solver *s;
+  Z3Builder *builder;
+  double timeout;
+  bool useForkedZ3;
+  SolverRunStatus runStatusCode;
+public:
+  Z3SolverImpl(bool useForkedZ3, bool optimizeDivides = false);
+  ~Z3SolverImpl();
+  char *getConstraintLog(const Query&);
+  void setCoreSolverTimeout(double _timeout) { timeout = _timeout;}
+  bool computeTruth(const Query&, bool &isValid);
+  bool computeValue(const Query&, ref<Expr> &result);
+  bool computeInitialValues(const Query&, 
+			    const std::vector<const Array*> &objects,
+			    std::vector< std::vector<unsigned char>> &values,
+			    bool &hasSolution);
+  SolverRunStatus getOperationStatusCode();
+
+};
+
+Z3SolverImpl::Z3SolverImpl(bool _useForkedZ3, bool _optimizeDivides)
+  : c(new z3::context()),
+    builder(new Z3Builder(_optimizeDivides)),
+    timeout(0.0),
+    useForkedZ3(false),
+    runStatusCode(SOLVER_RUN_STATUS_FAILURE)
+{
+  s = new z3::Solver(c);
+
+  assert(builder && "unable to create Z3Builder");
+
+  if (_useForkedZ3) {
+      shared_memory_id = shmget(IPC_PRIVATE, shared_memory_size, IPC_CREAT | 0700);
+      assert(shared_memory_id >= 0 && "shmget failed");
+      shared_memory_ptr = (unsigned char*) shmat(shared_memory_id, NULL, 0);
+      assert(shared_memory_ptr != (void*) -1 && "shmat failed");
+      shmctl(shared_memory_id, IPC_RMID, NULL);
+  }
+}
+
+Z3SolverImpl::~Z3SolverImpl(){
+  delete builder;
+}
+
+char *Z3SolverImpl::getConstraintLog(const Query &query){
+  const char* msg = "Not supported";
+  char *buf = new char[strlen(msg) + 1];
+  strcpy(buf, msg);
+  return(buf);
+}
+
+bool Z3SolverImpl::computeTruth(const Query& query, bool &isValid){
+  bool success = false;
+  std::vector<const Array*> objects;
+  std::vector< std::vector<unsigned char> > values;
+  bool hasSolution;
+
+  if (computeInitialValues(query, objects, values, hasSolution)) {
+      // query.expr is valid iff !query.expr is not satisfiable
+      isValid = !hasSolution;
+      success = true;
+  }
+
+  return(success);
+}
+
+bool Z3SolverImpl::computeValue(const Query& query, ref<Expr> &result){
+  bool success = false;
+  std::vector<const Array*> objects;
+  std::vector< std::vector<unsigned char> > values;
+  bool hasSolution;
+
+  // Find the object used in the expression, and compute an assignment for them.
+  findSymbolicObjects(query.expr, objects);  
+  if (computeInitialValues(query.withFalse(), objects, values, hasSolution)) {  
+      assert(hasSolution && "state has invalid constraint set");
+      // Evaluate the expression with the computed assignment.
+      Assignment a(objects, values);
+      result = a.evaluate(query.expr);
+      success = true;
+  }
+
+  return(success);
+}
+
+bool Z3SolverImpl::computeInitialValues(const Query &query,
+					const std::vector<const Array*> &objects,
+					std::vector<ref<Expr> > &values,
+					bool &hasSolution) {  
+
+  runStatusCode =  SOLVER_RUN_STATUS_FAILURE;
+
+  TimerStatIncrementer t(stats::queryTime);
+  assert(builder);
+  if (!useForked) {
+      for (ConstraintManager::const_iterator it = query.constraints.begin(), ie = query.constraints.end(); it != ie; ++it) {
+	s.add(builder->construct(c, *it));  
+      }  
+  }  
+  s.push();
+  ++stats::queries;
+  ++stats::queryCounterexamples;  
+ 
+  bool success = true;
+  if (useForked) {
+      runStatusCode = runAndGetCexForked(query, objects, values, hasSolution, _timeout);
+      success = ((SOLVER_RUN_STATUS_SUCCESS_SOLVABLE == _runStatusCode) || (SOLVER_RUN_STATUS_SUCCESS_UNSOLVABLE == _runStatusCode));
+  }
+  else {
+      runStatusCode = runAndGetCex(query.expr, objects, values, hasSolution);
+      success = true;
+  } 
+    
+  if (success) {
+      if (hasSolution) {
+          ++stats::queriesInvalid;
+      }
+      else {
+          ++stats::queriesValid;
+      }
+  }  
+   
+  //pop(_meta_solver); 
+  
+  return(success);
+}
+
+SolverImpl::SolverRunStatus Z3SolverImpl::runAndGetCex(ref<Expr> query_expr,
+						       const std::vector<const Array*> &objects,
+						       std::vector< std::vector<unsigned char> > &values,
+						       bool &hasSolution)
+{
+
+  // assume the negation of the query  
+  s.add(builder->construct(c, Expr::createIsZero(query_expr)));
+
+
+  switch (s.check()) {
+  case unsat:
+  case sat:{
+    values.reserve(objects.size());
+    for (std::vector<const Array*>::const_iterator it = objects.begin(), ie = objects.end(); it != ie; ++it) {
+          const Array *array = *it;
+          assert(array);
+	  /*          typename SolverContext::result_type array_exp = _builder->getInitialArray(array);
+           
+          std::vector<unsigned char> data;      
+          data.reserve(array->size);       
+           
+          for (unsigned offset = 0; offset < array->size; offset++) {
+              typename SolverContext::result_type elem_exp = evaluate(
+                       _meta_solver,
+                       metaSMT::logic::Array::select(array_exp, bvuint(offset, array->getDomain())));
+              unsigned char elem_value = metaSMT::read_value(_meta_solver, elem_exp);
+              data.push_back(elem_value);*/
+          }
+                   
+          values.push_back(data);
+    }
+    return (SolverImpl::SOLVER_RUN_STATUS_SUCCESS_SOLVABLE);
+  }
+  default:
+    return (SolverImpl::SOLVER_RUN_STATUS_SUCCESS_UNSOLVABLE); 
+  }
+}
+
+
+SolverImpl::SolverRunStatus Z3SolverImpl::runAndGetCexForked(const Query &query,
+							     const std::vector<const Array*> &objects,
+							     std::vector< std::vector<unsigned char> > &values,
+							     bool &hasSolution,
+							     double timeout){
 }
 
 #ifdef SUPPORT_METASMT
