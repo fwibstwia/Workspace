@@ -222,8 +222,8 @@ namespace klee {
   /// Z3Solver - A complete solver based on Z3.
   class Z3Solver : public Solver{
   public:
-    Z3Solver(bool useForkedZ3, bool optimizeDivides = true);
-  }
+    Z3Solver(bool useForkedZ3, bool optimizeDivides = false);
+  };
 
   
 #ifdef SUPPORT_METASMT

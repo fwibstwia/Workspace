@@ -325,10 +325,10 @@ Executor::Executor(const InterpreterOptions &opts,
     llvm::errs() << "Starting MetaSMTSolver(" << backend << ") ...\n";
   }
   else {
-    coreSolver = new STPSolver(UseForkedCoreSolver, CoreSolverOptimizeDivides);
+    coreSolver = new Z3Solver(UseForkedCoreSolver, CoreSolverOptimizeDivides);
   }
 #else
-  coreSolver = new STPSolver(UseForkedCoreSolver, CoreSolverOptimizeDivides);
+  coreSolver = new Z3Solver(UseForkedCoreSolver, CoreSolverOptimizeDivides);
 #endif /* SUPPORT_METASMT */
   
    

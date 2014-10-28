@@ -18,10 +18,8 @@
 #include <vector>
 #include <z3++.h>
 
-#endif
-
 namespace klee {
-  class Z3ArrayExprHash : public ArrayExprHash<z3::expr> {
+  class Z3ArrayExprHash : public ArrayExprHash<z3::expr*> {
     
     friend class Z3Builder;
     
@@ -35,13 +33,13 @@ namespace klee {
     /// optimizeDivides - Rewrite division and reminders by constants
     /// into multiplies and shifts. Z3 should probably handle this for
     /// use.
-    bool optimizeDivides;
     z3::context *c;
+    bool optimizeDivides;
     Z3ArrayExprHash _arr_hash;
 
   private:
-    expr Z3Builder::getInitialArray(const Array *root);
-    expr Z3Builder::getArrayForUpdate(const Array *root, 
+    z3::expr getInitialArray(const Array *root);
+    z3::expr getArrayForUpdate(const Array *root, 
 				      const UpdateNode *un);
   public:
     Z3Builder(z3::context *_c, bool _optimizeDivides=false): c(_c), 
@@ -51,7 +49,8 @@ namespace klee {
     ref<Expr> getInitialRead(const Array *os);
 
     z3::expr construct(ref<Expr> e);
-}
+    z3::expr constructDeclaration(const Array *object);
+  };
 
 }
 #endif

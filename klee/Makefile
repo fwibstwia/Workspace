@@ -33,6 +33,7 @@ endif
 # Include the Master Makefile that knows how to build all.
 #
 include $(LEVEL)/Makefile.common
+LIBS += -lz3
 
 .PHONY: doxygen
 doxygen:

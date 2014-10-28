@@ -106,7 +106,7 @@ void ArrayExprHash<T>::hashArrayExpr(const Array* array, T& exp) {
 #endif
    
    assert(array);
-  _array_hash[array] = exp;
+   _array_hash[array]=exp;
 }
 
 template<class T>

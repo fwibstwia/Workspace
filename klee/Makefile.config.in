@@ -71,7 +71,7 @@ endif
 TEST_FEATURE_LIST += no-unwind
 
 CFLAGS := @CFLAGS@ -Wall -g
-CXXFLAGS := @CXXFLAGS@ -g -Wall
+CXXFLAGS := @CXXFLAGS@ -g -Wall -fexceptions
 LDFLAGS := @LDFLAGS@ -g
 
 REQUIRES_RTTI := @REQUIRES_RTTI@

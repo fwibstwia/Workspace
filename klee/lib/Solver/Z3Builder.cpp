@@ -16,62 +16,40 @@ ref<Expr> getInitialRead(const Array *os){
 
 }
 
-expr Z3Builder::getInitialArray(const Array *root) {
-  
-  assert(root);
-  expr array_expr;
-  bool hashed = _arr_hash.lookupArrayExpr(root, array_expr);
-  
-  if (!hashed) {
-    // STP uniques arrays by name, so we make sure the name is unique by
-    // including the address.
-    char buf[32];
-    unsigned const addrlen = sprintf(buf, "_%p", (const void*)root) + 1; // +1 for null-termination
-    unsigned const space = (root->name.length() > 32 - addrlen)?(32 - addrlen):root->name.length();
-    memmove(buf + space, buf, addrlen); // moving the address part to the end
-    memcpy(buf, root->name.c_str(), space); // filling out the name part
-    
-    array_expr = buildArray(buf, root->getDomain(), root->getRange());
-    
-    if (root->isConstantArray()) {
-      // FIXME: Flush the concrete values into STP. Ideally we would do this
-      // using assertions, which is much faster, but we need to fix the caching
-      // to work correctly in that case.
-      for (unsigned i = 0, e = root->size; i != e; ++i) {
-	::VCExpr prev = array_expr;
-	array_expr = vc_writeExpr(vc, prev,
-                       construct(ConstantExpr::alloc(i, root->getDomain()), 0),
-                       construct(root->constantValues[i], 0));
-	vc_DeleteExpr(prev);
-      }
-    }
-    
-    _arr_hash.hashArrayExpr(root, array_expr);
+expr Z3Builder::constructDeclaration(const Array* object){
+  expr *array_expr;
+  if(object-> getDomain() != Expr::InvalidWidth){
+    sort I = c -> int_sort();
+    sort R = c -> real_sort();
+    sort A = c -> array_sort(I, R);
+    array_expr = new expr(c -> constant(c -> str_symbol((object -> name).c_str()), A));
+  } else {
+    array_expr = new expr(c -> real_val((object -> name).c_str()));
   }
-  
-  return(array_expr); 
+  _arr_hash.hashArrayExpr(object, array_expr);
+  return *array_expr;
 }
 
 expr Z3Builder::getArrayForUpdate(const Array *root, 
                                        const UpdateNode *un) {
+  expr *un_expr;
   if (!un) {
-      return(getInitialArray(root));
+    _arr_hash.lookupArrayExpr(root, un_expr);
+    return *un_expr;
   }
   else {
       // FIXME: This really needs to be non-recursive.
-      ::VCExpr un_expr;
-      bool hashed = _arr_hash.lookupUpdateNodeExpr(un, un_expr);
+    if(root -> getDomain() != Expr::InvalidWidth){
+      //      bool hashed = _arr_hash.lookupUpdateNodeExpr(un, un_expr);
       
-      if (!hashed) {
-	un_expr = vc_writeExpr(vc,
-                               getArrayForUpdate(root, un->next),
-                               construct(un->index, 0),
-                               construct(un->value, 0));
-	
-	_arr_hash.hashUpdateNodeExpr(un, un_expr);
-      }
+      //      if (!hashed) {
+      //	_arr_hash.hashUpdateNodeExpr(un, un_expr);
+      //      }
+      //      return(*un_expr);
+    }
+    else{
       
-      return(un_expr);
+    }
   }
 }
 
@@ -83,7 +61,7 @@ expr Z3Builder::construct(ref<Expr> e){
 
   case Expr::Constant: {
     ConstantExpr *CE = cast<ConstantExpr>(e);
-    return c->real_val(CE->getZExtValue());
+    return c->real_val((__int64)CE->getZExtValue());
   }
 
   case Expr::NotOptimized: {
@@ -94,7 +72,7 @@ expr Z3Builder::construct(ref<Expr> e){
   case Expr::Read: {
     ReadExpr *re = cast<ReadExpr>(e);
     assert(re && re->updates.root);
-    if(
+    return getArrayForUpdate(re->updates.root, re->updates.head);
   }
 
   case Expr::Select: {
@@ -147,7 +125,7 @@ expr Z3Builder::construct(ref<Expr> e){
     return left + right;
   }
 
-  case Expr::Fsub: {
+  case Expr::FSub: {
     AddExpr *ae = cast<AddExpr>(e);
     expr left = construct(ae->left);
     expr right = construct(ae->right);
@@ -207,10 +185,10 @@ expr Z3Builder::construct(ref<Expr> e){
   case Expr::Ule: {
   }
 
-  case Expr::slt: {
+  case Expr::Slt: {
   }
 
-  case Expr::sle: {
+  case Expr::Sle: {
   }
   
   case Expr::FOlt: {

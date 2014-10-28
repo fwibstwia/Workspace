@@ -595,11 +595,6 @@ void STPSolver::setCoreSolverTimeout(double timeout) {
 }
 
 
-Z3Solver::Z3Solver(bool useForkedZ3, bool optimizeDivides)
-  :Solver(new Z3SolverImpl(useForkedZ3, optimizeDivides))
-{
-}
-
 /***/
 
 char *STPSolverImpl::getConstraintLog(const Query &query) {
@@ -856,7 +851,7 @@ SolverImpl::SolverRunStatus STPSolverImpl::getOperationStatusCode() {
 /***/
 class Z3SolverImpl : public SolverImpl {
 private:
-  z3::context c;
+  z3::context *c;
   z3::solver *s;
   Z3Builder *builder;
   double timeout;
@@ -871,20 +866,34 @@ public:
   bool computeValue(const Query&, ref<Expr> &result);
   bool computeInitialValues(const Query&, 
 			    const std::vector<const Array*> &objects,
-			    std::vector< std::vector<unsigned char>> &values,
+			    std::vector< std::vector<unsigned char> > &values,
 			    bool &hasSolution);
+  bool computeInitialValues(const Query&, 
+			    const std::vector<const Array*> &objects,
+			    std::vector<ref<Expr> > &values,
+			    bool &hasSolution);
+    
+  SolverImpl::SolverRunStatus runAndGetCex(ref<Expr> query_expr,
+                                           const std::vector<const Array*> &objects,
+                                           std::vector< ref<Expr> > &values,
+                                           bool &hasSolution);
+  
+  SolverImpl::SolverRunStatus runAndGetCexForked(const Query &query,
+                                                 const std::vector<const Array*> &objects,
+                                                 std::vector< ref<Expr> > &values,
+                                                 bool &hasSolution,
+                                                 double timeout);
   SolverRunStatus getOperationStatusCode();
 
 };
 
 Z3SolverImpl::Z3SolverImpl(bool _useForkedZ3, bool _optimizeDivides)
-  : c(new z3::context()),
-    builder(new Z3Builder(_optimizeDivides)),
-    timeout(0.0),
+  : timeout(0.0),
     useForkedZ3(false),
-    runStatusCode(SOLVER_RUN_STATUS_FAILURE)
-{
-  s = new z3::Solver(c);
+    runStatusCode(SOLVER_RUN_STATUS_FAILURE){
+  c = new z3::context();
+  builder = new Z3Builder(c, _optimizeDivides);
+  s = new z3::solver(*c);
 
   assert(builder && "unable to create Z3Builder");
 
@@ -896,6 +905,12 @@ Z3SolverImpl::Z3SolverImpl(bool _useForkedZ3, bool _optimizeDivides)
       shmctl(shared_memory_id, IPC_RMID, NULL);
   }
 }
+
+Z3Solver::Z3Solver(bool useForkedZ3, bool optimizeDivides)
+  :Solver(new Z3SolverImpl(useForkedZ3, optimizeDivides))
+{
+}
+
 
 Z3SolverImpl::~Z3SolverImpl(){
   delete builder;
@@ -911,7 +926,7 @@ char *Z3SolverImpl::getConstraintLog(const Query &query){
 bool Z3SolverImpl::computeTruth(const Query& query, bool &isValid){
   bool success = false;
   std::vector<const Array*> objects;
-  std::vector< std::vector<unsigned char> > values;
+  std::vector<ref<Expr> > values;
   bool hasSolution;
 
   if (computeInitialValues(query, objects, values, hasSolution)) {
@@ -926,7 +941,7 @@ bool Z3SolverImpl::computeTruth(const Query& query, bool &isValid){
 bool Z3SolverImpl::computeValue(const Query& query, ref<Expr> &result){
   bool success = false;
   std::vector<const Array*> objects;
-  std::vector< std::vector<unsigned char> > values;
+  std::vector<ref<Expr> > values;
   bool hasSolution;
 
   // Find the object used in the expression, and compute an assignment for them.
@@ -934,14 +949,21 @@ bool Z3SolverImpl::computeValue(const Query& query, ref<Expr> &result){
   if (computeInitialValues(query.withFalse(), objects, values, hasSolution)) {  
       assert(hasSolution && "state has invalid constraint set");
       // Evaluate the expression with the computed assignment.
-      Assignment a(objects, values);
-      result = a.evaluate(query.expr);
+      //Assignment a(objects, values);
+      //      result = a.evaluate(query.expr);
       success = true;
   }
 
   return(success);
 }
 
+bool Z3SolverImpl::computeInitialValues(const Query& query,
+                                      const std::vector<const Array*> 
+                                        &objects,
+                                      std::vector< std::vector<unsigned char> > 
+                                        &values,
+					bool &hasSolution){
+}
 bool Z3SolverImpl::computeInitialValues(const Query &query,
 					const std::vector<const Array*> &objects,
 					std::vector<ref<Expr> > &values,
@@ -951,19 +973,23 @@ bool Z3SolverImpl::computeInitialValues(const Query &query,
 
   TimerStatIncrementer t(stats::queryTime);
   assert(builder);
-  if (!useForked) {
-      for (ConstraintManager::const_iterator it = query.constraints.begin(), ie = query.constraints.end(); it != ie; ++it) {
-	s.add(builder->construct(c, *it));  
-      }  
+  if (!useForkedZ3) {
+    for (std::vector<const Array *>::const_iterator it = objects.begin();
+       it != objects.end(); it++){
+      s->add(builder->constructDeclaration(*it));
+    }
+    for (ConstraintManager::const_iterator it = query.constraints.begin(), ie = query.constraints.end(); it != ie; ++it) {
+      s->add(builder->construct(*it));  
+    }  
   }  
-  s.push();
+  s->push();
   ++stats::queries;
   ++stats::queryCounterexamples;  
  
   bool success = true;
-  if (useForked) {
-      runStatusCode = runAndGetCexForked(query, objects, values, hasSolution, _timeout);
-      success = ((SOLVER_RUN_STATUS_SUCCESS_SOLVABLE == _runStatusCode) || (SOLVER_RUN_STATUS_SUCCESS_UNSOLVABLE == _runStatusCode));
+  if (useForkedZ3) {
+      runStatusCode = runAndGetCexForked(query, objects, values, hasSolution, timeout);
+      success = ((SOLVER_RUN_STATUS_SUCCESS_SOLVABLE == runStatusCode) || (SOLVER_RUN_STATUS_SUCCESS_UNSOLVABLE == runStatusCode));
   }
   else {
       runStatusCode = runAndGetCex(query.expr, objects, values, hasSolution);
@@ -986,17 +1012,17 @@ bool Z3SolverImpl::computeInitialValues(const Query &query,
 
 SolverImpl::SolverRunStatus Z3SolverImpl::runAndGetCex(ref<Expr> query_expr,
 						       const std::vector<const Array*> &objects,
-						       std::vector< std::vector<unsigned char> > &values,
+						       std::vector< ref<Expr> > &values,
 						       bool &hasSolution)
 {
 
   // assume the negation of the query  
-  s.add(builder->construct(c, Expr::createIsZero(query_expr)));
+  s->add(builder->construct(Expr::createIsZero(query_expr)));
 
 
-  switch (s.check()) {
-  case unsat:
-  case sat:{
+  switch (s->check()) {
+  case z3::unsat:
+  case z3::sat:{
     values.reserve(objects.size());
     for (std::vector<const Array*>::const_iterator it = objects.begin(), ie = objects.end(); it != ie; ++it) {
           const Array *array = *it;
@@ -1011,10 +1037,10 @@ SolverImpl::SolverRunStatus Z3SolverImpl::runAndGetCex(ref<Expr> query_expr,
                        _meta_solver,
                        metaSMT::logic::Array::select(array_exp, bvuint(offset, array->getDomain())));
               unsigned char elem_value = metaSMT::read_value(_meta_solver, elem_exp);
-              data.push_back(elem_value);*/
-          }
+              data.push_back(elem_value);
+	      }*/
                    
-          values.push_back(data);
+          //values.push_back(data);
     }
     return (SolverImpl::SOLVER_RUN_STATUS_SUCCESS_SOLVABLE);
   }
@@ -1026,7 +1052,7 @@ SolverImpl::SolverRunStatus Z3SolverImpl::runAndGetCex(ref<Expr> query_expr,
 
 SolverImpl::SolverRunStatus Z3SolverImpl::runAndGetCexForked(const Query &query,
 							     const std::vector<const Array*> &objects,
-							     std::vector< std::vector<unsigned char> > &values,
+							     std::vector< ref<Expr> > &values,
 							     bool &hasSolution,
 							     double timeout){
 }
