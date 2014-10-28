@@ -887,6 +887,10 @@ public:
 
 };
 
+SolverImpl::SolverRunStatus Z3SolverImpl::getOperationStatusCode() {
+   return runStatusCode;
+}
+
 Z3SolverImpl::Z3SolverImpl(bool _useForkedZ3, bool _optimizeDivides)
   : timeout(0.0),
     useForkedZ3(false),
@@ -929,6 +933,7 @@ bool Z3SolverImpl::computeTruth(const Query& query, bool &isValid){
   std::vector<ref<Expr> > values;
   bool hasSolution;
 
+  findSymbolicObjects(query.expr, objects);  
   if (computeInitialValues(query, objects, values, hasSolution)) {
       // query.expr is valid iff !query.expr is not satisfiable
       isValid = !hasSolution;

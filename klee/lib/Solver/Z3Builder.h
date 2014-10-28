@@ -45,7 +45,7 @@ namespace klee {
     Z3Builder(z3::context *_c, bool _optimizeDivides=false): c(_c), 
 							    optimizeDivides(_optimizeDivides){
     }
-
+    ~Z3Builder();
     ref<Expr> getInitialRead(const Array *os);
 
     z3::expr construct(ref<Expr> e);

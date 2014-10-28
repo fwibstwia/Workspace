@@ -20,6 +20,7 @@ LINK_COMPONENTS = support
 include $(LEVEL)/Makefile.common
 
 LIBS += -lstp
+LIBS += -lz3
 
 ifeq ($(ENABLE_METASMT),1)
   include $(METASMT_ROOT)/share/metaSMT/metaSMT.makefile

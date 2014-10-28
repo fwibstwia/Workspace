@@ -34,8 +34,8 @@ bool TimingSolver::evaluate(const ExecutionState& state, ref<Expr> expr,
   sys::TimeValue now(0,0),user(0,0),delta(0,0),sys(0,0);
   sys::Process::GetTimeUsage(now,user,sys);
 
-  if (simplifyExprs)
-    expr = state.constraints.simplifyExpr(expr);
+  //if (simplifyExprs)
+  //    expr = state.constraints.simplifyExpr(expr);
 
   bool success = solver->evaluate(Query(state.constraints, expr), result);
 

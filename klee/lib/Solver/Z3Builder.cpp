@@ -12,6 +12,12 @@
 using namespace z3;
 using namespace klee;
 
+Z3ArrayExprHash::~Z3ArrayExprHash(){
+}
+
+Z3Builder::~Z3Builder(){
+}
+
 ref<Expr> getInitialRead(const Array *os){
 
 }
@@ -48,7 +54,12 @@ expr Z3Builder::getArrayForUpdate(const Array *root,
       //      return(*un_expr);
     }
     else{
-      
+      bool hashed = _arr_hash.lookupUpdateNodeExpr(un, un_expr);
+      if(!hashed){
+	un_expr = new expr(construct(un->value));
+	_arr_hash.hashUpdateNodeExpr(un, un_expr);
+      }
+      return *un_expr;
     }
   }
 }
@@ -61,7 +72,7 @@ expr Z3Builder::construct(ref<Expr> e){
 
   case Expr::Constant: {
     ConstantExpr *CE = cast<ConstantExpr>(e);
-    return c->real_val((__int64)CE->getZExtValue());
+    return c->real_val(1);//(__uint64)CE->getZExtValue());
   }
 
   case Expr::NotOptimized: {
@@ -93,14 +104,14 @@ expr Z3Builder::construct(ref<Expr> e){
   }
 
   case Expr::Sub: {
-    AddExpr *ae = cast<AddExpr>(e);
+    SubExpr *ae = cast<SubExpr>(e);
     expr left = construct(ae->left);
     expr right = construct(ae->right);
     return left - right;
   }
 
   case Expr::Mul: {
-    AddExpr *ae = cast<AddExpr>(e);
+    MulExpr *ae = cast<MulExpr>(e);
     expr left = construct(ae->left);
     expr right = construct(ae->right);
     return left * right;
@@ -119,27 +130,27 @@ expr Z3Builder::construct(ref<Expr> e){
   }
 
   case Expr::FAdd: {
-    AddExpr *ae = cast<AddExpr>(e);
+    FAddExpr *ae = cast<FAddExpr>(e);
     expr left = construct(ae->left);
     expr right = construct(ae->right);
     return left + right;
   }
 
   case Expr::FSub: {
-    AddExpr *ae = cast<AddExpr>(e);
+    FSubExpr *ae = cast<FSubExpr>(e);
     expr left = construct(ae->left);
     expr right = construct(ae->right);
     return left - right;
   }
 
   case Expr::FMul: {
-    AddExpr *ae = cast<AddExpr>(e);
+    FMulExpr *ae = cast<FMulExpr>(e);
     expr left = construct(ae->left);
     expr right = construct(ae->right);
     return left * right;
   }
   case Expr::FDiv: {
-    AddExpr *ae = cast<AddExpr>(e);
+    FDivExpr *ae = cast<FDivExpr>(e);
     expr left = construct(ae->left);
     expr right = construct(ae->right);
     return left / right;
@@ -162,7 +173,7 @@ expr Z3Builder::construct(ref<Expr> e){
   }
 
   case Expr::Or: {
-    AndExpr *ae = cast<AndExpr>(e);
+    OrExpr *ae = cast<OrExpr>(e);
     expr left = construct(ae->left);
     expr right = construct(ae->right);
     return left || right;
