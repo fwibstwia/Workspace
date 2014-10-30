@@ -16,10 +16,14 @@ Z3ArrayExprHash::~Z3ArrayExprHash(){
 }
 
 Z3Builder::~Z3Builder(){
+  ///fix me: delete _arr_hash;
 }
 
-ref<Expr> getInitialRead(const Array *os){
-
+ref<Expr> Z3Builder::getInitialRead(const Array *os, model &m){  
+  expr res = m.get_const_interp(getInitialArray(os).decl());
+  if(res.is_numeral()){
+    Z3_string s = Z3_get_numeral_decimal_string(*c, res, 50);
+  } 
 }
 
 expr Z3Builder::getInitialArray(const Array *root){
@@ -197,7 +201,8 @@ expr Z3Builder::construct(ref<Expr> e){
     if(ConstantExpr *CE = dyn_cast<ConstantExpr>(ee->left)){
       if(CE->isTrue())
 	return right;
-      return !right;
+      if(CE->isFalse())
+	return !right;
     }
     return left == right;
   }

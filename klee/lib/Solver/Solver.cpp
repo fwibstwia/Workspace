@@ -1021,29 +1021,16 @@ SolverImpl::SolverRunStatus Z3SolverImpl::runAndGetCex(ref<Expr> query_expr,
 
 
   switch (s->check()) {
-  case z3::unsat:
   case z3::sat:{
     values.reserve(objects.size());
     for (std::vector<const Array*>::const_iterator it = objects.begin(), ie = objects.end(); it != ie; ++it) {
           const Array *array = *it;
           assert(array);
-	  /*          typename SolverContext::result_type array_exp = _builder->getInitialArray(array);
-           
-          std::vector<unsigned char> data;      
-          data.reserve(array->size);       
-           
-          for (unsigned offset = 0; offset < array->size; offset++) {
-              typename SolverContext::result_type elem_exp = evaluate(
-                       _meta_solver,
-                       metaSMT::logic::Array::select(array_exp, bvuint(offset, array->getDomain())));
-              unsigned char elem_value = metaSMT::read_value(_meta_solver, elem_exp);
-              data.push_back(elem_value);
-	      }*/
-                   
-          //values.push_back(data);
+
     }
     return (SolverImpl::SOLVER_RUN_STATUS_SUCCESS_SOLVABLE);
   }
+  case z3::unsat:
   default:
     return (SolverImpl::SOLVER_RUN_STATUS_SUCCESS_UNSOLVABLE); 
   }
