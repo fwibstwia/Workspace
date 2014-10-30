@@ -15,12 +15,12 @@ int ray_tracing(float rx, float ry, float rz, float sx, float sy, float sz) {
 
 int main() {
   float rx, ry, rz, sx, sy, sz;
-  klee_make_symbolic_with_sort(&rx, sizeof(rx), "a", 0, 32);
-  klee_make_symbolic_with_sort(&ry, sizeof(ry), "a", 0, 32);
-  klee_make_symbolic_with_sort(&rz, sizeof(rz), "a", 0, 32);
-  klee_make_symbolic_with_sort(&sx, sizeof(sx), "a", 0, 32);
-  klee_make_symbolic_with_sort(&sy, sizeof(sy), "a", 0, 32);
-  klee_make_symbolic_with_sort(&sz, sizeof(sz), "a", 0, 32);
+  klee_make_symbolic_with_sort(&rx, sizeof(rx), "rx", 0, 32);
+  klee_make_symbolic_with_sort(&ry, sizeof(ry), "ry", 0, 32);
+  klee_make_symbolic_with_sort(&rz, sizeof(rz), "rz", 0, 32);
+  klee_make_symbolic_with_sort(&sx, sizeof(sx), "sx", 0, 32);
+  klee_make_symbolic_with_sort(&sy, sizeof(sy), "sy", 0, 32);
+  klee_make_symbolic_with_sort(&sz, sizeof(sz), "sz", 0, 32);
   return ray_tracing(rx, ry, rz, sx, sy, sz);
 } 
 

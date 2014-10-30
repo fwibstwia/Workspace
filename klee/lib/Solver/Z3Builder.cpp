@@ -22,17 +22,21 @@ ref<Expr> getInitialRead(const Array *os){
 
 }
 
-expr Z3Builder::constructDeclaration(const Array* object){
+expr Z3Builder::getInitialArray(const Array *root){
+  assert(root);
   expr *array_expr;
-  if(object-> getDomain() != Expr::InvalidWidth){
-    sort I = c -> int_sort();
-    sort R = c -> real_sort();
-    sort A = c -> array_sort(I, R);
-    array_expr = new expr(c -> constant(c -> str_symbol((object -> name).c_str()), A));
-  } else {
-    array_expr = new expr(c -> real_val((object -> name).c_str()));
+  bool hashed = _arr_hash.lookupArrayExpr(root, array_expr);
+  if(!hashed){
+    if(root-> getDomain() != Expr::InvalidWidth){
+      sort I = c -> int_sort();
+      sort R = c -> real_sort();
+      sort A = c -> array_sort(I, R);
+      array_expr = new expr(c -> constant(c -> str_symbol((root -> name).c_str()), A));
+    } else {
+      array_expr = new expr(c -> real_const((root -> name).c_str()));
+    }
+    _arr_hash.hashArrayExpr(root, array_expr);
   }
-  _arr_hash.hashArrayExpr(object, array_expr);
   return *array_expr;
 }
 
@@ -40,18 +44,18 @@ expr Z3Builder::getArrayForUpdate(const Array *root,
                                        const UpdateNode *un) {
   expr *un_expr;
   if (!un) {
-    _arr_hash.lookupArrayExpr(root, un_expr);
-    return *un_expr;
+    return getInitialArray(root);
   }
   else {
       // FIXME: This really needs to be non-recursive.
     if(root -> getDomain() != Expr::InvalidWidth){
-      //      bool hashed = _arr_hash.lookupUpdateNodeExpr(un, un_expr);
+      bool hashed = _arr_hash.lookupUpdateNodeExpr(un, un_expr);
       
-      //      if (!hashed) {
-      //	_arr_hash.hashUpdateNodeExpr(un, un_expr);
-      //      }
-      //      return(*un_expr);
+      if (!hashed) {
+	un_expr = new expr(store(getArrayForUpdate(root, un->next), construct(un->index), construct(un->value)));
+       _arr_hash.hashUpdateNodeExpr(un, un_expr);
+      }
+      return(*un_expr);
     }
     else{
       bool hashed = _arr_hash.lookupUpdateNodeExpr(un, un_expr);
@@ -72,7 +76,7 @@ expr Z3Builder::construct(ref<Expr> e){
 
   case Expr::Constant: {
     ConstantExpr *CE = cast<ConstantExpr>(e);
-    return c->real_val(1);//(__uint64)CE->getZExtValue());
+    return c->real_val((__uint64)CE->getZExtValue());
   }
 
   case Expr::NotOptimized: {
@@ -83,6 +87,9 @@ expr Z3Builder::construct(ref<Expr> e){
   case Expr::Read: {
     ReadExpr *re = cast<ReadExpr>(e);
     assert(re && re->updates.root);
+    if((re->updates.root)-> getDomain() != Expr::InvalidWidth){
+      return select(getArrayForUpdate(re->updates.root, re->updates.head), construct(re->index));
+    }
     return getArrayForUpdate(re->updates.root, re->updates.head);
   }
 
@@ -187,6 +194,11 @@ expr Z3Builder::construct(ref<Expr> e){
     EqExpr *ee = cast<EqExpr>(e);
     expr left = construct(ee->left);
     expr right = construct(ee->right);
+    if(ConstantExpr *CE = dyn_cast<ConstantExpr>(ee->left)){
+      if(CE->isTrue())
+	return right;
+      return !right;
+    }
     return left == right;
   }
 

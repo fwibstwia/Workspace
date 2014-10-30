@@ -40,7 +40,7 @@ ref<Expr> ExprVisitor::visit(const ref<Expr> &e) {
 ref<Expr> ExprVisitor::visitActual(const ref<Expr> &e) {
   if (isa<ConstantExpr>(e)) {    
     return e;
-  } else {
+  } else{
     Expr &ep = *e.get();
 
     Action res = visitExpr(ep);
@@ -86,6 +86,7 @@ ref<Expr> ExprVisitor::visitActual(const ref<Expr> &e) {
     case Expr::Sle: res = visitSle(static_cast<SleExpr&>(ep)); break;
     case Expr::Sgt: res = visitSgt(static_cast<SgtExpr&>(ep)); break;
     case Expr::Sge: res = visitSge(static_cast<SgeExpr&>(ep)); break;
+    case Expr::InvalidKind: return e;
     case Expr::Constant:
     default:
       assert(0 && "invalid expression kind");

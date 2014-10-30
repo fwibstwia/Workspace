@@ -47,9 +47,7 @@ namespace klee {
     }
     ~Z3Builder();
     ref<Expr> getInitialRead(const Array *os);
-
     z3::expr construct(ref<Expr> e);
-    z3::expr constructDeclaration(const Array *object);
   };
 
 }

@@ -933,7 +933,6 @@ bool Z3SolverImpl::computeTruth(const Query& query, bool &isValid){
   std::vector<ref<Expr> > values;
   bool hasSolution;
 
-  findSymbolicObjects(query.expr, objects);  
   if (computeInitialValues(query, objects, values, hasSolution)) {
       // query.expr is valid iff !query.expr is not satisfiable
       isValid = !hasSolution;
@@ -979,10 +978,6 @@ bool Z3SolverImpl::computeInitialValues(const Query &query,
   TimerStatIncrementer t(stats::queryTime);
   assert(builder);
   if (!useForkedZ3) {
-    for (std::vector<const Array *>::const_iterator it = objects.begin();
-       it != objects.end(); it++){
-      s->add(builder->constructDeclaration(*it));
-    }
     for (ConstraintManager::const_iterator it = query.constraints.begin(), ie = query.constraints.end(); it != ie; ++it) {
       s->add(builder->construct(*it));  
     }  
