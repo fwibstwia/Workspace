@@ -3147,7 +3147,12 @@ void Executor::executeMemoryOperation(ExecutionState &state,
                                 "readonly.err");
 	} else {
 	  ObjectState *wos = state.addressSpace.getWriteable(mo, os);
-	  wos->writeWhole(value);
+	  if(mo->reorderable){
+	    ref<Expr> reValue = ReorderExpr::create(value);
+	    wos->writeWhole(reValue);
+	  }else{
+	    wos->writeWhole(value);
+	  }
 	}          
       } else {
 	ref<Expr> result = os->readWhole(type);

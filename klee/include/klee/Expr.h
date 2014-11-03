@@ -101,6 +101,17 @@ public:
   static const Width Int64 = 64;
   static const Width Fl80 = 80;
   
+  enum ReorderCat{
+    RE_Plus,
+    RE_Mult,
+    RE_FMA
+  };
+
+  enum ExprType{
+    Int,
+    Float,
+    Double
+  };
 
   enum Kind {
     InvalidKind = -1,
@@ -153,6 +164,13 @@ public:
     LShr,
     AShr,
     
+    //Floating-point compare
+    FOgt,
+    FOlt,
+
+    // Reorder
+    Reorder,
+
     // Compare
     Eq,
     Ne,  ///< Not used in canonical form
@@ -165,9 +183,7 @@ public:
     Sgt, ///< Not used in canonical form
     Sge, ///< Not used in canonical form
 
-    //Floating-point compare
-    FOgt,
-    FOlt,
+
 
     LastKind=Sge,
 
@@ -177,6 +193,8 @@ public:
     BinaryKindLast=Sge,
     CmpKindFirst=Eq,
     CmpKindLast=Sge
+
+
   };
 
   unsigned refCount;
@@ -351,7 +369,15 @@ public:
     assert(0 && "rebuild() on InvalidExpr"); 
     return const_cast<InvalidExpr*>(this);
   }
+
+public:
+  static bool classof(const Expr *E) {
+    return E->getKind() == Expr::InvalidKind;
+  }
+  static bool classof(const InvalidExpr *) {return true;}
 };
+
+
 
 class ConstantExpr : public Expr {
 public:
@@ -585,6 +611,43 @@ public:
 };
 
 // Special
+
+class ReorderExpr : public NonConstantExpr{
+public:
+  static const Kind kind = Reorder;
+  static const unsigned numKids = 1;
+  ref<Expr> src;
+public:
+  static ref<Expr> alloc(const ref<Expr> &src){
+    ref<Expr> r(new ReorderExpr(src));
+    r->computeHash();
+    return r;
+  }
+  
+  static ref<Expr> create(ref<Expr> src);
+  Width getWidth() const {return src->getWidth();}
+  Kind getKind() const{return kind;}
+
+  unsigned getNumKids() const {return 1;}
+  ref<Expr> getKid(unsigned i) const {return src;}
+
+  virtual ref<Expr> rebuild(ref<Expr> kids[]) const {
+    assert(0 && "rebuild() on ReorderExpr"); 
+    return create(kids[0]);
+  }
+  
+  std::vector<ref<Expr> > getExtremes();
+
+private:
+  ReorderCat reCat;
+  std::vector<ref<Expr> > operands;
+  ReorderExpr(const ref<Expr> &_src);
+public:
+  static bool classof(const Expr *E) {
+    return E->getKind() == Expr::Reorder;
+  }
+  static bool classof(const ReorderExpr *) {return true;}
+};
 
 class NotOptimizedExpr : public NonConstantExpr {
 public:

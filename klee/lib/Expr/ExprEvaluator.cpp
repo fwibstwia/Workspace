@@ -36,6 +36,15 @@ ExprVisitor::Action ExprEvaluator::evalRead(const UpdateList &ul,
   return Action::changeTo(getInitialValue(*ul.root, index));
 }
 
+ExprVisitor::Action ExprEvaluator::evalRead(const UpdateList &ul){
+  const UpdateNode *un=ul.head;
+  if(un){
+    return Action::changeTo(visit(un->value));
+  }
+
+  return Action::changeTo(getInitialValue(*ul.root, 0)); //We do not use index here, 0 is a fake index
+}
+
 ExprVisitor::Action ExprEvaluator::visitExpr(const Expr &e) {
   // Evaluate all constant expressions here, in case they weren't folded in
   // construction. Don't do this for reads though, because we want them to go to

@@ -49,6 +49,9 @@ namespace klee {
 
     template<typename InputIterator>
     bool satisfies(InputIterator begin, InputIterator end);
+    
+    template<typename InputIterator>
+    bool isStable(InputIterator begin, InputIterator end, ref<Expr> epsilon);
   };
   
   class AssignmentEvaluator : public ExprEvaluator {

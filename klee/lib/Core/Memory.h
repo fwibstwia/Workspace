@@ -40,6 +40,8 @@ private:
 public:
   unsigned id;
   uint64_t address;
+  
+  bool reorderable;
 
   /// total size in bytes
   unsigned size;
@@ -85,13 +87,14 @@ public:
       parent(NULL),
       allocSite(0),
       isArrayType(false),
-      arraySize(0){
+      arraySize(0)
+      reorderable(false){
   }
 
   MemoryObject(uint64_t _address, unsigned _size, 
                bool _isLocal, bool _isGlobal, bool _isFixed,
                const llvm::Value *_allocSite,
-               MemoryManager *_parent, bool _isArrayType, unsigned _arraySize)
+               MemoryManager *_parent, bool _isArrayType, unsigned _arraySize, bool _reorderable)
     : refCount(0), 
       id(counter++),
       address(_address),
@@ -105,7 +108,8 @@ public:
       parent(_parent), 
       allocSite(_allocSite),
       isArrayType(_isArrayType),
-      arraySize(_arraySize) {
+      arraySize(_arraySize),
+    reorderable(_reorderable){
   }
 
   MemoryObject(uint64_t _address, unsigned _size, 
@@ -125,7 +129,8 @@ public:
       parent(_parent), 
       allocSite(_allocSite),
       isArrayType(true),
-      arraySize(1) {
+      arraySize(1),
+    reorderable(false){
   }
 
   ~MemoryObject();

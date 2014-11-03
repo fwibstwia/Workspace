@@ -10,6 +10,8 @@
 #ifndef KLEE_EXPRVISITOR_H
 #define KLEE_EXPRVISITOR_H
 
+#include <vector>
+
 #include "ExprHashMap.h"
 
 namespace klee {
@@ -49,6 +51,7 @@ namespace klee {
     virtual Action visitExprPost(const Expr&);
 
     virtual Action visitNotOptimized(const NotOptimizedExpr&);
+    virtual Action visitReorder(const ReorderExpr&);
     virtual Action visitRead(const ReadExpr&);
     virtual Action visitSelect(const SelectExpr&);
     virtual Action visitConcat(const ConcatExpr&);
@@ -86,11 +89,12 @@ namespace klee {
     bool recursive;
 
     ref<Expr> visitActual(const ref<Expr> &e);
-    
+    std::vector<ref<Expr> > visitActualRE(const ref<Expr> &e);
   public:
     // apply the visitor to the expression and return a possibly
     // modified new expression.
     ref<Expr> visit(const ref<Expr> &e);
+    ref<Expr> visitRE(const ref<Expr> &e);
   };
 
 }

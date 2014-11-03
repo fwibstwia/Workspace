@@ -20,6 +20,7 @@ namespace {
 }
 
 using namespace klee;
+using namespace std;
 
 ref<Expr> ExprVisitor::visit(const ref<Expr> &e) {
   if (!UseVisitorHash || isa<ConstantExpr>(e)) {
@@ -35,6 +36,14 @@ ref<Expr> ExprVisitor::visit(const ref<Expr> &e) {
       return res;
     }
   }
+}
+
+vector<ref<Expr> > ExprVisitor::visitRE(const ref<Expr> &e){
+  //return list of values for "e"
+}
+
+vector<ref<Expr> > ExprVisitor::visitActual(const ref<Expr> &e){
+
 }
 
 ref<Expr> ExprVisitor::visitActual(const ref<Expr> &e) {
@@ -134,6 +143,10 @@ ExprVisitor::Action ExprVisitor::visitExprPost(const Expr&) {
 }
 
 ExprVisitor::Action ExprVisitor::visitNotOptimized(const NotOptimizedExpr&) {
+  return Action::doChildren(); 
+}
+
+ExprVisitor::Action ExprVisitor::visitReorder(const ReorderExpr&) {
   return Action::doChildren(); 
 }
 

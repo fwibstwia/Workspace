@@ -79,6 +79,7 @@ static SpecialFunctionHandler::HandlerInfo handlerInfo[] = {
   add("klee_is_symbolic", handleIsSymbolic, true),
   add("klee_make_symbolic", handleMakeSymbolic, false),
   add("klee_make_symbolic_with_sort", handleMakeSymbolicWithSort, false),
+  add("klee_tag_reorderable", handleTagReorderable, false),
   add("klee_mark_global", handleMarkGlobal, false),
   add("klee_merge", handleMerge, false),
   add("klee_prefer_cex", handlePreferCex, false),
@@ -752,6 +753,19 @@ void SpecialFunctionHandler::handleMakeSymbolicWithSort(ExecutionState &state,
                                      "wrong size given to klee_make_symbolic_with_sort[_name]", 
                                      "user.err");
     }
+  }
+}
+
+void SpecialFunctionHandler::handleTagReorderable(ExecutionState &state,
+						  KInstruction *target,
+						  std::vector<ref<Expr> > &arguments){
+
+  Executor::ExactResolutionList rl;
+  executor.resolveExact(state, arguments[0], rl, "tag_reorderable");
+  for (Executor::ExactResolutionList::iterator it = rl.begin(), 
+         ie = rl.end(); it != ie; ++it) {
+    const MemoryObject *mo = it->first.first;
+    mo->reorderable = true;
   }
 }
 

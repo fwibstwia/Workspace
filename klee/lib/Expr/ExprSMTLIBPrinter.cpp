@@ -176,6 +176,11 @@ void ExprSMTLIBPrinter::printExpression(
     printExpression(e->getKid(0), expectedSort);
     return;
 
+  case Expr::ReorderExpr:
+    //skip to child
+    printExpression(e->getKid(0), expectedSort);
+    return;
+
   case Expr::Read:
     printReadExpr(cast<ReadExpr>(e));
     return;

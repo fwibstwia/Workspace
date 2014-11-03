@@ -83,6 +83,11 @@ expr Z3Builder::construct(ref<Expr> e){
     NotOptimizedExpr *noe = cast<NotOptimizedExpr>(e);
     return construct(noe->src);
   }
+  
+  case Expr::ReorderExpr:{
+    ReorderExpr *re = cast<ReorderExpr>(e);
+    return construct(re->src);
+  }
 
   case Expr::Read: {
     ReadExpr *re = cast<ReadExpr>(e);

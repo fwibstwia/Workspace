@@ -121,6 +121,7 @@ void Expr::printKind(llvm::raw_ostream &os, Kind k) {
 #define X(C) case C: os << #C; break
     X(Constant);
     X(NotOptimized);
+    X(Reorder);
     X(Read);
     X(Select);
     X(Concat);
@@ -128,12 +129,17 @@ void Expr::printKind(llvm::raw_ostream &os, Kind k) {
     X(ZExt);
     X(SExt);
     X(Add);
+    X(FAdd);
     X(Sub);
+    X(FSub);
     X(Mul);
+    X(FMul);
     X(UDiv);
     X(SDiv);
+    X(FDiv);
     X(URem);
     X(SRem);
+    X(FRem);
     X(Not);
     X(And);
     X(Or);
@@ -151,6 +157,8 @@ void Expr::printKind(llvm::raw_ostream &os, Kind k) {
     X(Sle);
     X(Sgt);
     X(Sge);
+    X(FOgt);
+    X(FOlt);
 #undef X
   default:
     assert(0 && "invalid kind");
@@ -227,6 +235,11 @@ ref<Expr> Expr::createFromKind(Kind k, std::vector<CreateArg> args) {
       assert(numArgs == 1 && args[0].isExpr() &&
              "invalid args array for given opcode");
       return NotOptimizedExpr::create(args[0].expr);
+
+    case Reorder:
+      assert(numArgs == 1 && args[0].isExpr() &&
+             "invalid args array for given opcode");
+      return NotOptimizedExpr::create(args[0].expr);
       
     case Select:
       assert(numArgs == 3 && args[0].isExpr() &&
@@ -289,6 +302,8 @@ ref<Expr> Expr::createFromKind(Kind k, std::vector<CreateArg> args) {
       BINARY_EXPR_CASE(Sle);
       BINARY_EXPR_CASE(Sgt);
       BINARY_EXPR_CASE(Sge);
+      BINARY_EXPR_CASE(FOgt);
+      BINARY_EXPR_CASE(FOlt);
   }
 }
 
@@ -610,6 +625,68 @@ ref<ConstantExpr> ConstantExpr::FOlt(const ref<ConstantExpr> &RHS) {
 
 
 /***/
+
+ref<Expr> ReorderExpr::create(ref<Expr> src){
+  return ReorderExpr::alloc(src);
+}
+
+std::vector< ref<Expr> > ReorderExpr::getExtremes(){
+  ///Fix me: get the extreme values for this reorderable expression
+}
+
+ReorderExpr::ReorderExpr(const ref<Expr> &_src):src(_src){
+  ///Fix me: Find Reorder category, reorder operands
+  bool isFMA = true;
+  std::vector< ref<Expr> > fmaOps;
+  std::vector< ref<Expr> > ops;
+  switch(src->getKind()){
+  case FAdd:{
+    reCat = RE_Plus;
+    ref<Expr> i = src;
+    while(i->getKind() == FAdd){
+      BinaryExpr *be = cast<BinaryExpr>(i);
+      ref<Expr> l = be->left;
+      ref<Expr> r = be->right;
+      if(l->getKind() == FMul && isFMA){
+	BinaryExpr *t = cast<BinaryExpr>(l);
+	fmaOps.push_back(t->left);
+	fmaOps.push_back(t->right);
+      }else{
+	isFMA = false;
+      }
+      ops.push_back(l);
+      i = r;
+    }
+    if(isFMA){
+      BinaryExpr *t = cast<BinaryExpr>(i);
+      fmaOps.push_back(t->left);
+      fmaOps.push_back(t->right);
+      reCat = RE_FMA;
+      operands = fmaOps;
+    }else{
+      ops.push_back(i);
+      operands = ops;
+    }
+    break;
+  }
+  case FMul:{
+    reCat = RE_Mult;
+    ref<Expr> i = src;
+    while(i->getKind() == FMult){
+      BinaryExpr *be = cast<BinaryExpr>(i);
+      ref<Expr> l = be->left;
+      ref<Expr> r = be->right;
+      ops.push_back(l);
+      i = r;
+    }
+    ops.push_back(i);
+    operands = ops;
+    break;
+  }
+  default:
+    assert(0 && "Unsupported Reorderable expression");
+  }
+}
 
 ref<Expr>  NotOptimizedExpr::create(ref<Expr> src) {
   return NotOptimizedExpr::alloc(src);
