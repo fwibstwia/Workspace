@@ -16,7 +16,7 @@ namespace {
   llvm::cl::opt<bool>
   UseVisitorHash("use-visitor-hash", 
                  llvm::cl::desc("Use hash-consing during expr visitation."),
-                 llvm::cl::init(true));
+                 llvm::cl::init(false)); //do not use hash 
 }
 
 using namespace klee;
@@ -38,11 +38,14 @@ ref<Expr> ExprVisitor::visit(const ref<Expr> &e) {
   }
 }
 
-vector<ref<Expr> > ExprVisitor::visitRE(const ref<Expr> &e){
+void ExprVisitor::visitRE(const ref<Expr> &e, vector<ref<Expr> > &res){
   //return list of values for "e"
+  if(!UseVisitorHash || isa<ConstantExpr>(e)){
+    visitActual(e, res);
+  }
 }
 
-vector<ref<Expr> > ExprVisitor::visitActual(const ref<Expr> &e){
+void ExprVisitor::visitActual(const ref<Expr> &e, vector<ref<Expr> > &res){
 
 }
 
@@ -72,12 +75,17 @@ ref<Expr> ExprVisitor::visitActual(const ref<Expr> &e) {
     case Expr::ZExt: res = visitZExt(static_cast<ZExtExpr&>(ep)); break;
     case Expr::SExt: res = visitSExt(static_cast<SExtExpr&>(ep)); break;
     case Expr::Add: res = visitAdd(static_cast<AddExpr&>(ep)); break;
+    case Expr::FAdd: res = visitFAdd(static_cast<FAddExpr&>(ep)); break;
     case Expr::Sub: res = visitSub(static_cast<SubExpr&>(ep)); break;
+    case Expr::FSub: res = visitFSub(static_cast<FSubExpr&>(ep)); break;
     case Expr::Mul: res = visitMul(static_cast<MulExpr&>(ep)); break;
+    case Expr::FMul: res = visitFMul(static_cast<FMulExpr&>(ep)); break;
     case Expr::UDiv: res = visitUDiv(static_cast<UDivExpr&>(ep)); break;
     case Expr::SDiv: res = visitSDiv(static_cast<SDivExpr&>(ep)); break;
+    case Expr::FDiv: res = visitFDiv(static_cast<FDivExpr&>(ep)); break;
     case Expr::URem: res = visitURem(static_cast<URemExpr&>(ep)); break;
     case Expr::SRem: res = visitSRem(static_cast<SRemExpr&>(ep)); break;
+    case Expr::FRem: res = visitFRem(static_cast<FRemExpr&>(ep)); break;
     case Expr::Not: res = visitNot(static_cast<NotExpr&>(ep)); break;
     case Expr::And: res = visitAnd(static_cast<AndExpr&>(ep)); break;
     case Expr::Or: res = visitOr(static_cast<OrExpr&>(ep)); break;
@@ -95,6 +103,8 @@ ref<Expr> ExprVisitor::visitActual(const ref<Expr> &e) {
     case Expr::Sle: res = visitSle(static_cast<SleExpr&>(ep)); break;
     case Expr::Sgt: res = visitSgt(static_cast<SgtExpr&>(ep)); break;
     case Expr::Sge: res = visitSge(static_cast<SgeExpr&>(ep)); break;
+    case Expr::FOgt: res = visitFOgt(static_cast<FOgtExpr&>(ep)); break;
+    case Expr::FOlt: res = visitFOlt(static_cast<FOltExpr&>(ep)); break;
     case Expr::InvalidKind: return e;
     case Expr::Constant:
     default:
@@ -178,11 +188,23 @@ ExprVisitor::Action ExprVisitor::visitAdd(const AddExpr&) {
   return Action::doChildren(); 
 }
 
+ExprVisitor::Action ExprVisitor::visitFAdd(const FAddExpr&) {
+  return Action::doChildren(); 
+}
+
 ExprVisitor::Action ExprVisitor::visitSub(const SubExpr&) {
   return Action::doChildren(); 
 }
 
+ExprVisitor::Action ExprVisitor::visitFSub(const FSubExpr&) {
+  return Action::doChildren(); 
+}
+
 ExprVisitor::Action ExprVisitor::visitMul(const MulExpr&) {
+  return Action::doChildren(); 
+}
+
+ExprVisitor::Action ExprVisitor::visitFMul(const FMulExpr&) {
   return Action::doChildren(); 
 }
 
@@ -194,11 +216,19 @@ ExprVisitor::Action ExprVisitor::visitSDiv(const SDivExpr&) {
   return Action::doChildren(); 
 }
 
+ExprVisitor::Action ExprVisitor::visitFDiv(const FDivExpr&) {
+  return Action::doChildren(); 
+}
+
 ExprVisitor::Action ExprVisitor::visitURem(const URemExpr&) {
   return Action::doChildren(); 
 }
 
 ExprVisitor::Action ExprVisitor::visitSRem(const SRemExpr&) {
+  return Action::doChildren(); 
+}
+
+ExprVisitor::Action ExprVisitor::visitFRem(const FRemExpr&) {
   return Action::doChildren(); 
 }
 
@@ -267,6 +297,14 @@ ExprVisitor::Action ExprVisitor::visitSgt(const SgtExpr&) {
 }
 
 ExprVisitor::Action ExprVisitor::visitSge(const SgeExpr&) {
+  return Action::doChildren(); 
+}
+
+ExprVisitor::Action ExprVisitor::visitFOgt(const FOgtExpr&) {
+  return Action::doChildren(); 
+}
+
+ExprVisitor::Action ExprVisitor::visitFOlt(const FOltExpr&) {
   return Action::doChildren(); 
 }
 

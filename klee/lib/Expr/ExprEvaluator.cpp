@@ -45,6 +45,7 @@ ExprVisitor::Action ExprEvaluator::evalRead(const UpdateList &ul){
   return Action::changeTo(getInitialValue(*ul.root, 0)); //We do not use index here, 0 is a fake index
 }
 
+/*
 ExprVisitor::Action ExprEvaluator::visitExpr(const Expr &e) {
   // Evaluate all constant expressions here, in case they weren't folded in
   // construction. Don't do this for reads though, because we want them to go to
@@ -64,18 +65,28 @@ ExprVisitor::Action ExprEvaluator::visitExpr(const Expr &e) {
   }
 
   return Action::changeTo(e.rebuild(Kids));
-}
+  }*/
 
 ExprVisitor::Action ExprEvaluator::visitRead(const ReadExpr &re) {
-  ref<Expr> v = visit(re.index);
-  
-  if (ConstantExpr *CE = dyn_cast<ConstantExpr>(v)) {
-    return evalRead(re.updates, CE->getZExtValue());
-  } else {
-    return Action::doChildren();
-  }
+  if((re.index)->getKind() == InvalidKind){
+    return evalRead(re.updates);
+  }else{
+    ref<Expr> v = visit(re.index);
+    if (ConstantExpr *CE = dyn_cast<ConstantExpr>(v)) {
+      return evalRead(re.updates, CE->getZExtValue());
+    } else {
+      return Action::doChildren();
+    }
+}
+ExprVisitor::Action ExprEvaluator::visitReorder(const ReorderExpr &e){
+
 }
 
+ExprVisitor::Action ExprEvaluator::visitFOgt(const FOgtExpr &e){
+
+}
+
+  /*
 // we need to check for div by zero during partial evaluation,
 // if this occurs then simply ignore the 0 divisor and use the
 // original expression.
@@ -106,3 +117,4 @@ ExprVisitor::Action ExprEvaluator::visitURem(const URemExpr &e) {
 ExprVisitor::Action ExprEvaluator::visitSRem(const SRemExpr &e) { 
   return protectedDivOperation(e); 
 }
+*/

@@ -583,7 +583,7 @@ public:
     return 0;
   }
  
-protected:
+public: // change to public
   BinaryExpr(const ref<Expr> &l, const ref<Expr> &r) : left(l), right(r) {}
 
 public:
@@ -627,16 +627,11 @@ public:
   static ref<Expr> create(ref<Expr> src);
   Width getWidth() const {return src->getWidth();}
   Kind getKind() const{return kind;}
-
+  
   unsigned getNumKids() const {return 1;}
   ref<Expr> getKid(unsigned i) const {return src;}
-
-  virtual ref<Expr> rebuild(ref<Expr> kids[]) const {
-    assert(0 && "rebuild() on ReorderExpr"); 
-    return create(kids[0]);
-  }
   
-  std::vector<ref<Expr> > getExtremes();
+  virtual ref<Expr> rebuild(ref<Expr> kids[]) const;
 
 private:
   ReorderCat reCat;

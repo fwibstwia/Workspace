@@ -20,6 +20,7 @@
 #include "klee/Internal/Support/IntEvaluation.h"
 
 #include "klee/util/ExprPPrinter.h"
+#include "klee/Reorder.h"
 
 #include <sstream>
 
@@ -630,9 +631,6 @@ ref<Expr> ReorderExpr::create(ref<Expr> src){
   return ReorderExpr::alloc(src);
 }
 
-std::vector< ref<Expr> > ReorderExpr::getExtremes(){
-  ///Fix me: get the extreme values for this reorderable expression
-}
 
 ReorderExpr::ReorderExpr(const ref<Expr> &_src):src(_src){
   ///Fix me: Find Reorder category, reorder operands
@@ -686,6 +684,49 @@ ReorderExpr::ReorderExpr(const ref<Expr> &_src):src(_src){
   default:
     assert(0 && "Unsupported Reorderable expression");
   }
+}
+
+//we use binaryExpr to represent the min and max value for this reorderable expression
+ref<Expr> ReorderExpr::rebuild(ref<Expr> kids[]) const {
+  //in this function we call the min/max method 
+  //Fix me: need to add type support, currently we assume float
+  //Fix me: need to add round mode support
+  float max, min;
+  vector<float> ops;
+  int len = operands.size();
+  Reorder<Float> ro(FE_TONEAREST);
+
+  for(int i = 0; i < len; i ++){
+    if(ConstantExpr *CE = dyn_cast<ConstantExpr>(kids[i])){
+      llvm::APFloat v = CE->getAPFValue();
+      ops.push_back(v.convertToFloat());
+    }else{
+      assert(0 && "encounter non-constant in Reorder Rebuild");
+    }
+  }
+
+  switch(reCat){
+  case RE_Plus:{
+    max = ro.getPlusMax(ops);
+    min = ro.getPlusMin(ops);
+    break;
+  }
+  case RE_Mult:{
+    max = ro.getMultMax(ops);
+    min = ro.getMultMin(ops);
+    break;
+  }
+  case RE_FMA:{
+    break;
+  }
+  default:
+    assert(0 && "unsupported reorderable expression");
+  }
+  APFloat apMax(max), apMin(min);
+  ref<ConstantExpr> l = ConstantExpr::Alloc(apMin);
+  ref<ConstantExpr> r = ConstantExpr::Alloc(apMax);
+  ref<BinaryExpr> r(new BinaryExpr(l, r));
+  return r;  
 }
 
 ref<Expr>  NotOptimizedExpr::create(ref<Expr> src) {

@@ -59,12 +59,17 @@ namespace klee {
     virtual Action visitZExt(const ZExtExpr&);
     virtual Action visitSExt(const SExtExpr&);
     virtual Action visitAdd(const AddExpr&);
+    virtual Action visitFAdd(cont FAddExpr&);
     virtual Action visitSub(const SubExpr&);
+    virtual Action visitFSub(const FSubExpr&);
     virtual Action visitMul(const MulExpr&);
+    virtual Action visitFMul(const FMulExpr&);
     virtual Action visitUDiv(const UDivExpr&);
     virtual Action visitSDiv(const SDivExpr&);
+    virtual Action visitFDiv(const FDivExpr&)
     virtual Action visitURem(const URemExpr&);
     virtual Action visitSRem(const SRemExpr&);
+    virtual Action visitFRem(const FRemExpr&);
     virtual Action visitNot(const NotExpr&);
     virtual Action visitAnd(const AndExpr&);
     virtual Action visitOr(const OrExpr&);
@@ -82,19 +87,20 @@ namespace klee {
     virtual Action visitSle(const SleExpr&);
     virtual Action visitSgt(const SgtExpr&);
     virtual Action visitSge(const SgeExpr&);
-
+    virtual Action visitFOgt(const FOgtExpr&);
+    virtual Action visitFOlt(const FOltExpr&);
   private:
     typedef ExprHashMap< ref<Expr> > visited_ty;
     visited_ty visited;
     bool recursive;
 
     ref<Expr> visitActual(const ref<Expr> &e);
-    std::vector<ref<Expr> > visitActualRE(const ref<Expr> &e);
+    void visitActualRE(const ref<Expr> &e, std::vector<ref<Expr> > &res);
   public:
     // apply the visitor to the expression and return a possibly
     // modified new expression.
     ref<Expr> visit(const ref<Expr> &e);
-    ref<Expr> visitRE(const ref<Expr> &e);
+    void visitRE(const ref<Expr> &e, std::vector<ref<Expr> > &res);
   };
 
 }

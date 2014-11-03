@@ -11,6 +11,7 @@
 #define KLEE_UTIL_ASSIGNMENT_H
 
 #include <map>
+#include <vector>
 
 #include "klee/util/ExprEvaluator.h"
 
@@ -76,17 +77,18 @@ namespace klee {
       return ConstantExpr::alloc(it->second[index], array->getRange());
     } else {
       if (allowFreeValues) {
-        return ReadExpr::create(UpdateList(array, 0), 
+	return ReadExpr::create(UpdateList(array, 0), 
                                 ConstantExpr::alloc(index, array->getDomain()));
       } else {
-        return ConstantExpr::alloc(0, array->getRange());
+	return ConstantExpr::alloc(0, array->getRange());
       }
     }
   }
 
   inline ref<Expr> Assignment::evaluate(ref<Expr> e) { 
     AssignmentEvaluator v(*this);
-    return v.visit(e); 
+    std::vector<ref<Expr> > res;
+    return v.visitRE(e, res); 
   }
 
   template<typename InputIterator>
