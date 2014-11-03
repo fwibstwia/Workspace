@@ -1953,11 +1953,12 @@ void Executor::executeInstruction(ExecutionState &state, KInstruction *ki) {
       size = MulExpr::create(size, count);
     }
     bool isLocal = i->getOpcode()==Instruction::Alloca;
-    if(ai->isArrayAllocation()){
-      ConstantExpr *CE = dyn_cast<ConstantExpr>(count);
-      executeAlloc(state, size, isLocal, ki, false, NULL, ai->isArrayAllocation(), CE->getZExtValue());
+    if(ai->getAllocatedType()->isArrayTy()){
+      //ConstantExpr *CE = dyn_cast<ConstantExpr>(count);
+      const ArrayType *at = dyn_cast<ArrayType>(ai->getAllocatedType());
+      executeAlloc(state, size, isLocal, ki, false, NULL, ai->getAllocatedType()->isArrayTy(), at->getNumElements());
     }else{
-      executeAlloc(state, size, isLocal, ki, false, NULL, ai->isArrayAllocation(), 1);
+      executeAlloc(state, size, isLocal, ki, false, NULL, ai->getAllocatedType()->isArrayTy(), 1);
     }
     break;
   }
