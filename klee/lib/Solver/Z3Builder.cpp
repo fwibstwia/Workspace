@@ -5,6 +5,7 @@
 #include "SolverStats.h"
 
 #include <cstdio>
+#include <cstdlib>
 #include <cassert>
 #include <sstream>
 #include <vector>
@@ -19,11 +20,14 @@ Z3Builder::~Z3Builder(){
   ///fix me: delete _arr_hash;
 }
 
-ref<Expr> Z3Builder::getInitialRead(const Array *os, model &m){  
+void Z3Builder::getInitialRead(const Array *os, model &m, std::vector<unsigned char> > &value){  
   expr res = m.get_const_interp(getInitialArray(os).decl());
   if(res.is_numeral()){
     Z3_string s = Z3_get_numeral_decimal_string(*c, res, 50);
-  } 
+  }
+  float v = strtof(s, NULL);
+  char *p = reinterpret_cast<char*>(&v);
+  std::copy(p, p + sizeof(float), values.begin()); 
 }
 
 expr Z3Builder::getInitialArray(const Array *root){

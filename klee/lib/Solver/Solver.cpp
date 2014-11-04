@@ -868,19 +868,15 @@ public:
 			    const std::vector<const Array*> &objects,
 			    std::vector< std::vector<unsigned char> > &values,
 			    bool &hasSolution);
-  bool computeInitialValues(const Query&, 
-			    const std::vector<const Array*> &objects,
-			    std::vector<ref<Expr> > &values,
-			    bool &hasSolution);
     
   SolverImpl::SolverRunStatus runAndGetCex(ref<Expr> query_expr,
                                            const std::vector<const Array*> &objects,
-                                           std::vector< ref<Expr> > &values,
+					   std::vector< std::vector<unsigned char> > &values,
                                            bool &hasSolution);
   
   SolverImpl::SolverRunStatus runAndGetCexForked(const Query &query,
                                                  const std::vector<const Array*> &objects,
-                                                 std::vector< ref<Expr> > &values,
+                                                 std::vector< std::vector<unsigned char> > &values,
                                                  bool &hasSolution,
                                                  double timeout);
   SolverRunStatus getOperationStatusCode();
@@ -930,7 +926,7 @@ char *Z3SolverImpl::getConstraintLog(const Query &query){
 bool Z3SolverImpl::computeTruth(const Query& query, bool &isValid){
   bool success = false;
   std::vector<const Array*> objects;
-  std::vector<ref<Expr> > values;
+  std::vector< std::vector<unsigned char> > values;
   bool hasSolution;
 
   if (computeInitialValues(query, objects, values, hasSolution)) {
@@ -945,7 +941,7 @@ bool Z3SolverImpl::computeTruth(const Query& query, bool &isValid){
 bool Z3SolverImpl::computeValue(const Query& query, ref<Expr> &result){
   bool success = false;
   std::vector<const Array*> objects;
-  std::vector<ref<Expr> > values;
+  std::vector< std::vector<unsigned char> > values;
   bool hasSolution;
 
   // Find the object used in the expression, and compute an assignment for them.
@@ -962,16 +958,9 @@ bool Z3SolverImpl::computeValue(const Query& query, ref<Expr> &result){
 }
 
 bool Z3SolverImpl::computeInitialValues(const Query& query,
-                                      const std::vector<const Array*> 
-                                        &objects,
-                                      std::vector< std::vector<unsigned char> > 
-                                        &values,
-					bool &hasSolution){
-}
-bool Z3SolverImpl::computeInitialValues(const Query &query,
 					const std::vector<const Array*> &objects,
-					std::vector<ref<Expr> > &values,
-					bool &hasSolution) {  
+					std::vector< std::vector<unsigned char> > &values,
+					bool &hasSolution){
 
   runStatusCode =  SOLVER_RUN_STATUS_FAILURE;
 
@@ -1012,22 +1001,24 @@ bool Z3SolverImpl::computeInitialValues(const Query &query,
 
 SolverImpl::SolverRunStatus Z3SolverImpl::runAndGetCex(ref<Expr> query_expr,
 						       const std::vector<const Array*> &objects,
-						       std::vector< ref<Expr> > &values,
+						       std::vector< std::vector<unsigned char> > &values,
 						       bool &hasSolution)
 {
-
   // assume the negation of the query  
   s->add(builder->construct(Expr::createIsZero(query_expr)));
-
 
   switch (s->check()) {
   case z3::sat:{
     values.reserve(objects.size());
-    for (std::vector<const Array*>::const_iterator it = objects.begin(), ie = objects.end(); it != ie; ++it) {
+    model m = s->get_model()
+    for (std::vector<const Array*>::const_iterator it = objects.begin(), ie = objects.end(); it != ie; ++it) 
+      {
           const Array *array = *it;
-          assert(array);
+	  std::vector<unsigned char> data;
+	  builder->getInitialRead(array, m, data);
+	  values.push_back(data);
 
-    }
+      }
     return (SolverImpl::SOLVER_RUN_STATUS_SUCCESS_SOLVABLE);
   }
   case z3::unsat:
@@ -1039,7 +1030,7 @@ SolverImpl::SolverRunStatus Z3SolverImpl::runAndGetCex(ref<Expr> query_expr,
 
 SolverImpl::SolverRunStatus Z3SolverImpl::runAndGetCexForked(const Query &query,
 							     const std::vector<const Array*> &objects,
-							     std::vector< ref<Expr> > &values,
+							     std::vector< std::vector<unsigned char> >  &values,
 							     bool &hasSolution,
 							     double timeout){
 }
