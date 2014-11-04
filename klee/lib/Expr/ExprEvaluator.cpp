@@ -45,7 +45,7 @@ ExprVisitor::Action ExprEvaluator::evalRead(const UpdateList &ul){
   return Action::changeTo(getInitialValue(*ul.root, 0)); //We do not use index here, 0 is a fake index
 }
 
-/*
+
 ExprVisitor::Action ExprEvaluator::visitExpr(const Expr &e) {
   // Evaluate all constant expressions here, in case they weren't folded in
   // construction. Don't do this for reads though, because we want them to go to
@@ -65,7 +65,7 @@ ExprVisitor::Action ExprEvaluator::visitExpr(const Expr &e) {
   }
 
   return Action::changeTo(e.rebuild(Kids));
-  }*/
+  }
 
 ExprVisitor::Action ExprEvaluator::visitRead(const ReadExpr &re) {
   if((re.index)->getKind() == InvalidKind){

@@ -95,12 +95,10 @@ namespace klee {
     bool recursive;
 
     ref<Expr> visitActual(const ref<Expr> &e);
-    void visitActualRE(const ref<Expr> &e, std::vector<ref<Expr> > &res);
   public:
     // apply the visitor to the expression and return a possibly
     // modified new expression.
     ref<Expr> visit(const ref<Expr> &e);
-    void visitRE(const ref<Expr> &e, std::vector<ref<Expr> > &res);
   };
 
 }
