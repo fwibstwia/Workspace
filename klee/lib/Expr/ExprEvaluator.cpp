@@ -77,6 +77,7 @@ ExprVisitor::Action ExprEvaluator::visitRead(const ReadExpr &re) {
     } else {
       return Action::doChildren();
     }
+  }
 }
 ExprVisitor::Action ExprEvaluator::visitReorder(const ReorderExpr &e){
 
