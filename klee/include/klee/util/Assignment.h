@@ -87,8 +87,7 @@ namespace klee {
 
   inline ref<Expr> Assignment::evaluate(ref<Expr> e) { 
     AssignmentEvaluator v(*this);
-    std::vector<ref<Expr> > res;
-    return v.visit(e, res); 
+    return v.visit(e); 
   }
 
   template<typename InputIterator>

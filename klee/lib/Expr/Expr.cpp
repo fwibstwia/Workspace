@@ -670,7 +670,7 @@ ReorderExpr::ReorderExpr(const ref<Expr> &_src):src(_src){
   case FMul:{
     reCat = RE_Mult;
     ref<Expr> i = src;
-    while(i->getKind() == FMult){
+    while(i->getKind() == FMul){
       BinaryExpr *be = cast<BinaryExpr>(i);
       ref<Expr> l = be->left;
       ref<Expr> r = be->right;

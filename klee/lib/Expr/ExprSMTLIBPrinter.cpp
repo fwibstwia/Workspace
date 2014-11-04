@@ -176,7 +176,7 @@ void ExprSMTLIBPrinter::printExpression(
     printExpression(e->getKid(0), expectedSort);
     return;
 
-  case Expr::ReorderExpr:
+  case Expr::Reorder:
     //skip to child
     printExpression(e->getKid(0), expectedSort);
     return;

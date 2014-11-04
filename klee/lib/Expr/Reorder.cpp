@@ -1,6 +1,15 @@
+//===-- Reorder.cpp ----------------------------------------------------------===//
+//
+//                     The KLEE Symbolic Virtual Machine
+//
+// This file is distributed under the University of Illinois Open Source
+// License. See LICENSE.TXT for details.
+//
+//===----------------------------------------------------------------------===//
 #include "klee/Reorder.h"
 
 using namespace std;
+using namespace klee;
 
 template<typename T>
 T Reorder<T>::getBound(int direction, Operation op, const vector<T> &ops){
@@ -15,28 +24,28 @@ T Reorder<T>::getBound(int direction, Operation op, const vector<T> &ops){
 
   fesetround(roundMode);
   for(int i = 0; i < len; i ++){
-    value[i][i] = ops[i];
+    values[i][i] = ops[i];
   }
   
   for(int l = 2; l <= len; l ++){
     for(int i = 0; i < len - l + 1; i ++){
       int j = i + l - 1;
-      choice[i][j] = i;
-      c = getCost(value[i][i], value[i+1][j], op);
-      value[i][j] = getValue(value[i][i], value[i+1][j], op);	
+      choices[i][j] = i;
+      c = getCost(values[i][i], values[i+1][j], op);
+      values[i][j] = getValue(values[i][i], values[i+1][j], op);	
       for(int k = i + 1;  k < j; k++){
-	t = getCost(value[i][k], value[k+1][j], op);
+	t = getCost(values[i][k], values[k+1][j], op);
 	if(direction == 1){
 	  if(t > c){
 	    c = t;
-	    choice[i][j] = k;
-	    value[i][j] = getValue(value[i][k], value[k+1][j], op);
+	    choices[i][j] = k;
+	    values[i][j] = getValue(values[i][k], values[k+1][j], op);
 	  }
 	}else{
 	  if(t < c){
 	    c = t;
-	    choice[i][j] = k;	    
-	    value[i][j] = getValue(value[i][k], value[k+1][j], op);
+	    choices[i][j] = k;	    
+	    values[i][j] = getValue(values[i][k], values[k+1][j], op);
 	  }
 	}
       }     
@@ -44,7 +53,7 @@ T Reorder<T>::getBound(int direction, Operation op, const vector<T> &ops){
   }
 
   fesetround(origRound);
-  return value[0][len - 1];
+  return values[0][len - 1];
 }
 
 template<typename T>

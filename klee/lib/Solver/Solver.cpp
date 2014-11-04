@@ -1010,7 +1010,7 @@ SolverImpl::SolverRunStatus Z3SolverImpl::runAndGetCex(ref<Expr> query_expr,
   switch (s->check()) {
   case z3::sat:{
     values.reserve(objects.size());
-    model m = s->get_model()
+    z3::model m = s->get_model();
     for (std::vector<const Array*>::const_iterator it = objects.begin(), ie = objects.end(); it != ie; ++it) 
       {
           const Array *array = *it;

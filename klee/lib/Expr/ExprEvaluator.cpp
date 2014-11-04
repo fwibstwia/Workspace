@@ -65,10 +65,10 @@ ExprVisitor::Action ExprEvaluator::visitExpr(const Expr &e) {
   }
 
   return Action::changeTo(e.rebuild(Kids));
-  }
+}
 
 ExprVisitor::Action ExprEvaluator::visitRead(const ReadExpr &re) {
-  if((re.index)->getKind() == InvalidKind){
+  if((re.index)->getKind() == Expr::InvalidKind){
     return evalRead(re.updates);
   }else{
     ref<Expr> v = visit(re.index);
@@ -78,13 +78,6 @@ ExprVisitor::Action ExprEvaluator::visitRead(const ReadExpr &re) {
       return Action::doChildren();
     }
   }
-}
-ExprVisitor::Action ExprEvaluator::visitReorder(const ReorderExpr &e){
-
-}
-
-ExprVisitor::Action ExprEvaluator::visitFOgt(const FOgtExpr &e){
-
 }
 
   /*

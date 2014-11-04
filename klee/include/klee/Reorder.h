@@ -16,14 +16,16 @@
 namespace klee {
   template<typename T>
   class Reorder {
+  public:
     enum Operation{
       Plus,
       Mult,
       Fma
-    }
+    };
   public:
     Reorder(int _roundMode):roundMode(_roundMode){}
-    int getRoundMode(){return roundMode}
+
+    int getRoundMode(){return roundMode;}
 
     T getPlusMax(const std::vector<T> &ops){
       return getBound(1, Plus, ops);

@@ -47,7 +47,9 @@ namespace klee{
     } 
   };
  
-  inline void getInitialValue(const Array& os, unsigned index, std::vector<ref<Expr> > &res){
+  inline void ReExprEvaluator::getInitialValue(const Array& os, 
+					       unsigned index, 
+					       std::vector<ref<Expr> > &res){
     res.push_back(getArrayValue(&os, index));
     return;
   }

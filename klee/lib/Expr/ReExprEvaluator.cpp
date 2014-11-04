@@ -9,6 +9,7 @@
 
 #include "klee/util/ReExprEvaluator.h"
 #include "klee/Reorder.h"
+#include "llvm/ADT/APFloat.h"
 
 using namespace klee;
 using namespace std;
@@ -16,7 +17,7 @@ using namespace std;
 /***/
 
 void ReExprEvaluator::evalRead(const ReadExpr *e, vector<ref<Expr> > &res){
-  if((e->index)->getKind() == InvalidKind){
+  if((e->index)->getKind() == Expr::InvalidKind){
     evalUpdate(e->updates, res);
     return;
   }else{
@@ -72,17 +73,17 @@ void ReExprEvaluator::evalReorder(const ReorderExpr *e, vector<ref<Expr> > &res)
   //in this function we call the min/max method 
   //Fix me: need to add type support, currently we assume float
   //Fix me: need to add round mode support
-  float max, min;
+  float max = 0.0f, min = 0.0f;
   vector<float> ops;
   int len = (e->operands).size();
-  Reorder<Float> ro(FE_TONEAREST);
+  Reorder<float> ro(FE_TONEAREST);
 
   vector<ref<Expr> > kids;
   vector<ref<Expr> > tmp;
   for(int i = 0; i < len; i ++){
     evaluate((e->operands)[i], tmp);
     kids.push_back(tmp[0]);
-    tmp.clean();
+    tmp.clear();
   }
   
 
@@ -95,30 +96,30 @@ void ReExprEvaluator::evalReorder(const ReorderExpr *e, vector<ref<Expr> > &res)
     }
   }
 
-  switch(reCat){
-  case RE_Plus:{
+  switch(e->reCat){
+  case Expr::RE_Plus:{
     max = ro.getPlusMax(ops);
     min = ro.getPlusMin(ops);
     break;
   }
-  case RE_Mult:{
+  case Expr::RE_Mult:{
     max = ro.getMultMax(ops);
     min = ro.getMultMin(ops);
     break;
   }
-  case RE_FMA:{
+  case Expr::RE_FMA:{
     break;
   }
   default:
     assert(0 && "unsupported reorderable expression");
   }
-  APFloat apMax(max), apMin(min);
-  res.push_back(ConstantExpr::Alloc(apMin));
-  res.push_back(ConstantExpr::Alloc(apMax));
+  llvm::APFloat apMax(max), apMin(min);
+  res.push_back(ConstantExpr::alloc(apMin));
+  res.push_back(ConstantExpr::alloc(apMax));
   return;
 }
 
-void ReExprEvaluator::evalFOlt(const FOltExpr &e, vector<ref<Expr> > &res){
+void ReExprEvaluator::evalFOlt(const FOltExpr *e, vector<ref<Expr> > &res){
 
 } 
 
@@ -133,7 +134,7 @@ void ReExprEvaluator::evaluate(const ref<Expr> &e, vector<ref<Expr> > &res){
       break;
     }
     case Expr::Read:{
-      evalReorder(dyn_cast<ReadExpr>(e), res);
+      evalRead(dyn_cast<ReadExpr>(e), res);
       break;
     }
     case Expr::FOlt:{
@@ -148,20 +149,20 @@ void ReExprEvaluator::evaluate(const ref<Expr> &e, vector<ref<Expr> > &res){
       unsigned count = e->getNumKids();
       kids.resize(count);
       assert(count < 3); //Fix me: need to handle select
-      for(int i = 0; i < count; i ++){
+      for(unsigned i = 0; i < count; i ++){
 	ref<Expr> kid = e->getKid(i);
         evaluate(kid, kids[i]);
       }
       
       if(count == 1){
-	for(int i = 0; i < kids[0].size(); i ++){
+	for(unsigned i = 0; i < kids[0].size(); i ++){
 	  res.push_back(kids[0][i]);
 	}
       } else { // for count == 2
 	ref<Expr> tmp[2];
-        for(int i = 0; i < kids[0].size(); i ++){	    
+        for(unsigned i = 0; i < kids[0].size(); i ++){	    
 	  tmp[0] = kids[0][i];
-	  for(int j = 0; j < kids[1].size(); j ++){
+	  for(unsigned j = 0; j < kids[1].size(); j ++){
 	    tmp[1] = kids[1][j];
 	    res.push_back(e->rebuild(tmp));
 	  }

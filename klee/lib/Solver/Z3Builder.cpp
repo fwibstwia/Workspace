@@ -20,14 +20,15 @@ Z3Builder::~Z3Builder(){
   ///fix me: delete _arr_hash;
 }
 
-void Z3Builder::getInitialRead(const Array *os, model &m, std::vector<unsigned char> > &value){  
+void Z3Builder::getInitialRead(const Array *os, model &m, std::vector<unsigned char> &value){  
   expr res = m.get_const_interp(getInitialArray(os).decl());
   if(res.is_numeral()){
     Z3_string s = Z3_get_numeral_decimal_string(*c, res, 50);
-  }
-  float v = strtof(s, NULL);
-  char *p = reinterpret_cast<char*>(&v);
-  std::copy(p, p + sizeof(float), values.begin()); 
+  
+    float v = strtof(s, NULL);
+    char *p = reinterpret_cast<char*>(&v);
+    std::copy(p, p + sizeof(float), value.begin());
+  } 
 }
 
 expr Z3Builder::getInitialArray(const Array *root){
@@ -92,7 +93,7 @@ expr Z3Builder::construct(ref<Expr> e){
     return construct(noe->src);
   }
   
-  case Expr::ReorderExpr:{
+  case Expr::Reorder:{
     ReorderExpr *re = cast<ReorderExpr>(e);
     return construct(re->src);
   }
