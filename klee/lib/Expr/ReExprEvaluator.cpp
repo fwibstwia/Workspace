@@ -37,20 +37,20 @@ void ReExprEvaluator::evalUpdate(const UpdateList &ul,
 				   vector<ref<Expr> > &res) {
 for (const UpdateNode *un=ul.head; un; un=un->next) {
   vector<ref<Expr> > iRes;
-    evaluate(un->index, iRes);
+  evaluate(un->index, iRes);
     
-    if (ConstantExpr *CE = dyn_cast<ConstantExpr>(iRes[0])) {
-      if (CE->getZExtValue() == index){
-	evaluate(un->value, res);
-	return;
-      } else {
+  if (ConstantExpr *CE = dyn_cast<ConstantExpr>(iRes[0])) {
+    if (CE->getZExtValue() == index){
+      evaluate(un->value, res);
+      return;
+    } else {
       // update index is unknown, so may or may not be index, we
       // cannot guarantee value. we can rewrite to read at this
       // version though (mostly for debugging).
       assert(0 && "update index is unknown");
-      }
     }
   }
+ }
   
   //  if (ul.root->isConstantArray() && index < ul.root->size)
   //    return Action::changeTo(ul.root->constantValues[index]);

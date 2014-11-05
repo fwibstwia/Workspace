@@ -930,6 +930,7 @@ bool Z3SolverImpl::computeTruth(const Query& query, bool &isValid){
   std::vector< std::vector<unsigned char> > values;
   bool hasSolution;
 
+  findSymbolicObjects(query.expr, objects);  
   if (computeInitialValues(query, objects, values, hasSolution)) {
       // query.expr is valid iff !query.expr is not satisfiable
       isValid = !hasSolution;
@@ -983,9 +984,11 @@ bool Z3SolverImpl::computeInitialValues(const Query& query,
   }
   else {
       runStatusCode = runAndGetCex(query.expr, objects, values, hasSolution);
-      ReExprEvaluator a(const_cast<std::vector<const Array*> &>(objects), values);
-      std::vector<ref<Expr> > res;
-      a.evaluate(query.expr, res);
+      if(objects.size() != 0){
+	ReExprEvaluator a(const_cast<std::vector<const Array*> &>(objects), values);
+	std::vector<ref<Expr> > res;
+	a.evaluate(query.expr, res);
+      }
       success = true;
   } 
     
