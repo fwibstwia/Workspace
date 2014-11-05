@@ -62,7 +62,7 @@ MemoryObject *MemoryManager::allocate(uint64_t size, bool isLocal,
   
   ++stats::allocations;
   MemoryObject *res = new MemoryObject(address, size, isLocal, isGlobal, false,
-                                       allocSite, this, isArrayType, arraySize);
+                                       allocSite, this, isArrayType, arraySize, false);
   objects.insert(res);
   return res;
 }

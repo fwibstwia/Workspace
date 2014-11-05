@@ -80,7 +80,7 @@ ExprVisitor::Action ExprEvaluator::visitRead(const ReadExpr &re) {
   }
 }
 
-  /*
+
 // we need to check for div by zero during partial evaluation,
 // if this occurs then simply ignore the 0 divisor and use the
 // original expression.
@@ -111,4 +111,4 @@ ExprVisitor::Action ExprEvaluator::visitURem(const URemExpr &e) {
 ExprVisitor::Action ExprEvaluator::visitSRem(const SRemExpr &e) { 
   return protectedDivOperation(e); 
 }
-*/
+

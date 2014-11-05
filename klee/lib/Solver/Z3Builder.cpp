@@ -21,6 +21,7 @@ Z3Builder::~Z3Builder(){
 }
 
 void Z3Builder::getInitialRead(const Array *os, model &m, std::vector<unsigned char> &value){  
+  value.resize(32);
   expr res = m.get_const_interp(getInitialArray(os).decl());
   if(res.is_numeral()){
     Z3_string s = Z3_get_numeral_decimal_string(*c, res, 50);
@@ -85,6 +86,9 @@ expr Z3Builder::construct(ref<Expr> e){
 
   case Expr::Constant: {
     ConstantExpr *CE = cast<ConstantExpr>(e);
+    if(CE->getWidth() == Expr::Bool){
+      return CE->isTrue()?c->bool_val(true):c->bool_val(false);
+    }
     return c->real_val((__uint64)CE->getZExtValue());
   }
 

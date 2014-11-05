@@ -41,7 +41,7 @@ public:
   unsigned id;
   uint64_t address;
   
-  bool reorderable;
+
 
   /// total size in bytes
   unsigned size;
@@ -70,7 +70,7 @@ public:
 
   bool isArrayType;
   unsigned arraySize;
-
+  mutable bool reorderable;
   // DO NOT IMPLEMENT
   MemoryObject(const MemoryObject &b);
   MemoryObject &operator=(const MemoryObject &b);
@@ -87,7 +87,7 @@ public:
       parent(NULL),
       allocSite(0),
       isArrayType(false),
-      arraySize(0)
+      arraySize(0),
       reorderable(false){
   }
 
