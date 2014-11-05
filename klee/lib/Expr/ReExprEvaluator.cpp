@@ -76,7 +76,7 @@ void ReExprEvaluator::evalReorder(const ReorderExpr *e, vector<ref<Expr> > &res)
   float max = 0.0f, min = 0.0f;
   vector<float> ops;
   int len = (e->operands).size();
-  Reorder<float> ro(FE_TONEAREST);
+  Reorder ro(FE_TONEAREST);
 
   vector<ref<Expr> > kids;
   vector<ref<Expr> > tmp;
@@ -135,10 +135,6 @@ void ReExprEvaluator::evaluate(const ref<Expr> &e, vector<ref<Expr> > &res){
     }
     case Expr::Read:{
       evalRead(dyn_cast<ReadExpr>(e), res);
-      break;
-    }
-    case Expr::FOlt:{
-      evalFOlt(dyn_cast<FOltExpr>(e), res);
       break;
     }
     case Expr::InvalidKind:{

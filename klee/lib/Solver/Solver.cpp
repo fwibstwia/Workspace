@@ -19,6 +19,7 @@
 #include "klee/Expr.h"
 #include "klee/TimerStatIncrementer.h"
 #include "klee/util/Assignment.h"
+#include "klee/util/ReExprEvaluator.h"
 #include "klee/util/ExprPPrinter.h"
 #include "klee/util/ExprUtil.h"
 #include "klee/Internal/Support/Timer.h"
@@ -949,8 +950,9 @@ bool Z3SolverImpl::computeValue(const Query& query, ref<Expr> &result){
   if (computeInitialValues(query.withFalse(), objects, values, hasSolution)) {  
       assert(hasSolution && "state has invalid constraint set");
       // Evaluate the expression with the computed assignment.
-      //Assignment a(objects, values);
-      //      result = a.evaluate(query.expr);
+      ReExprEvaluator a(objects, values);
+      std::vector<ref<Expr> > res;
+      a.evaluate(query.expr, res);
       success = true;
   }
 
@@ -971,7 +973,6 @@ bool Z3SolverImpl::computeInitialValues(const Query& query,
       s->add(builder->construct(*it));  
     }  
   }  
-  s->push();
   ++stats::queries;
   ++stats::queryCounterexamples;  
  
@@ -982,6 +983,9 @@ bool Z3SolverImpl::computeInitialValues(const Query& query,
   }
   else {
       runStatusCode = runAndGetCex(query.expr, objects, values, hasSolution);
+      ReExprEvaluator a(const_cast<std::vector<const Array*> &>(objects), values);
+      std::vector<ref<Expr> > res;
+      a.evaluate(query.expr, res);
       success = true;
   } 
     
@@ -994,6 +998,7 @@ bool Z3SolverImpl::computeInitialValues(const Query& query,
       }
   }  
    
+  s->reset();
   //pop(_meta_solver); 
   
   return(success);
@@ -1011,18 +1016,18 @@ SolverImpl::SolverRunStatus Z3SolverImpl::runAndGetCex(ref<Expr> query_expr,
   case z3::sat:{
     values.reserve(objects.size());
     z3::model m = s->get_model();
-    for (std::vector<const Array*>::const_iterator it = objects.begin(), ie = objects.end(); it != ie; ++it) 
-      {
-          const Array *array = *it;
-	  std::vector<unsigned char> data;
-	  builder->getInitialRead(array, m, data);
-	  values.push_back(data);
-
-      }
+    for (std::vector<const Array*>::const_iterator it = objects.begin(), ie = objects.end(); it != ie; ++it) {
+      const Array *array = *it;
+      std::vector<unsigned char> data;
+      builder->getInitialRead(array, m, data);
+      values.push_back(data);
+    }
+    hasSolution = true;
     return (SolverImpl::SOLVER_RUN_STATUS_SUCCESS_SOLVABLE);
   }
   case z3::unsat:
   default:
+    hasSolution = false;
     return (SolverImpl::SOLVER_RUN_STATUS_SUCCESS_UNSOLVABLE); 
   }
 }

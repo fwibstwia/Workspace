@@ -7,20 +7,26 @@
 //
 //===----------------------------------------------------------------------===//
 #include "klee/Reorder.h"
+#include <cmath>
 
 using namespace std;
 using namespace klee;
-
-template<typename T>
-T Reorder<T>::getBound(int direction, Operation op, const vector<T> &ops){
-  T c, t;
-  std::vector<std::vector<T> > values;
+  
+float Reorder::getBound(int direction, Operation op, const vector<float> &ops){
+  float c, t;
+  std::vector<std::vector<float> > values;
   std::vector<std::vector<int> > choices;
   int len = ops.size();
   int origRound = fegetround();
 
-  values.resize(len * len);
-  choices.resize(len * len);
+  values.resize(len);
+  for(int i = 0; i < len; i ++){
+    values[i].resize(len);
+  }
+  choices.resize(len);
+  for(int i = 0; i < len; i ++){
+    choices[i].resize(len);
+  }
 
   fesetround(roundMode);
   for(int i = 0; i < len; i ++){
@@ -56,9 +62,8 @@ T Reorder<T>::getBound(int direction, Operation op, const vector<T> &ops){
   return values[0][len - 1];
 }
 
-template<typename T>
-T Reorder<T>::getCost(T a, T b, Operation op){
-  T c;
+float Reorder::getCost(float a, float b, Operation op){
+  float c;
   if(op == Plus){
     return a + b;
   }
@@ -80,8 +85,7 @@ T Reorder<T>::getCost(T a, T b, Operation op){
   return c;
 }
 
-template<typename T>
-T Reorder<T>::getValue(T a, T b, Operation op){
+float Reorder::getValue(float a, float b, Operation op){
   if(op == Plus){
     return a + b;
   }else{

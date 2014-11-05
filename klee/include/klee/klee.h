@@ -34,6 +34,7 @@ extern "C" {
   /// output files, etc.
   void klee_make_symbolic(void *addr, size_t nbytes, const char *name);
   void klee_make_symbolic_with_sort(void *addr, size_t nbytes, const char *name, unsigned domain, unsigned range);
+  void klee_tag_reorderable(void *addr);
   /// klee_range - Construct a symbolic value in the signed interval
   /// [begin,end).
   ///

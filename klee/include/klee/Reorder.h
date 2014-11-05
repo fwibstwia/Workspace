@@ -11,10 +11,9 @@
 #define KLEE_REORDER_H_
 
 #include <vector>
-#include <cfenv>
+#include <fenv.h>
 
 namespace klee {
-  template<typename T>
   class Reorder {
   public:
     enum Operation{
@@ -27,25 +26,25 @@ namespace klee {
 
     int getRoundMode(){return roundMode;}
 
-    T getPlusMax(const std::vector<T> &ops){
+    float getPlusMax(const std::vector<float> &ops){
       return getBound(1, Plus, ops);
     }
 
-    T getPlusMin(const std::vector<T> &ops){
+    float getPlusMin(const std::vector<float> &ops){
       return getBound(0, Plus, ops);
     }
 
-    T getMultMax(const std::vector<T> &ops){
+    float getMultMax(const std::vector<float> &ops){
       return getBound(1, Mult, ops);
     }
 
-    T getMultMin(const std::vector<T> &ops){
+    float getMultMin(const std::vector<float> &ops){
       return getBound(0, Mult, ops);
     }
   private:
-    T getCost(T a, T b, Operation op);
-    T getValue(T a, T b, Operation op);
-    T getBound(int direction, Operation op, const std::vector<T> &ops);
+    float getCost(float a, float b, Operation op);
+    float getValue(float a, float b, Operation op);
+    float getBound(int direction, Operation op, const std::vector<float> &ops);
 
   private:
     int roundMode;

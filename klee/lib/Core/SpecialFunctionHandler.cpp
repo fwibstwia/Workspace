@@ -765,7 +765,10 @@ void SpecialFunctionHandler::handleTagReorderable(ExecutionState &state,
   for (Executor::ExactResolutionList::iterator it = rl.begin(), 
          ie = rl.end(); it != ie; ++it) {
     const MemoryObject *mo = it->first.first;
+    const ObjectState *os = it->first.second;
+    ExecutionState *s = it->second;
     mo->reorderable = true;
+    executor.executeTagReorderable(*s, mo, os);
   }
 }
 

@@ -240,7 +240,7 @@ ref<Expr> Expr::createFromKind(Kind k, std::vector<CreateArg> args) {
     case Reorder:
       assert(numArgs == 1 && args[0].isExpr() &&
              "invalid args array for given opcode");
-      return NotOptimizedExpr::create(args[0].expr);
+      return ReorderExpr::create(args[0].expr);
       
     case Select:
       assert(numArgs == 3 && args[0].isExpr() &&
@@ -645,15 +645,15 @@ ReorderExpr::ReorderExpr(const ref<Expr> &_src):src(_src){
       BinaryExpr *be = cast<BinaryExpr>(i);
       ref<Expr> l = be->left;
       ref<Expr> r = be->right;
-      if(l->getKind() == FMul && isFMA){
-	BinaryExpr *t = cast<BinaryExpr>(l);
+      if(r->getKind() == FMul && isFMA){
+	BinaryExpr *t = cast<BinaryExpr>(r);
 	fmaOps.push_back(t->left);
 	fmaOps.push_back(t->right);
       }else{
 	isFMA = false;
       }
-      ops.push_back(l);
-      i = r;
+      ops.push_back(r);
+      i = l;
     }
     if(isFMA){
       BinaryExpr *t = cast<BinaryExpr>(i);

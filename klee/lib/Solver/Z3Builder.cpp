@@ -21,7 +21,7 @@ Z3Builder::~Z3Builder(){
 }
 
 void Z3Builder::getInitialRead(const Array *os, model &m, std::vector<unsigned char> &value){  
-  value.resize(32);
+  value.resize(4);
   expr res = m.get_const_interp(getInitialArray(os).decl());
   if(res.is_numeral()){
     Z3_string s = Z3_get_numeral_decimal_string(*c, res, 50);

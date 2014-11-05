@@ -3148,12 +3148,7 @@ void Executor::executeMemoryOperation(ExecutionState &state,
                                 "readonly.err");
 	} else {
 	  ObjectState *wos = state.addressSpace.getWriteable(mo, os);
-	  if(mo->reorderable){
-	    ref<Expr> reValue = ReorderExpr::create(value);
-	    wos->writeWhole(reValue);
-	  }else{
-	    wos->writeWhole(value);
-	  }
+	  wos->writeWhole(value);
 	}          
       } else {
 	ref<Expr> result = os->readWhole(type);
@@ -3379,6 +3374,16 @@ void Executor::executeMakeSymbolicWithSort(ExecutionState &state,
     }
   }
 }
+
+void Executor::executeTagReorderable(ExecutionState &state, 
+					   const MemoryObject *mo,
+					   const ObjectState *os){
+  ref<Expr> result = os->readWhole(32);
+  ref<Expr> reValue = ReorderExpr::create(result);
+  ObjectState *wos = state.addressSpace.getWriteable(mo, os);
+  wos->writeWhole(reValue);
+}
+	
 
 /***/
 
