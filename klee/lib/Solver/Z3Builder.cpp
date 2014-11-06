@@ -25,7 +25,7 @@ void Z3Builder::getInitialRead(const Array *os, model &m, std::vector<unsigned c
   expr res = m.get_const_interp(getInitialArray(os).decl());
   if(res.is_numeral()){
     Z3_string s = Z3_get_numeral_decimal_string(*c, res, 50);
-  
+    std::cout << os->name << ":" << s << std::endl;  
     float v = strtof(s, NULL);
     char *p = reinterpret_cast<char*>(&v);
     std::copy(p, p + sizeof(float), value.begin());

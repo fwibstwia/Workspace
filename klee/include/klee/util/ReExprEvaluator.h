@@ -59,7 +59,9 @@ namespace klee{
     assert(array);
     bindings_ty::const_iterator it = bindings.find(array);
     if (it!=bindings.end() && index<it->second.size()) {
-      return ConstantExpr::alloc(it->second[index], array->getRange());
+      //just for float
+      float v = *((float*)&it->second[index]);
+      return ConstantExpr::alloc(llvm::APFloat(v));
     } else {
       return ConstantExpr::alloc(0, array->getRange());
     }
