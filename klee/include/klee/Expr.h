@@ -618,13 +618,13 @@ public:
   static const unsigned numKids = 1;
   ref<Expr> src;
 public:
-  static ref<Expr> alloc(const ref<Expr> &src){
-    ref<Expr> r(new ReorderExpr(src));
+  static ref<Expr> alloc(const ref<Expr> &src, int dir, int cat){
+    ref<Expr> r(new ReorderExpr(src, dir, cat));
     r->computeHash();
     return r;
   }
   
-  static ref<Expr> create(ref<Expr> src);
+  static ref<Expr> create(ref<Expr> src, int dir, int cat);
   Width getWidth() const {return src->getWidth();}
   Kind getKind() const{return kind;}
   
@@ -634,7 +634,8 @@ public:
   virtual ref<Expr> rebuild(ref<Expr> kids[]) const;
 
 public:
-  ReorderCat reCat;
+  ReorderCat cat;
+  int dir;
   std::vector<ref<Expr> > operands;
   ReorderExpr(const ref<Expr> &_src);
 public:

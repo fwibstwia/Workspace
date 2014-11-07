@@ -627,58 +627,65 @@ ref<ConstantExpr> ConstantExpr::FOlt(const ref<ConstantExpr> &RHS) {
 
 /***/
 
-ref<Expr> ReorderExpr::create(ref<Expr> src){
-  return ReorderExpr::alloc(src);
+ref<Expr> ReorderExpr::create(ref<Expr> src,int dir, int cat){
+  return ReorderExpr::alloc(src, dir, cat);
 }
 
 
-ReorderExpr::ReorderExpr(const ref<Expr> &_src):src(_src){
-  ///Fix me: Find Reorder category, reorder operands
-  bool isFMA = true;
-  std::vector< ref<Expr> > fmaOps;
+ReorderExpr::ReorderExpr(const ref<Expr> &_src, int _dir, int _cat):src(_src), 
+								    dir(_dir), 
+								    cat(_cat){
   std::vector< ref<Expr> > ops;
-  switch(src->getKind()){
-  case FAdd:{
-    reCat = RE_Plus;
+  switch(cat){
+  case RE_Plus:{
     ref<Expr> i = src;
     while(i->getKind() == FAdd){
       BinaryExpr *be = cast<BinaryExpr>(i);
-      ref<Expr> l = be->left;
-      ref<Expr> r = be->right;
-      if(r->getKind() == FMul && isFMA){
-	BinaryExpr *t = cast<BinaryExpr>(r);
-	fmaOps.push_back(t->left);
-	fmaOps.push_back(t->right);
-      }else{
-	isFMA = false;
+      if(dir == 0){  // left direction
+	oprands.push_back(be->right);
+	i = be->left;
+      } else {
+	oprands.push_back(be->left);
+	i = be->right;
       }
-      ops.push_back(r);
-      i = l;
     }
-    if(isFMA){
-      BinaryExpr *t = cast<BinaryExpr>(i);
-      fmaOps.push_back(t->left);
-      fmaOps.push_back(t->right);
-      reCat = RE_FMA;
-      operands = fmaOps;
-    }else{
-      ops.push_back(i);
-      operands = ops;
-    }
+    oprands.push_back(i);
     break;
   }
-  case FMul:{
-    reCat = RE_Mult;
+  case RE_Mult:{
+    ref<Expr> i = src;
+    while(i->getKind() == FAdd){
+      BinaryExpr *be = cast<BinaryExpr>(i);
+      if(dir == 0){  // left direction
+	BinaryExpr *t = cast<BinaryExpr>(r);
+	oprands.push_back(t->left);
+	oprands.push_back(t->right);
+	i = be->left;
+      } else {
+	BinaryExpr *t = case<BinaryExpr>(l);
+	oprands.push_back(t->left);
+	oprands.push_back(t->right);
+	i = be->right;
+      }
+    }
+    BinaryExpr *t = case<BinaryExpr>(i);
+    oprands.push_back(t->left);
+    oprands.push_back(t->right);
+    break;
+  }
+  case RE_FMA:{
     ref<Expr> i = src;
     while(i->getKind() == FMul){
       BinaryExpr *be = cast<BinaryExpr>(i);
-      ref<Expr> l = be->left;
-      ref<Expr> r = be->right;
-      ops.push_back(l);
-      i = r;
+      if(dir == 0){  // left direction
+	oprands.push_back(be->right);
+	i = be->left;
+      } else {
+	oprands.push_back(be->left);
+	i = be->right;
+      }
     }
-    ops.push_back(i);
-    operands = ops;
+    oprands.push_back(i);
     break;
   }
   default:

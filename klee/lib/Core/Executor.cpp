@@ -3376,10 +3376,12 @@ void Executor::executeMakeSymbolicWithSort(ExecutionState &state,
 }
 
 void Executor::executeTagReorderable(ExecutionState &state, 
-					   const MemoryObject *mo,
-					   const ObjectState *os){
+				     const MemoryObject *mo,
+				     const ObjectState *os,
+				     int dir,
+				     int cat){
   ref<Expr> result = os->readWhole(32);
-  ref<Expr> reValue = ReorderExpr::create(result);
+  ref<Expr> reValue = ReorderExpr::create(result, dir, cat);
   ObjectState *wos = state.addressSpace.getWriteable(mo, os);
   wos->writeWhole(reValue);
 }

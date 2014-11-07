@@ -75,7 +75,10 @@ void ReExprEvaluator::evalReorder(const ReorderExpr *e, vector<ref<Expr> > &res)
   //Fix me: need to add round mode support
   float max = 0.0f, min = 0.0f;
   vector<float> ops;
+  vector<float> opl;
+  vector<float> opr;
   int len = (e->operands).size();
+
   Reorder ro(FE_TONEAREST);
 
   vector<ref<Expr> > kids;
@@ -86,28 +89,49 @@ void ReExprEvaluator::evalReorder(const ReorderExpr *e, vector<ref<Expr> > &res)
     tmp.clear();
   }
   
+  if(e->cat == RE_FMA){
+    for(int i = 0; i < len/2; i = i + 2){
+      if(ConstantExpr *CE = dyn_cast<ConstantExpr>(kids[i])){
+	llvm::APFloat v = CE->getAPFValue();
+	opl.push_back(v.convertToFloat());
+      }else{
+	assert(0 && "encounter non-constant in Reorder Rebuild");
+      }
 
-  for(int i = 0; i < len; i ++){
-    if(ConstantExpr *CE = dyn_cast<ConstantExpr>(kids[i])){
-      llvm::APFloat v = CE->getAPFValue();
-      ops.push_back(v.convertToFloat());
-    }else{
-      assert(0 && "encounter non-constant in Reorder Rebuild");
+      if(ConstantExpr *CE = dyn_cast<ConstantExpr>(kids[i+1])){
+	llvm::APFloat v = CE->getAPFValue();
+	opr.push_back(v.convertToFloat());
+      }else{
+	assert(0 && "encounter non-constant in Reorder Rebuild");
+      }      
+    }
+  } else {
+    for(int i = 0; i < len; i ++){
+      if(ConstantExpr *CE = dyn_cast<ConstantExpr>(kids[i])){
+	llvm::APFloat v = CE->getAPFValue();
+	ops.push_back(v.convertToFloat());
+      }else{
+	assert(0 && "encounter non-constant in Reorder Rebuild");
+      }
     }
   }
 
-  switch(e->reCat){
+  switch(e->cat){
   case Expr::RE_Plus:{
     max = ro.getPlusMax(ops);
     min = ro.getPlusMin(ops);
     break;
   }
+
   case Expr::RE_Mult:{
     max = ro.getMultMax(ops);
     min = ro.getMultMin(ops);
     break;
   }
+
   case Expr::RE_FMA:{
+    max = ro.getFMAMax(opl, opr);
+    min = ro.getFMAMin(opl, opr);
     break;
   }
   default:

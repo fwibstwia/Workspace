@@ -41,11 +41,22 @@ namespace klee {
     float getMultMin(const std::vector<float> &ops){
       return getBound(0, Mult, ops);
     }
+     
+    float getFMAMax(const std::vector<float> &opsl, const std::vector<float> &opsr){
+      return getFMABound(1, opsl, opsr);
+    }
+
+    float getFMAMin(const std::vector<float> &opsl, const std::vector<float> &opsr){
+      return getFMABound(0, opsl, opsr);
+    }
+
   private:
     float getCost(float a, float b, Operation op);
     float getValue(float a, float b, Operation op);
     float getBound(int direction, Operation op, const std::vector<float> &ops);
-
+    float getFMABound(int direction, 
+		      const std::vector<float> &opsl, 
+		      const std::vector<float> &opsr);
   private:
     int roundMode;
   };
