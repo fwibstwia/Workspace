@@ -634,10 +634,10 @@ public:
   virtual ref<Expr> rebuild(ref<Expr> kids[]) const;
 
 public:
+  std::vector<ref<Expr> > operands;
   ReorderCat cat;
   int dir;
-  std::vector<ref<Expr> > operands;
-  ReorderExpr(const ref<Expr> &_src);
+  ReorderExpr(const ref<Expr> &_src, int dir, int cat);
 public:
   static bool classof(const Expr *E) {
     return E->getKind() == Expr::Reorder;

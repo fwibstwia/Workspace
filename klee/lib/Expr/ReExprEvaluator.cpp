@@ -89,7 +89,7 @@ void ReExprEvaluator::evalReorder(const ReorderExpr *e, vector<ref<Expr> > &res)
     tmp.clear();
   }
   
-  if(e->cat == RE_FMA){
+  if(e->cat == Expr::RE_FMA){
     for(int i = 0; i < len/2; i = i + 2){
       if(ConstantExpr *CE = dyn_cast<ConstantExpr>(kids[i])){
 	llvm::APFloat v = CE->getAPFValue();
