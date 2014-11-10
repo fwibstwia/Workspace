@@ -173,25 +173,26 @@ bool Solver::checkStable(const Query& query, bool &result){
   bool hasSolution = true;
   bool success = false;
   int trials;
-  BinaryExpr *BE = dyn_cast<BinaryExpr>(query.expr);
-  Query q = Query(query.constraints, EqExpr::alloc(BE->left, BE->right));
-  while(!success && trials < 2){
-    impl->computeInitialValues(q, objects, values, hasSolution);
-    if(hasSolution){
-      ReExprEvaluator a(objects, values);
-      ref<Expr> epsilon;
-      success = a.isAssignmentStable(query.expr, epsilon);
-      if(success){
-	break;
+  if(BinaryExpr *BE = dyn_cast<BinaryExpr>(query.expr)){
+    Query q = Query(query.constraints, EqExpr::alloc(BE->left, BE->right));
+    while(!success && trials < 2){
+      impl->computeInitialValues(q, objects, values, hasSolution);
+      if(hasSolution){
+	ReExprEvaluator a(objects, values);
+	ref<Expr> epsilon;
+	success = a.isAssignmentStable(query.expr, epsilon);
+	if(success){
+	  break;
+	}else{
+	  q.changeConstant(epsilon);
+	}
       }else{
-        q.changeConstant(epsilon);
+	assert(0 && "no solution");
       }
-    }else{
-      assert(0 && "no solution");
+      trials ++;
     }
-    trials ++;
+    result = success;
   }
-  result = success;
   return success;
 }
 

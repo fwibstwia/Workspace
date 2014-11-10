@@ -6,8 +6,15 @@
 
 int ray_tracing(float rx, float ry, float rz, float sx, float sy, float sz) {
   float A = rx*rx+ry*ry+rz*rz;
-  float B = -2.0 * (sx*rx+sy*ry+sz*rz);
-  float C = sx*sx+sy*sy+sz*sz - 2;
+  klee_tag_reorderable(&A, 0, 2);
+
+  float B1 = sx*rx + sy*ry + sz*rz;
+  klee_tag_reorderable(&B1, 0, 2); 
+  float B = -2.0 * B1;
+
+  float C1 = sx*sx+sy*sy+sz*sz;
+  klee_tag_reorderable(&C1, 0, 2);
+  float C =  C1 - 2;
   float D = B*B-4*A*C;                  
   if (D > 0)
     return 0;
