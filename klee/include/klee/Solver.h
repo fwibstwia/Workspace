@@ -42,6 +42,9 @@ namespace klee {
     Query negateExpr() const {
       return withExpr(Expr::createIsZero(expr));
     }
+
+    void changeConstant(ref<Expr> &epsilon);
+    
   };
 
   class Solver {
@@ -99,6 +102,7 @@ namespace klee {
     ///
     /// \return True on success.
     bool mustBeTrue(const Query&, bool &result);
+    bool checkStable(const Query&, bool &result);
 
     /// mustBeFalse - Determine if the expression is provably false.
     ///

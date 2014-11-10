@@ -456,6 +456,19 @@ ref<ConstantExpr> ConstantExpr::FSub(const ref<ConstantExpr> &RHS) {
   return ConstantExpr::alloc(Res);
 }
 
+ref<ConstantExpr> ConstantExpr::FAbs(const ref<ConstantExpr> &RHS){
+ assert(getWidth() == RHS->getWidth() && "Unsupported FSub operation");
+#if LLVM_VERSION_CODE >= LLVM_VERSION(3, 3)
+  llvm::APFloat Res(ConstantExpr::fpWidthToSemantics(getWidth()), getAPValue());
+  Res.subtract(APFloat(ConstantExpr::fpWidthToSemantics(RHS->getWidth()), RHS->getAPValue()), APFloat::rmNearestTiesToEven);
+#else
+  llvm::APFloat Res(getAPValue());
+  Res.subtract(APFloat(RHS->getAPValue()), APFloat::rmNearestTiesToEven);
+#endif
+  Res.clearSign();
+  return ConstantExpr::alloc(Res);
+}
+
 ref<ConstantExpr> ConstantExpr::Mul(const ref<ConstantExpr> &RHS) {
   return ConstantExpr::alloc(value * RHS->value);
 }
@@ -511,6 +524,8 @@ ref<ConstantExpr> ConstantExpr::FRem(const ref<ConstantExpr> &RHS) {
 #endif
   return ConstantExpr::alloc(Res);
 }
+
+
 
 ref<ConstantExpr> ConstantExpr::And(const ref<ConstantExpr> &RHS) {
   return ConstantExpr::alloc(value & RHS->value);

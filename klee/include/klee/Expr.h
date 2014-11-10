@@ -525,6 +525,7 @@ public:
   ref<ConstantExpr> FAdd(const ref<ConstantExpr> &RHS);
   ref<ConstantExpr> Sub(const ref<ConstantExpr> &RHS);
   ref<ConstantExpr> FSub(const ref<ConstantExpr> &RHS);
+  ref<ConstantExpr> FAbs(const ref<ConstantExpr> &RHS);
   ref<ConstantExpr> Mul(const ref<ConstantExpr> &RHS);
   ref<ConstantExpr> FMul(const ref<ConstantExpr> &RHS);
   ref<ConstantExpr> UDiv(const ref<ConstantExpr> &RHS);

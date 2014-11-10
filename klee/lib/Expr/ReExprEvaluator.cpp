@@ -144,7 +144,32 @@ void ReExprEvaluator::evalReorder(const ReorderExpr *e, vector<ref<Expr> > &res)
 }
 
 void ReExprEvaluator::evalFOlt(const FOltExpr *e, vector<ref<Expr> > &res){
-
+  //Fix me:: handle e-> left is constant
+  vector<ref<Expr> > kid;
+  kid.resize(2);
+  ref<ConstantExpr> minValue;
+  if(ConstantExpr *CER = dyn_cast<ConstantExpr>(e->right)){
+    evaluate(e->left, kid);
+    ref<Expr> tmp[2];
+    tmp[1] = e -> right;
+    for(int i = 0; i < kid.size(); i ++){
+      if(ConstantExpr *CEL = dyn_cast<ConstantExpr>(kid[i])){
+	ref<ConstantExpr> dist = CEL->FAbs(CER);
+	if((minValue -> FOgt(dist)) -> isTrue()){
+	  minValue = dist;
+	}
+      }else{
+	assert(0 && "encounter non-constantExpr after evaluate");
+      }
+      tmp[0] = kid[i];
+      res.push_back(e->rebuild(tmp));
+    }
+  }else if(ConstantExpr *CE = dyn_cast<ConstantExpr>(e->left)){
+    evaluate(e->right, kid);
+  }else{
+    assert(0 && "we need one side of evalFOlt is constant");
+  }
+  epsilon = minValue;
 } 
 
 void ReExprEvaluator::evaluate(const ref<Expr> &e, vector<ref<Expr> > &res){
@@ -157,10 +182,16 @@ void ReExprEvaluator::evaluate(const ref<Expr> &e, vector<ref<Expr> > &res){
       evalReorder(dyn_cast<ReorderExpr>(e), res);
       break;
     }
+
     case Expr::Read:{
       evalRead(dyn_cast<ReadExpr>(e), res);
       break;
     }
+
+    case Expr::FOlt:{
+      evalFOlt(dyn_cast<FOltExpr>(e), res);
+    }
+
     case Expr::InvalidKind:{
       assert(0 && "evaluate invalid expr");
     }
@@ -194,3 +225,23 @@ void ReExprEvaluator::evaluate(const ref<Expr> &e, vector<ref<Expr> > &res){
   }
 }
 
+bool ReExprEvaluator::isAssignmentStable(const ref<Expr> &e, ref<Expr> &eps){
+  bool trueRe = false, falseRe = false;
+  vector<ref<Expr> > res;
+  evaluate(e,res);
+  vector<ref<Expr> >::iterator ite = res.begin();
+
+  for(; ite != res.end(); ite++){
+    if(ConstantExpr *CE = dyn_cast<ConstantExpr>(*ite)){
+      if(CE->isTrue()){
+	trueRe = true;
+      }else if(CE->isFalse()){
+	falseRe = true;
+      }
+    }else{
+      assert(0 && "encounter non-constant result in ReExprEvaluator");
+    }
+  }
+  eps = epsilon;
+  return trueRe && falseRe;
+}

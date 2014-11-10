@@ -140,7 +140,8 @@ bool Solver::evaluate(const Query& query, Validity &result) {
     result = CE->isTrue() ? True : False;
     return true;
   }
-
+  bool stableResult;
+  checkStable(query, stableResult);
   return impl->computeValidity(query, result);
 }
 
@@ -154,6 +155,44 @@ bool Solver::mustBeTrue(const Query& query, bool &result) {
   }
 
   return impl->computeTruth(query, result);
+}
+
+void Query::changeConstant(ref<Expr> &epsilon){
+  //fix me:handle constant in the left
+  EqExpr *eq = dyn_cast<EqExpr>(expr);
+  ConstantExpr *CE = dyn_cast<ConstantExpr>(eq -> right);
+  ConstantExpr *consEps = dyn_cast<ConstantExpr>(epsilon);
+  ref<ConstantExpr> res = CE->FAdd(consEps);
+  expr = res;
+}
+
+bool Solver::checkStable(const Query& query, bool &result){
+  //Fix me: hasSolution == false
+  std::vector<const Array*> objects;
+  std::vector< std::vector<unsigned char> > values;
+  bool hasSolution = true;
+  bool success = false;
+  int trials;
+  BinaryExpr *BE = dyn_cast<BinaryExpr>(query.expr);
+  Query q = Query(query.constraints, EqExpr::alloc(BE->left, BE->right));
+  while(!success && trials < 2){
+    impl->computeInitialValues(q, objects, values, hasSolution);
+    if(hasSolution){
+      ReExprEvaluator a(objects, values);
+      ref<Expr> epsilon;
+      success = a.isAssignmentStable(query.expr, epsilon);
+      if(success){
+	break;
+      }else{
+        q.changeConstant(epsilon);
+      }
+    }else{
+      assert(0 && "no solution");
+    }
+    trials ++;
+  }
+  result = success;
+  return success;
 }
 
 bool Solver::mustBeFalse(const Query& query, bool &result) {
@@ -930,7 +969,6 @@ bool Z3SolverImpl::computeTruth(const Query& query, bool &isValid){
   std::vector< std::vector<unsigned char> > values;
   bool hasSolution;
 
-  findSymbolicObjects(query.expr, objects);  
   if (computeInitialValues(query, objects, values, hasSolution)) {
       // query.expr is valid iff !query.expr is not satisfiable
       isValid = !hasSolution;
@@ -983,13 +1021,8 @@ bool Z3SolverImpl::computeInitialValues(const Query& query,
       success = ((SOLVER_RUN_STATUS_SUCCESS_SOLVABLE == runStatusCode) || (SOLVER_RUN_STATUS_SUCCESS_UNSOLVABLE == runStatusCode));
   }
   else {
-      runStatusCode = runAndGetCex(query.expr, objects, values, hasSolution);
-      if(objects.size() != 0){
-	ReExprEvaluator a(const_cast<std::vector<const Array*> &>(objects), values);
-	std::vector<ref<Expr> > res;
-	a.evaluate(query.expr, res);
-      }
-      success = true;
+    runStatusCode = runAndGetCex(query.expr, objects, values, hasSolution);
+    success = true;
   } 
     
   if (success) {

@@ -33,6 +33,7 @@ namespace klee{
     ref<Expr> epsilon;
   public:
     void evaluate(const ref<Expr> &e, std::vector<ref<Expr> > &res);
+    bool isAssignmentStable(const ref<Expr> &e, ref<Expr> &epsilon);
     ReExprEvaluator(std::vector<const Array*> &objects,
 		    std::vector< std::vector<unsigned char> > &values){
       std::vector< std::vector<unsigned char> >::iterator valIt = 
