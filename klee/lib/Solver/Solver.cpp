@@ -1048,7 +1048,8 @@ SolverImpl::SolverRunStatus Z3SolverImpl::runAndGetCex(ref<Expr> query_expr,
 						       bool &hasSolution)
 {
   // assume the negation of the query  
-  s->add(builder->construct(Expr::createIsZero(query_expr)));
+  //s->add(builder->construct(Expr::createIsZero(query_expr)));
+  s->add(builder->construct(query_expr));
 
   switch (s->check()) {
   case z3::sat:{
