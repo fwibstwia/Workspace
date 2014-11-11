@@ -11,6 +11,8 @@
 #include "klee/Reorder.h"
 #include "llvm/ADT/APFloat.h"
 
+#include <iostream>
+
 using namespace klee;
 using namespace std;
 
@@ -137,6 +139,8 @@ void ReExprEvaluator::evalReorder(const ReorderExpr *e, vector<ref<Expr> > &res)
   default:
     assert(0 && "unsupported reorderable expression");
   }
+  std::cout << "min: " << min << std::endl;
+  std::cout << "max: " << max << std::endl;
   llvm::APFloat apMax(max), apMin(min);
   res.push_back(ConstantExpr::alloc(apMin));
   res.push_back(ConstantExpr::alloc(apMax));

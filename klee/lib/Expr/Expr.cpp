@@ -425,7 +425,7 @@ ref<ConstantExpr> ConstantExpr::Add(const ref<ConstantExpr> &RHS) {
 }
 
 ref<ConstantExpr> ConstantExpr::FAdd(const ref<ConstantExpr> &RHS){
-  assert(getWidth() == RHS->getWidth() && "Unsupported FAdd operation");
+  //assert(getWidth() == RHS->getWidth() && "Unsupported FAdd operation");
 #if LLVM_VERSION_CODE >= LLVM_VERSION(3, 3)
   llvm::APFloat Res(ConstantExpr::fpWidthToSemantics(getWidth()), getAPValue());
   Res.add(APFloat(ConstantExpr::fpWidthToSemantics(RHS->getWidth()), RHS->getAPValue()), APFloat::rmNearestTiesToEven);

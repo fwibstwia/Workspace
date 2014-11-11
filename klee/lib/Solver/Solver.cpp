@@ -31,6 +31,7 @@
 #include <cstdio>
 #include <map>
 #include <vector>
+#include <iostream>
 
 #include <errno.h>
 #include <unistd.h>
@@ -158,18 +159,24 @@ bool Solver::mustBeTrue(const Query& query, bool &result) {
 }
 
 void Query::changeConstant(ref<Expr> &epsilon){
-  //fix me:handle constant in the left
+  //fix me:handle constant in the right
+  std::string ori, eps, upd;
   EqExpr *eq = dyn_cast<EqExpr>(expr);
-  ConstantExpr *CE = dyn_cast<ConstantExpr>(eq -> right);
+  ConstantExpr *CE = dyn_cast<ConstantExpr>(eq -> left);
   ConstantExpr *consEps = dyn_cast<ConstantExpr>(epsilon);
+  CE->toString(ori, 10, 1);
+  consEps->toString(eps, 10, 1);
   ref<ConstantExpr> res = CE->FAdd(consEps);
-  expr = res;
+  res->toString(upd, 10, 1);
+  std::cout << "ori: " << ori << std::endl;
+  std::cout << "eps: " << eps << std::endl;
+  std::cout << "upd: " << upd << std::endl;
+  eq->left = res;
 }
 
 bool Solver::checkStable(const Query& query, bool &result){
   //Fix me: hasSolution == false
   std::vector<const Array*> objects;
-  std::vector< std::vector<unsigned char> > values;
   bool hasSolution = true;
   bool success = false;
   int trials = 0;
@@ -177,6 +184,7 @@ bool Solver::checkStable(const Query& query, bool &result){
     Query q = Query(query.constraints, EqExpr::alloc(BE->left, BE->right));
     findSymbolicObjects(query.expr, objects);
     while(!success && trials < 2){
+      std::vector< std::vector<unsigned char> > values;
       impl->computeInitialValues(q, objects, values, hasSolution);
       if(hasSolution){
 	ReExprEvaluator a(objects, values);
