@@ -23,13 +23,13 @@ Z3Builder::~Z3Builder(){
 void Z3Builder::getInitialRead(const Array *os, model &m, std::vector<unsigned char> &value){  
   value.resize(4);
   expr res = m.get_const_interp(getInitialArray(os).decl());
-  if(res.is_numeral()){
-    Z3_string s = Z3_get_numeral_decimal_string(*c, res, 50);
-    std::cout << os->name << ":" << s << std::endl;  
-    float v = strtof(s, NULL);
-    char *p = reinterpret_cast<char*>(&v);
-    std::copy(p, p + sizeof(float), value.begin());
-  } 
+  std::cout << "ast: " << res << std::endl;
+  Z3_string s = Z3_get_numeral_decimal_string(*c, res, 50);
+  std::cout << os->name << ":" << s << std::endl;  
+  char *stopString;
+  float v = strtof(s, &stopString);
+  char *p = reinterpret_cast<char*>(&v);
+  std::copy(p, p + sizeof(float), value.begin());
 }
 
 expr Z3Builder::getInitialArray(const Array *root){
@@ -89,7 +89,10 @@ expr Z3Builder::construct(ref<Expr> e){
     if(CE->getWidth() == Expr::Bool){
       return CE->isTrue()?c->bool_val(true):c->bool_val(false);
     }
-    return c->real_val((__uint64)CE->getZExtValue());
+    std::string s;
+    CE->toString(s, 10, 1);
+    std::cout << "the value is " << s << std::endl;
+    return c->real_val(s.c_str());
   }
 
   case Expr::NotOptimized: {

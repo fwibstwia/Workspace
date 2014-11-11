@@ -172,7 +172,7 @@ bool Solver::checkStable(const Query& query, bool &result){
   std::vector< std::vector<unsigned char> > values;
   bool hasSolution = true;
   bool success = false;
-  int trials;
+  int trials = 0;
   if(BinaryExpr *BE = dyn_cast<BinaryExpr>(query.expr)){
     Query q = Query(query.constraints, EqExpr::alloc(BE->left, BE->right));
     findSymbolicObjects(query.expr, objects);

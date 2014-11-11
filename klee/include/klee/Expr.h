@@ -515,6 +515,8 @@ public:
   /// isAllOnes - Is this constant all ones.
   bool isAllOnes() const { return getAPValue().isAllOnesValue(); }
 
+  bool isAPFloat() const {return isFloat;}
+
   /* Constant Operations */
 
   ref<ConstantExpr> Concat(const ref<ConstantExpr> &RHS);
