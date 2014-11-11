@@ -175,6 +175,7 @@ bool Solver::checkStable(const Query& query, bool &result){
   int trials;
   if(BinaryExpr *BE = dyn_cast<BinaryExpr>(query.expr)){
     Query q = Query(query.constraints, EqExpr::alloc(BE->left, BE->right));
+    findSymbolicObjects(query.expr, objects);
     while(!success && trials < 2){
       impl->computeInitialValues(q, objects, values, hasSolution);
       if(hasSolution){

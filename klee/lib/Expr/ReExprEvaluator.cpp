@@ -145,27 +145,44 @@ void ReExprEvaluator::evalReorder(const ReorderExpr *e, vector<ref<Expr> > &res)
 
 void ReExprEvaluator::evalFOlt(const FOltExpr *e, vector<ref<Expr> > &res){
   //Fix me:: handle e-> left is constant
-  vector<ref<Expr> > kid;
-  kid.resize(2);
+  vector<ref<Expr> > kidEvalRes;
   ref<ConstantExpr> minValue;
-  if(ConstantExpr *CER = dyn_cast<ConstantExpr>(e->right)){
-    evaluate(e->left, kid);
+  if(ConstantExpr *CER = dyn_cast<ConstantExpr>(e->getKid(0))){
+    evaluate(e->getKid(1), kidEvalRes);
     ref<Expr> tmp[2];
-    tmp[1] = e -> right;
-    for(int i = 0; i < kid.size(); i ++){
-      if(ConstantExpr *CEL = dyn_cast<ConstantExpr>(kid[i])){
+    tmp[0] = e->getKid(0);
+    for(int i = 0; i < kidEvalRes.size(); i ++){
+      if(ConstantExpr *CEL = dyn_cast<ConstantExpr>(kidEvalRes[i])){
 	ref<ConstantExpr> dist = CEL->FAbs(CER);
+	if(minValue.get()){
+	  if((minValue -> FOgt(dist)) -> isTrue()){
+	    minValue = dist;
+	  }
+	}else{
+	  minValue = dist;
+	}
+      }else{
+	assert(0 && "encounter non-constantExpr after evaluate");
+      }
+      tmp[1] = kidEvalRes[i];
+      res.push_back(e->rebuild(tmp));
+    }
+  }else if(ConstantExpr *CE = dyn_cast<ConstantExpr>(e->getKid(1))){
+    evaluate(e->getKid(0), kidEvalRes);
+    ref<Expr> tmp[2];
+    tmp[1] = e->getKid(1);
+    for(int i = 0; i < kidEvalRes.size(); i ++){
+      if(ConstantExpr *CEL = dyn_cast<ConstantExpr>(kidEvalRes[i])){
+	ref<ConstantExpr> dist = CEL->FAbs(CE);
 	if((minValue -> FOgt(dist)) -> isTrue()){
 	  minValue = dist;
 	}
       }else{
 	assert(0 && "encounter non-constantExpr after evaluate");
       }
-      tmp[0] = kid[i];
+      tmp[0] = kidEvalRes[i];
       res.push_back(e->rebuild(tmp));
     }
-  }else if(ConstantExpr *CE = dyn_cast<ConstantExpr>(e->left)){
-    evaluate(e->right, kid);
   }else{
     assert(0 && "we need one side of evalFOlt is constant");
   }
@@ -190,6 +207,7 @@ void ReExprEvaluator::evaluate(const ref<Expr> &e, vector<ref<Expr> > &res){
 
     case Expr::FOlt:{
       evalFOlt(dyn_cast<FOltExpr>(e), res);
+      break;
     }
 
     case Expr::InvalidKind:{

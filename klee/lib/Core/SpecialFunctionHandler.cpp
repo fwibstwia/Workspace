@@ -778,7 +778,7 @@ void SpecialFunctionHandler::handleTagReorderable(ExecutionState &state,
     const ObjectState *os = it->first.second;
     ExecutionState *s = it->second;
     mo->reorderable = true;
-    executor.executeTagReorderable(*s, mo, os, cat, dir);
+    executor.executeTagReorderable(*s, mo, os, dir, cat);
   }
 }
 

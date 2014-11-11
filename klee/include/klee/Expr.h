@@ -102,9 +102,9 @@ public:
   static const Width Fl80 = 80;
   
   enum ReorderCat{
-    RE_Plus,
-    RE_Mult,
-    RE_FMA
+    RE_Plus = 0,
+    RE_Mult = 1,
+    RE_FMA = 2
   };
 
   enum ExprType{

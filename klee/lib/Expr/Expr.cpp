@@ -596,7 +596,6 @@ ref<ConstantExpr> ConstantExpr::Sge(const ref<ConstantExpr> &RHS) {
 }
 
 ref<ConstantExpr> ConstantExpr::FOgt(const ref<ConstantExpr> &RHS) {
-  assert(getWidth() == RHS->getWidth() && "Unsupported FRem operation");
   bool result;
 #if LLVM_VERSION_CODE >= LLVM_VERSION(3, 3)
   llvm::APFloat Res(ConstantExpr::fpWidthToSemantics(getWidth()), getAPValue());

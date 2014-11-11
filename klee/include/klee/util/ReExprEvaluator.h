@@ -11,6 +11,7 @@
 
 #include <vector>
 #include <map>
+#include <iostream>
 
 #include "klee/Expr.h"
 
@@ -62,6 +63,7 @@ namespace klee{
     if (it!=bindings.end() && index<it->second.size()) {
       //just for float
       float v = *((float*)&it->second[index]);
+      std::cout << v << "fetch" << std::endl;
       return ConstantExpr::alloc(llvm::APFloat(v));
     } else {
       return ConstantExpr::alloc(0, array->getRange());
