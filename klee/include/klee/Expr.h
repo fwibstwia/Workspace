@@ -18,13 +18,14 @@
 #include "llvm/ADT/DenseSet.h"
 #include "llvm/ADT/SmallVector.h"
 #include "llvm/Support/raw_ostream.h"
+#include "llvm/Type.h"
 
 #include <sstream>
 #include <set>
 #include <vector>
 
 namespace llvm {
-  class Type;
+  //class Type;
   class raw_ostream;
 }
 
@@ -385,7 +386,6 @@ public:
   static const unsigned numKids = 0;
 private:
   llvm::APInt value;
-  bool isFloat;
   ConstantExpr(const llvm::APInt &v) : value(v), isFloat(false){}
   ConstantExpr(const llvm::APInt &v, bool _isFloat) : value(v), isFloat(_isFloat){}
   static const llvm::fltSemantics * fpWidthToSemantics(unsigned width) {
@@ -401,6 +401,7 @@ private:
     }
   }
 public:
+  bool isFloat;
   ~ConstantExpr() {}
   
   Width getWidth() const { 
@@ -1158,11 +1159,8 @@ public:                                                              \
 };                                                                   \
 
 ARITHMETIC_EXPR_CLASS(Add)
-ARITHMETIC_EXPR_CLASS(FAdd)
 ARITHMETIC_EXPR_CLASS(Sub)
-ARITHMETIC_EXPR_CLASS(FSub)
 ARITHMETIC_EXPR_CLASS(Mul)
-ARITHMETIC_EXPR_CLASS(FMul)
 ARITHMETIC_EXPR_CLASS(UDiv)
 ARITHMETIC_EXPR_CLASS(SDiv)
 ARITHMETIC_EXPR_CLASS(FDiv)
@@ -1176,8 +1174,42 @@ ARITHMETIC_EXPR_CLASS(Shl)
 ARITHMETIC_EXPR_CLASS(LShr)
 ARITHMETIC_EXPR_CLASS(AShr)
 
-// Comparison Exprs
+#define FLOAT_ARITHMETIC_EXPR_CLASS(_class_kind)                     \
+class _class_kind ## Expr : public BinaryExpr {                      \
+public:                                                              \
+  static const Kind kind = _class_kind;                              \
+  static const unsigned numKids = 2;                                 \
+public:                                                              \
+    _class_kind ## Expr(const ref<Expr> &l,                          \
+                        const ref<Expr> &r) : BinaryExpr(l,r) {}     \
+    static ref<Expr> alloc(const ref<Expr> &l, const ref<Expr> &r) { \
+      ref<Expr> res(new _class_kind ## Expr (l, r));                 \
+      res->computeHash();                                            \
+      return res;                                                    \
+    }                                                                \
+    static ref<Expr> create(const ref<Expr> &l, const ref<Expr> &r); \
+    Width getWidth() const { return left->getWidth(); }              \
+    Kind getKind() const { return _class_kind; }                     \
+    virtual ref<Expr> rebuild(ref<Expr> kids[]) const {              \
+      if (ConstantExpr *cl = dyn_cast<ConstantExpr>(kids[0]))        \
+	if (ConstantExpr *cr = dyn_cast<ConstantExpr>(kids[1]))      \
+	  return cl->_class_kind(cr);                                \
+      return create(kids[0], kids[1]);                               \
+    }                                                                \
+                                                                     \
+    static bool classof(const Expr *E) {                             \
+      return E->getKind() == Expr::_class_kind;                      \
+    }                                                                \
+    static bool classof(const  _class_kind ## Expr *) {              \
+      return true;                                                   \
+    }                                                                \
+};                                                                   \
 
+FLOAT_ARITHMETIC_EXPR_CLASS(FAdd)
+FLOAT_ARITHMETIC_EXPR_CLASS(FSub)
+FLOAT_ARITHMETIC_EXPR_CLASS(FMul)
+
+// Comparison Exprs
 #define COMPARISON_EXPR_CLASS(_class_kind)                           \
 class _class_kind ## Expr : public CmpExpr {                         \
 public:                                                              \

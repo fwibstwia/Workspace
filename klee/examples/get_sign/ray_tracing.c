@@ -5,6 +5,9 @@
 #include <klee/klee.h>
 
 int ray_tracing(float rx, float ry, float rz, float sx, float sy, float sz) {
+  sx = -1.6350498f;
+  sy = 4.8326674f;
+  sz = -3.6311855f;
   float A = rx*rx+ry*ry+rz*rz;
   klee_tag_reorderable(&A, 0, 2);
 
@@ -14,7 +17,7 @@ int ray_tracing(float rx, float ry, float rz, float sx, float sy, float sz) {
 
   float C1 = sx*sx+sy*sy+sz*sz;
   klee_tag_reorderable(&C1, 0, 2);
-  float C =  C1 - 2;
+  float C =  C1 - 14.128791f;
   float D = B*B-4*A*C;                  
   if (D > 0)
     return 0;

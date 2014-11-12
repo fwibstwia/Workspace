@@ -8,8 +8,9 @@ int ray_tracing(float rx, float ry, float rz, float sx, float sy, float sz) {
   klee_tag_reorderable(&B1, 0, 2); 
   float B = -2.0 * B1;
   */
-  float C1 = sx*sx + sy*sy + sz*sz;
-  klee_tag_reorderable(&C1, 0, 2);
+  sx = 14.128791f;
+  float C1 = sx * sy;
+  //klee_tag_reorderable(&C1, 0, 2);
   if (C1 > 2)
     return 0;
 } 

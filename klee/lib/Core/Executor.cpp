@@ -556,7 +556,7 @@ void Executor::initializeGlobals(ExecutionState &state) {
                      << i->getName() 
                      << " (use will result in out of bounds access)\n";
       }
-      MemoryObject *mo = memory->allocate(size, false, true, i);
+      MemoryObject *mo = memory->allocate(size, false, true, i, i->getType());
       ObjectState *os = bindObjectInState(state, mo, false);
       globalObjects.insert(std::make_pair(i, mo));
       globalAddresses.insert(std::make_pair(i, mo->getBaseExpr()));
@@ -580,7 +580,7 @@ void Executor::initializeGlobals(ExecutionState &state) {
     } else {
       LLVM_TYPE_Q Type *ty = i->getType()->getElementType();
       uint64_t size = kmodule->targetData->getTypeStoreSize(ty);
-      MemoryObject *mo = memory->allocate(size, false, true, &*i);
+      MemoryObject *mo = memory->allocate(size, false, true, &*i, i->getType());
       if (!mo)
         llvm::report_fatal_error("out of memory");
       ObjectState *os = bindObjectInState(state, mo, false);
@@ -1955,10 +1955,9 @@ void Executor::executeInstruction(ExecutionState &state, KInstruction *ki) {
     bool isLocal = i->getOpcode()==Instruction::Alloca;
     if(ai->getAllocatedType()->isArrayTy()){
       //ConstantExpr *CE = dyn_cast<ConstantExpr>(count);
-      const ArrayType *at = dyn_cast<ArrayType>(ai->getAllocatedType());
-      executeAlloc(state, size, isLocal, ki, false, NULL, ai->getAllocatedType()->isArrayTy(), at->getNumElements());
+      executeAlloc(state, size, isLocal, ki, false, NULL, ai->getAllocatedType());
     }else{
-      executeAlloc(state, size, isLocal, ki, false, NULL, ai->getAllocatedType()->isArrayTy(), 1);
+      executeAlloc(state, size, isLocal, ki, false, NULL, ai->getAllocatedType());
     }
     break;
   }
@@ -2899,13 +2898,12 @@ void Executor::executeAlloc(ExecutionState &state,
                             KInstruction *target,
                             bool zeroMemory,
                             const ObjectState *reallocFrom,
-                            bool isArrayType,
-			    unsigned arraySize) {
+			    const llvm::Type *allocType) {
   size = toUnique(state, size);
   if (ConstantExpr *CE = dyn_cast<ConstantExpr>(size)) {
     int sizeV = CE->getZExtValue();
     MemoryObject *mo = memory->allocate(sizeV, isLocal, false, 
-                                        state.prevPC->inst, isArrayType, arraySize);
+                                        state.prevPC->inst, allocType);
     if (!mo) {
       bindLocal(target, state, 
                 ConstantExpr::alloc(0, Context::get().getPointerWidth()));
@@ -2971,7 +2969,7 @@ void Executor::executeAlloc(ExecutionState &state,
       (void) success;
       if (res) {
         executeAlloc(*fixedSize.second, tmp, isLocal,
-                     target, zeroMemory, reallocFrom, isArrayType, arraySize);
+                     target, zeroMemory, reallocFrom, allocType);
       } else {
         // See if a *really* big value is possible. If so assume
         // malloc will fail for it, so lets fork and return 0.
@@ -3002,7 +3000,7 @@ void Executor::executeAlloc(ExecutionState &state,
 
     if (fixedSize.first) // can be zero when fork fails
       executeAlloc(*fixedSize.first, example, isLocal, 
-                   target, zeroMemory, reallocFrom, isArrayType, arraySize);
+                   target, zeroMemory, reallocFrom, allocType);
   }
 }
 
@@ -3099,7 +3097,7 @@ void Executor::executeMemoryOperation(ExecutionState &state,
 
   if (success) {
     const MemoryObject *mo = op.first;
-    if(mo->isArrayType){
+    if(mo->isArrayType()){
       if (MaxSymArraySize && mo->size>=MaxSymArraySize) {
 	address = toConstant(state, address, "max-sym-array-size");
       }

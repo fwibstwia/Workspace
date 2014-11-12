@@ -14,6 +14,7 @@
 #include "klee/Expr.h"
 
 #include "llvm/ADT/StringExtras.h"
+#include "llvm/DerivedTypes.h"
 
 #include <vector>
 #include <string>
@@ -41,8 +42,7 @@ public:
   unsigned id;
   uint64_t address;
   
-
-
+  
   /// total size in bytes
   unsigned size;
   mutable std::string name;
@@ -61,15 +61,14 @@ public:
   /// should be either the allocating instruction or the global object
   /// it was allocated for (or whatever else makes sense).
   const llvm::Value *allocSite;
-  
+  /// the type for this allocated memory object
+  const llvm::Type *allocType;
   /// A list of boolean expressions the user has requested be true of
   /// a counterexample. Mutable since we play a little fast and loose
   /// with allowing it to be added to during execution (although
   /// should sensibly be only at creation time).
   mutable std::vector< ref<Expr> > cexPreferences;
 
-  bool isArrayType;
-  unsigned arraySize;
   mutable bool reorderable;
   // DO NOT IMPLEMENT
   MemoryObject(const MemoryObject &b);
@@ -86,15 +85,14 @@ public:
       isFixed(true),
       parent(NULL),
       allocSite(0),
-      isArrayType(false),
-      arraySize(0),
+      allocType(0),
       reorderable(false){
   }
 
   MemoryObject(uint64_t _address, unsigned _size, 
                bool _isLocal, bool _isGlobal, bool _isFixed,
-               const llvm::Value *_allocSite,
-               MemoryManager *_parent, bool _isArrayType, unsigned _arraySize, bool _reorderable)
+               const llvm::Value *_allocSite, const llvm::Type *_allocType,
+               MemoryManager *_parent, bool _reorderable)
     : refCount(0), 
       id(counter++),
       address(_address),
@@ -107,14 +105,13 @@ public:
       isUserSpecified(false),
       parent(_parent), 
       allocSite(_allocSite),
-      isArrayType(_isArrayType),
-      arraySize(_arraySize),
+      allocType(_allocType),
     reorderable(_reorderable){
   }
 
   MemoryObject(uint64_t _address, unsigned _size, 
                bool _isLocal, bool _isGlobal, bool _isFixed,
-               const llvm::Value *_allocSite,
+               const llvm::Value *_allocSite, const llvm::Type *_allocType,
                MemoryManager *_parent)
     : refCount(0), 
       id(counter++),
@@ -128,8 +125,7 @@ public:
       isUserSpecified(false),
       parent(_parent), 
       allocSite(_allocSite),
-      isArrayType(true),
-      arraySize(1),
+      allocType(_allocType),
     reorderable(false){
   }
 
@@ -175,6 +171,22 @@ public:
       return ConstantExpr::alloc(0, Expr::Bool);
     }
   }
+
+  bool isArrayType() const {
+    if(allocType){
+      return allocType->isArrayTy();
+    }
+    return false;
+  }
+
+  unsigned getArraySize() const {
+    if(allocType && allocType->isArrayTy()){
+      const llvm::ArrayType *at = dyn_cast<llvm::ArrayType>(allocType);
+      return at->getNumElements();
+    }
+    return 1;
+  }
+
 };
 
 class ObjectState {

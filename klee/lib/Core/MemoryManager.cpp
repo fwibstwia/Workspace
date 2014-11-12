@@ -45,14 +45,15 @@ MemoryObject *MemoryManager::allocate(uint64_t size, bool isLocal,
   
   ++stats::allocations;
   MemoryObject *res = new MemoryObject(address, size, isLocal, isGlobal, false,
-                                       allocSite, this);
+                                       allocSite, NULL, this);
   objects.insert(res);
   return res;
 }
 
 MemoryObject *MemoryManager::allocate(uint64_t size, bool isLocal, 
                                       bool isGlobal,
-                                      const llvm::Value *allocSite, bool isArrayType, unsigned arraySize) {
+                                      const llvm::Value *allocSite,
+				      const llvm::Type *allocType) {
   if (size>10*1024*1024)
     klee_warning_once(0, "Large alloc: %u bytes.  KLEE may run out of memory.", (unsigned) size);
   
@@ -62,7 +63,7 @@ MemoryObject *MemoryManager::allocate(uint64_t size, bool isLocal,
   
   ++stats::allocations;
   MemoryObject *res = new MemoryObject(address, size, isLocal, isGlobal, false,
-                                       allocSite, this, isArrayType, arraySize, false);
+                                       allocSite, allocType, this, false);
   objects.insert(res);
   return res;
 }
@@ -80,7 +81,7 @@ MemoryObject *MemoryManager::allocateFixed(uint64_t address, uint64_t size,
 
   ++stats::allocations;
   MemoryObject *res = new MemoryObject(address, size, false, true, true,
-                                       allocSite, this);
+                                       allocSite, NULL, this);
   objects.insert(res);
   return res;
 }

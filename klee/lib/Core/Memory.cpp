@@ -108,10 +108,10 @@ ObjectState::ObjectState(const MemoryObject *mo)
     knownSymbolics(0),
     updates(0, 0),
     size(mo->size),
-    arraySize(mo->arraySize),
+    arraySize(mo->getArraySize()),
     readOnly(false) {
   mo->refCount++;
-  if(mo->isArrayType){
+  if(mo->isArrayType()){
     if (!UseConstantArrays) {
       // FIXME: Leaked.
       static unsigned id = 0;
@@ -140,7 +140,7 @@ ObjectState::ObjectState(const MemoryObject *mo, const Array *array)
     knownSymbolics(0),
     updates(array, 0),
     size(mo->size),
-    arraySize(mo->arraySize),
+    arraySize(mo->getArraySize()),
     readOnly(false) {
   mo->refCount++;
   makeSymbolic();
@@ -720,9 +720,21 @@ ref<Expr> ObjectState::readWhole(Expr::Width width) const{
         case 16:
 	  return ConstantExpr::create(((uint16_t*) concreteStore)[0], Expr::Int16);
 	case 32:
-	  return ConstantExpr::create(((uint32_t*) concreteStore)[0], Expr::Int32);
+	  if((object->allocType)->isFloatTy()){
+	    ref<ConstantExpr> CE = ConstantExpr::create(((uint32_t*) concreteStore)[0], Expr::Int32);
+	    CE->isFloat = true;
+	    return CE;
+	  }else{
+	    return ConstantExpr::create(((uint32_t*) concreteStore)[0], Expr::Int32);
+	  }
 	case 64:
-	  return ConstantExpr::create(((uint64_t*) concreteStore)[0], Expr::Int64);
+          if((object->allocType)->isDoubleTy()){
+	    ref<ConstantExpr> CE = ConstantExpr::create(((uint64_t*) concreteStore)[0], Expr::Int64);
+	    CE->isFloat = true;
+	    return CE;
+	  }else{
+	    return ConstantExpr::create(((uint64_t*) concreteStore)[0], Expr::Int64);
+	  }
 	}
 
   } else if (isByteKnownSymbolic(0)) {

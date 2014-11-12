@@ -1265,11 +1265,8 @@ ref<Expr>  _e_op ::create(const ref<Expr> &l, const ref<Expr> &r) { \
 }
 
 BCREATE_R(AddExpr, Add, AddExpr_createPartial, AddExpr_createPartialR)
-BCREATE_R(FAddExpr, FAdd, FAddExpr_createPartial, FAddExpr_createPartialR)
 BCREATE_R(SubExpr, Sub, SubExpr_createPartial, SubExpr_createPartialR)
-BCREATE_R(FSubExpr, FSub, FSubExpr_createPartial, FSubExpr_createPartialR)
 BCREATE_R(MulExpr, Mul, MulExpr_createPartial, MulExpr_createPartialR)
-BCREATE_R(FMulExpr, FMul, FMulExpr_createPartial, MulExpr_createPartialR)
 BCREATE_R(AndExpr, And, AndExpr_createPartial, AndExpr_createPartialR)
 BCREATE_R(OrExpr, Or, OrExpr_createPartial, OrExpr_createPartialR)
 BCREATE_R(XorExpr, Xor, XorExpr_createPartial, XorExpr_createPartialR)
@@ -1282,6 +1279,14 @@ BCREATE(FRemExpr, FRem)
 BCREATE(ShlExpr, Shl)
 BCREATE(LShrExpr, LShr)
 BCREATE(AShrExpr, AShr)
+
+#define BCREATE_FLOAT(_e_op) \
+ref<Expr>  _e_op ::create(const ref<Expr> &l, const ref<Expr> &r) { \
+  return _e_op ## _create(l.get(), r.get());			    \
+}
+BCREATE_FLOAT(FAddExpr)
+BCREATE_FLOAT(FSubExpr)
+BCREATE_FLOAT(FMulExpr)
 
 #define CMPCREATE(_e_op, _op) \
 ref<Expr>  _e_op ::create(const ref<Expr> &l, const ref<Expr> &r) { \

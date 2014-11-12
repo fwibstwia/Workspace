@@ -248,8 +248,7 @@ private:
                     KInstruction *target,
                     bool zeroMemory=false,
                     const ObjectState *reallocFrom=0,
-		    bool isArrayType=true,
-		    unsigned arraySize=0);
+		    const llvm::Type *allocType = NULL);
 
   /// Free the given address with checking for errors. If target is
   /// given it will be bound to 0 in the resulting states (this is a
