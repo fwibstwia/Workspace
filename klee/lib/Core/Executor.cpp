@@ -3541,7 +3541,7 @@ bool Executor::getSymbolicSolution(const ExecutionState &state,
                                    std::vector<unsigned char> > >
                                    &res) {
   solver->setTimeout(coreSolverTimeout);
-
+  /*
   ExecutionState tmp(state);
   if (!NoPreferCex) {
     for (unsigned i = 0; i != state.symbolics.size(); ++i) {
@@ -3573,7 +3573,7 @@ bool Executor::getSymbolicSolution(const ExecutionState &state,
   }
   
   for (unsigned i = 0; i != state.symbolics.size(); ++i)
-    res.push_back(std::make_pair(state.symbolics[i].first->name, values[i]));
+  res.push_back(std::make_pair(state.symbolics[i].first->name, values[i]));*/
   return true;
 }
 

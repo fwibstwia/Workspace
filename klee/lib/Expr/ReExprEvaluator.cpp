@@ -13,6 +13,8 @@
 
 #include <iostream>
 #include <iomanip> 
+#include <cstdlib> 
+#include <math.h>
 
 using namespace klee;
 using namespace std;
@@ -64,7 +66,7 @@ for (const UpdateNode *un=ul.head; un; un=un->next) {
 void ReExprEvaluator::evalUpdate(const UpdateList &ul, vector<ref<Expr> > &res){
   const UpdateNode *un=ul.head;
   if(un){
-    evaluate(un->value, res);
+evaluate(un->value, res);
     return;
   }
 
@@ -86,6 +88,10 @@ void ReExprEvaluator::evalReorder(const ReorderExpr *e, vector<ref<Expr> > &res)
 
   vector<ref<Expr> > kids;
   vector<ref<Expr> > tmp;
+
+  srand(time(0));
+  int random;
+
   for(int i = 0; i < len; i ++){
     evaluate((e->operands)[i], tmp);
     kids.push_back(tmp[0]);
@@ -93,17 +99,27 @@ void ReExprEvaluator::evalReorder(const ReorderExpr *e, vector<ref<Expr> > &res)
   }
   
   if(e->cat == Expr::RE_FMA){
-    for(int i = 0; i < len/2; i = i + 2){
-      if(ConstantExpr *CE = dyn_cast<ConstantExpr>(kids[i])){
+    for(int i = 0; i < len; i = i + 2){
+      if(ConstantExpr *CE = dyn_cast<ConstantExpr>(kids[i])){        
 	llvm::APFloat v = CE->getAPFValue();
-	opl.push_back(v.convertToFloat());
+	random = rand()%100+1;
+	float x = v.convertToFloat();
+	/*for(int j = 0; j < random; j ++){
+	  x = ::nextafterf(x, 1.0);
+	  }*/
+	opl.push_back(x);
       }else{
 	assert(0 && "encounter non-constant in Reorder Rebuild");
       }
 
       if(ConstantExpr *CE = dyn_cast<ConstantExpr>(kids[i+1])){
 	llvm::APFloat v = CE->getAPFValue();
-	opr.push_back(v.convertToFloat());
+        random = rand()%100+1;
+	float x = v.convertToFloat();
+	/*for(int j = 0; j < random; j ++){
+	  x = ::nextafterf(x, 1.0);
+	  }*/
+	opr.push_back(x);
       }else{
 	assert(0 && "encounter non-constant in Reorder Rebuild");
       }      
@@ -151,6 +167,7 @@ void ReExprEvaluator::evalReorder(const ReorderExpr *e, vector<ref<Expr> > &res)
 void ReExprEvaluator::evalFOlt(const FOltExpr *e, vector<ref<Expr> > &res){
   //Fix me:: handle e-> left is constant
   vector<ref<Expr> > kidEvalRes;
+  ref<ConstantExpr> minDist;
   ref<ConstantExpr> minValue;
   if(ConstantExpr *CER = dyn_cast<ConstantExpr>(e->getKid(0))){
     evaluate(e->getKid(1), kidEvalRes);
@@ -158,13 +175,16 @@ void ReExprEvaluator::evalFOlt(const FOltExpr *e, vector<ref<Expr> > &res){
     tmp[0] = e->getKid(0);
     for(int i = 0; i < kidEvalRes.size(); i ++){
       if(ConstantExpr *CEL = dyn_cast<ConstantExpr>(kidEvalRes[i])){
-	ref<ConstantExpr> dist = CEL->FAbs(CER);
+	ref<ConstantExpr> value = CER->FSub(CEL);
+	ref<ConstantExpr> dist = CER->FAbs(CEL);
 	if(minValue.get()){
-	  if((minValue -> FOgt(dist)) -> isTrue()){
-	    minValue = dist;
+	  if((minDist -> FOgt(dist)) -> isTrue()){
+	    minValue = value;
+	    minDist = dist;
 	  }
 	}else{
-	  minValue = dist;
+	  minValue = value;
+	  minDist = dist;
 	}
       }else{
 	assert(0 && "encounter non-constantExpr after evaluate");
@@ -178,9 +198,16 @@ void ReExprEvaluator::evalFOlt(const FOltExpr *e, vector<ref<Expr> > &res){
     tmp[1] = e->getKid(1);
     for(int i = 0; i < kidEvalRes.size(); i ++){
       if(ConstantExpr *CEL = dyn_cast<ConstantExpr>(kidEvalRes[i])){
-	ref<ConstantExpr> dist = CEL->FAbs(CE);
-	if((minValue -> FOgt(dist)) -> isTrue()){
-	  minValue = dist;
+	ref<ConstantExpr> value = CE->FSub(CEL);
+	ref<ConstantExpr> dist = CE->FAbs(CEL);
+        if(minValue.get()){
+	  if((minDist -> FOgt(dist)) -> isTrue()){
+	    minValue = value;
+	    minDist = dist;
+	  }
+	}else{
+	  minValue = value;
+	  minDist = dist;
 	}
       }else{
 	assert(0 && "encounter non-constantExpr after evaluate");

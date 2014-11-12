@@ -91,7 +91,6 @@ expr Z3Builder::construct(ref<Expr> e){
     }
     std::string s;
     CE->toString(s, 10, 1);
-    std::cout << "the value is " << s << std::endl;
     return c->real_val(s.c_str());
   }
 
