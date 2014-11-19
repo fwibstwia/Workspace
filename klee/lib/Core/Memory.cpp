@@ -654,7 +654,7 @@ void ObjectState::print() {
 
 /** our Function **/
 ref<Expr> ObjectState::readWhole(ref<Expr> offset, Expr::Width width) const {
- 
+  ///Fix me: we do not handle the general case where offset is not constant
   // Truncate offset to 32-bits.
   offset = ZExtExpr::create(offset, Expr::Int32);
 
@@ -686,6 +686,7 @@ ref<Expr> ObjectState::readWhole(unsigned offset, Expr::Width width) const {
   //    return ExtractExpr::create(read8(offset), 0, Expr::Bool);
 
   // Otherwise, follow the slow general case.
+  unsigned index = offset/width;
   if (isByteConcrete(offset)) {
       switch(width){
       case 8:
@@ -697,13 +698,13 @@ ref<Expr> ObjectState::readWhole(unsigned offset, Expr::Width width) const {
       case 64:
 	return ConstantExpr::create( ((uint64_t*) concreteStore)[offset], Expr::Int64);
       }
-  } else if (isByteKnownSymbolic(offset)) {
-    return knownSymbolics[offset];
+  } else if (isByteKnownSymbolic(index)) {
+    return knownSymbolics[index];
   } else {
-    assert(isByteFlushed(offset) && "unflushed byte without cache value");
+    assert(isByteFlushed(index) && "unflushed byte without cache value");
     
     return ReadExpr::create(getUpdates(), 
-                            ConstantExpr::create(offset, Expr::Int32));
+                            ConstantExpr::create(index, Expr::Int32));
   }    
 }
 
@@ -781,8 +782,9 @@ void ObjectState::writeWhole(ref<Expr> offset, ref<Expr> value) {
 
 void ObjectState::writeWhole(unsigned offset, ref<Expr> value) {
   // Check for writes of constant values.
+  Expr::Width w = value->getWidth();
+  unsigned index = offset/w;
   if (ConstantExpr *CE = dyn_cast<ConstantExpr>(value)) {
-    Expr::Width w = CE->getWidth();
     if (w <= 64) {
       switch (w) {
       default: assert(0 && "Invalid write size!"); break;
@@ -800,9 +802,9 @@ void ObjectState::writeWhole(unsigned offset, ref<Expr> value) {
 	((uint64_t*)concreteStore)[offset] =  (uint64_t)CE->getZExtValue(64);
 	break;
       }
-      setKnownSymbolic(offset, 0);
-      markByteConcrete(offset);
-      markByteUnflushed(offset);
+      setKnownSymbolic(index, 0);
+      markByteConcrete(index);
+      markByteUnflushed(index);
       return;
     }
   }
@@ -814,9 +816,9 @@ void ObjectState::writeWhole(unsigned offset, ref<Expr> value) {
   //    return;
   //  }
 
-  setKnownSymbolic(offset, value.get());    
-  markByteSymbolic(offset);
-  markByteUnflushed(offset);
+  setKnownSymbolic(index, value.get());    
+  markByteSymbolic(index);
+  markByteUnflushed(index);
 } 
 
 void ObjectState::writeWhole(ref<Expr> value) {

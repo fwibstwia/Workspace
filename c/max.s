@@ -1,46 +1,86 @@
 	.file	"max.c"
+	.section	.rodata
+.LC0:
+	.string	"%20.18f\n"
 	.text
-	.p2align 4,,15
 	.globl	cal
 	.type	cal, @function
 cal:
-.LFB16:
+.LFB0:
 	.cfi_startproc
-	vmulss	%xmm1, %xmm1, %xmm1
-	vfmadd132ss	%xmm2, %xmm1, %xmm2
-	vfmadd132ss	%xmm0, %xmm2, %xmm0
+	pushq	%rbp
+	.cfi_def_cfa_offset 16
+	.cfi_offset 6, -16
+	movq	%rsp, %rbp
+	.cfi_def_cfa_register 6
+	subq	$32, %rsp
+	movss	%xmm0, -20(%rbp)
+	movss	%xmm1, -24(%rbp)
+	movss	%xmm2, -28(%rbp)
+	movss	-20(%rbp), %xmm0
+	movaps	%xmm0, %xmm1
+	mulss	-20(%rbp), %xmm1
+	movss	-24(%rbp), %xmm0
+	movaps	%xmm0, %xmm2
+	mulss	-24(%rbp), %xmm2
+	movss	-28(%rbp), %xmm0
+	mulss	-28(%rbp), %xmm0
+	addss	%xmm2, %xmm0
+	addss	%xmm1, %xmm0
+	movss	%xmm0, -4(%rbp)
+	movss	-4(%rbp), %xmm0
+	cvtps2pd	%xmm0, %xmm0
+	movl	$.LC0, %edi
+	movl	$1, %eax
+	call	printf
+	leave
+	.cfi_def_cfa 7, 8
 	ret
 	.cfi_endproc
-.LFE16:
+.LFE0:
 	.size	cal, .-cal
-	.section	.rodata.str1.1,"aMS",@progbits,1
-.LC1:
-	.string	"%f\n"
-	.section	.text.startup,"ax",@progbits
-	.p2align 4,,15
 	.globl	main
 	.type	main, @function
 main:
-.LFB17:
+.LFB1:
 	.cfi_startproc
-	subq	$8, %rsp
+	pushq	%rbp
 	.cfi_def_cfa_offset 16
-	movl	$.LC1, %esi
-	movl	$1, %edi
-	vmovsd	.LC0(%rip), %xmm0
-	movl	$1, %eax
-	call	__printf_chk
-	xorl	%eax, %eax
-	addq	$8, %rsp
-	.cfi_def_cfa_offset 8
+	.cfi_offset 6, -16
+	movq	%rsp, %rbp
+	.cfi_def_cfa_register 6
+	subq	$32, %rsp
+	movl	.LC1(%rip), %eax
+	movl	%eax, -12(%rbp)
+	movl	.LC2(%rip), %eax
+	movl	%eax, -8(%rbp)
+	movl	.LC3(%rip), %eax
+	movl	%eax, -4(%rbp)
+	movl	-4(%rbp), %ecx
+	movl	-8(%rbp), %edx
+	movl	-12(%rbp), %eax
+	movl	%ecx, -20(%rbp)
+	movss	-20(%rbp), %xmm2
+	movl	%edx, -20(%rbp)
+	movss	-20(%rbp), %xmm1
+	movl	%eax, -20(%rbp)
+	movss	-20(%rbp), %xmm0
+	call	cal
+	leave
+	.cfi_def_cfa 7, 8
 	ret
 	.cfi_endproc
-.LFE17:
+.LFE1:
 	.size	main, .-main
-	.section	.rodata.cst8,"aM",@progbits,8
-	.align 8
-.LC0:
-	.long	536870912
-	.long	1076279889
+	.section	.rodata
+	.align 4
+.LC1:
+	.long	1084201336
+	.align 4
+.LC2:
+	.long	1083380741
+	.align 4
+.LC3:
+	.long	1092269679
 	.ident	"GCC: (Ubuntu 4.8.2-19ubuntu1) 4.8.2"
 	.section	.note.GNU-stack,"",@progbits

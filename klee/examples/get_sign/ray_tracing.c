@@ -5,9 +5,9 @@
 #include <klee/klee.h>
 
 int ray_tracing(float rx, float ry, float rz, float sx, float sy, float sz) {
-  sx = 0.509713f;
-  sy = 1.314209f;
-  sz = 7.954281f;
+  sx = 17.988571f;
+  sy = 19.597578f;
+  sz = 135.595596f;
   //sx = 0.005782f ;
   //sy = 31.999878f;
   //sz = 0.111744f;
