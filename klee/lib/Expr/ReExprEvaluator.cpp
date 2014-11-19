@@ -175,6 +175,9 @@ void ReExprEvaluator::evalFOlt(const FOltExpr *e, vector<ref<Expr> > &res){
     tmp[0] = e->getKid(0);
     for(int i = 0; i < kidEvalRes.size(); i ++){
       if(ConstantExpr *CEL = dyn_cast<ConstantExpr>(kidEvalRes[i])){
+	std::string test;
+	CEL->toString(test, 10, 1);
+	std::cout << "extreme value: " << test << std::endl;
 	ref<ConstantExpr> value = CER->FSub(CEL);
 	ref<ConstantExpr> dist = CER->FAbs(CEL);
 	if(minValue.get()){

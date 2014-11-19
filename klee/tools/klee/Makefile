@@ -23,7 +23,7 @@ include $(LEVEL)/Makefile.common
 LIBS += -lstp
 LIBS += -lz3
 
-CXX.Flags += -Wall -mfma -O2
+CXX.Flags += -Wall -O2
 
 ifeq ($(ENABLE_METASMT),1)
   include $(METASMT_ROOT)/share/metaSMT/metaSMT.makefile
