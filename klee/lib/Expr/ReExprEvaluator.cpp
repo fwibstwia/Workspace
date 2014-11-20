@@ -22,56 +22,33 @@ using namespace std;
 /***/
 
 void ReExprEvaluator::evalRead(const ReadExpr *e, vector<ref<Expr> > &res){
-  if((e->index)->getKind() == Expr::InvalidKind){
-    evalUpdate(e->updates, res);
-    return;
+  if(ConstantExpr *CE = dyn_cast<ConstantExpr>(e->index)){
+    evalUpdate(e->updates, CE->getZExtValue(), res);
   }else{
-    vector<ref<Expr> > iRes;
-    evaluate(e->index, iRes);
-    if (ConstantExpr *CE = dyn_cast<ConstantExpr>(iRes[0])) {
-      evalUpdate(e->updates, CE->getZExtValue(), res);
-      return;
-    } else {
-      assert(0 && "encounter non constant index update");
-    }
+    assert(0 && "encounter non constant index update");
   }
 }
 
 void ReExprEvaluator::evalUpdate(const UpdateList &ul,
 				   unsigned index, 
 				   vector<ref<Expr> > &res) {
-for (const UpdateNode *un=ul.head; un; un=un->next) {
-  vector<ref<Expr> > iRes;
-  evaluate(un->index, iRes);
-    
-  if (ConstantExpr *CE = dyn_cast<ConstantExpr>(iRes[0])) {
-    if (CE->getZExtValue() == index){
-      evaluate(un->value, res);
-      return;
-    } else {
-      // update index is unknown, so may or may not be index, we
-      // cannot guarantee value. we can rewrite to read at this
-      // version though (mostly for debugging).
-      assert(0 && "update index is unknown");
+  for (const UpdateNode *un=ul.head; un; un=un->next) {    
+    if (ConstantExpr *CE = dyn_cast<ConstantExpr>(un->index)) {
+      if (CE->getZExtValue() == index){
+	evaluate(un->value, res);
+	return;
+      } else {
+	// update index is unknown, so may or may not be index, we
+	// cannot guarantee value. we can rewrite to read at this
+	// version though (mostly for debugging).
+	assert(0 && "update index is unknown");
+      }
     }
   }
- }
-  
   //  if (ul.root->isConstantArray() && index < ul.root->size)
   //    return Action::changeTo(ul.root->constantValues[index]);
 
- getInitialValue(*ul.root, index, res);
-}
-
-void ReExprEvaluator::evalUpdate(const UpdateList &ul, vector<ref<Expr> > &res){
-  const UpdateNode *un=ul.head;
-  if(un){
-evaluate(un->value, res);
-    return;
-  }
-
-  getInitialValue(*ul.root, 0, res); //We do not use index here, 0 is a fake index
-  return;
+  getInitialValue(*ul.root, index, res);
 }
 
 void ReExprEvaluator::evalReorder(const ReorderExpr *e, vector<ref<Expr> > &res){

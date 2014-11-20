@@ -3097,48 +3097,27 @@ void Executor::executeMemoryOperation(ExecutionState &state,
 
   if (success) {
     const MemoryObject *mo = op.first;
-    if(mo->isArrayType()){
-      if (MaxSymArraySize && mo->size>=MaxSymArraySize) {
-	address = toConstant(state, address, "max-sym-array-size");
-      }
-    
-      ref<Expr> offset = mo->getOffsetExpr(address);
 
-      bool inBounds;
-      solver->setTimeout(coreSolverTimeout);
-      bool success = solver->mustBeTrue(state, 
+    if (MaxSymArraySize && mo->size>=MaxSymArraySize) {
+      address = toConstant(state, address, "max-sym-array-size");
+    }
+    
+    ref<Expr> offset = mo->getOffsetExpr(address);
+
+    bool inBounds;
+    solver->setTimeout(coreSolverTimeout);
+    bool success = solver->mustBeTrue(state, 
                                       mo->getBoundsCheckOffset(offset, bytes),
                                       inBounds);
-      solver->setTimeout(0);
-      if (!success) {
-	state.pc = state.prevPC;
-	terminateStateEarly(state, "Query timed out (bounds check).");
-	return;
-      }
+    solver->setTimeout(0);
+    if (!success) {
+      state.pc = state.prevPC;
+      terminateStateEarly(state, "Query timed out (bounds check).");
+      return;
+    }
 
-      if (inBounds) {
-	const ObjectState *os = op.second;
-	if (isWrite) {
-	  if (os->readOnly) {
-	    terminateStateOnError(state,
-                                "memory error: object read only",
-                                "readonly.err");
-	  } else {
-	    ObjectState *wos = state.addressSpace.getWriteable(mo, os);
-	    wos->writeWhole(offset, value);
-	  }          
-	} else {
-	  ref<Expr> result = os->readWhole(offset, type);
-        
-	  if (interpreterOpts.MakeConcreteSymbolic)
-	    result = replaceReadWithSymbolic(state, result);
-        
-	  bindLocal(target, state, result);
-	}
-      }
-    } else {//not array type
+    if (inBounds) {
       const ObjectState *os = op.second;
-
       if (isWrite) {
 	if (os->readOnly) {
 	  terminateStateOnError(state,
@@ -3146,10 +3125,11 @@ void Executor::executeMemoryOperation(ExecutionState &state,
                                 "readonly.err");
 	} else {
 	  ObjectState *wos = state.addressSpace.getWriteable(mo, os);
-	  wos->writeWhole(value);
+	  wos->writeWhole(offset, value);
 	}          
       } else {
-	ref<Expr> result = os->readWhole(type);
+	ref<Expr> result = os->readWhole(offset, type);
+        
 	if (interpreterOpts.MakeConcreteSymbolic)
 	  result = replaceReadWithSymbolic(state, result);
         
@@ -3307,7 +3287,7 @@ void Executor::executeMakeSymbolicWithSort(ExecutionState &state,
       uniqueName = name + "_" + llvm::utostr(++id);
     }
     const Array *array = NULL;
-    array = new Array(uniqueName, mo->size, 0, 0, domain, range);
+    array = new Array(uniqueName, mo->getArraySize(), 0, 0, domain, range);
     bindObjectInState(state, mo, false, array);
     state.addSymbolic(mo, array);
     
@@ -3378,10 +3358,10 @@ void Executor::executeTagReorderable(ExecutionState &state,
 				     const ObjectState *os,
 				     int dir,
 				     int cat){
-  ref<Expr> result = os->readWhole(32);
+  ref<Expr> result = os->readWhole(0,32);
   ref<Expr> reValue = ReorderExpr::create(result, dir, cat);
   ObjectState *wos = state.addressSpace.getWriteable(mo, os);
-  wos->writeWhole(reValue);
+  wos->writeWhole(0,reValue);
 }
 	
 

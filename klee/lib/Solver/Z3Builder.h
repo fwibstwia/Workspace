@@ -38,15 +38,19 @@ namespace klee {
     Z3ArrayExprHash _arr_hash;
 
   private:
-    z3::expr getInitialArray(const Array *root);
+    z3::expr getInitialArray(const Array *root, const unsigned index);
     z3::expr getArrayForUpdate(const Array *root, 
-				      const UpdateNode *un);
+			       const UpdateNode *un,
+			       const unsigned index);
   public:
     Z3Builder(z3::context *_c, bool _optimizeDivides=false): c(_c), 
 							    optimizeDivides(_optimizeDivides){
     }
     ~Z3Builder();
-    void getInitialRead(const Array *os, z3::model &m, std::vector<unsigned char>  &value);
+    void getInitialRead(const Array *os, 
+			const unsigned index,
+			z3::model &m, 
+			std::vector<unsigned char>  &value);
     z3::expr construct(ref<Expr> e);
   };
 

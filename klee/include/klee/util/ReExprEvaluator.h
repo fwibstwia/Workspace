@@ -28,7 +28,6 @@ namespace klee{
     void evalFOlt(const FOltExpr *e, std::vector<ref<Expr> > &res);
     void getInitialValue(const Array& os, unsigned index, std::vector<ref<Expr> > &res); 
     void evalUpdate(const UpdateList &ul, unsigned index, std::vector<ref<Expr> > &res);
-    void evalUpdate(const UpdateList &ul, std::vector<ref<Expr> > &res);
     ref<Expr> getArrayValue(const Array *array, unsigned index) const;
   private:
     ref<Expr> epsilon;
@@ -60,9 +59,10 @@ namespace klee{
                                         unsigned index) const {
     assert(array);
     bindings_ty::const_iterator it = bindings.find(array);
-    if (it!=bindings.end() && index<it->second.size()) {
+    unsigned offset = index * (array->range/8);
+    if (it!=bindings.end() && offset<it->second.size()) {
       //just for float
-      float v = *((float*)&it->second[index]);
+      float v = *((float*)&it->second[offset]);
       return ConstantExpr::alloc(llvm::APFloat(v));
     } else {
       return ConstantExpr::alloc(0, array->getRange());

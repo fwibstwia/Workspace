@@ -235,25 +235,17 @@ void ExprSMTLIBPrinter::printExpression(
 }
 
 void ExprSMTLIBPrinter::printReadExpr(const ref<ReadExpr> &e) {
-  if((e->updates.root)->getDomain() != Expr::InvalidWidth){
-    *p << "(" << getSMTLIBKeyword(e) << " ";
-    p->pushIndent();
+  *p << "(" << " ";
+  p->pushIndent();
 
-    printSeperator();
+  printSeperator();
 
-    // print array with updates recursively
-    printUpdatesAndArray(e->updates.head, e->updates.root);
-
+  // print array with updates recursively
+  printUpdatesAndArray(e->updates.head, e->updates.root, e->index);
+  p->popIndent();
   // print index
-    printSeperator();
-    printExpression(e->index, SORT_BITVECTOR);
-
-    p->popIndent();
-    printSeperator();
+  printSeperator();
   *p << ")";
-  }else{
-    printUpdatesAndArray(e->updates.head, e->updates.root);
-  }
 }
 
 void ExprSMTLIBPrinter::printExtractExpr(const ref<ExtractExpr> &e) {
@@ -463,39 +455,20 @@ const char *ExprSMTLIBPrinter::getSMTLIBKeyword(const ref<Expr> &e) {
 }
 
 void ExprSMTLIBPrinter::printUpdatesAndArray(const UpdateNode *un,
-                                             const Array *root) {
+                                             const Array *root,
+					     const ref<Expr> index) {
+  ConstantExpr *CE = cast<ConstantExpr>(index);
+
   if (un != NULL) {
-    if(root->getDomain() != Expr::InvalidWidth){
-      *p << "(store ";
-      p->pushIndent();
-      printSeperator();
-
-      // recurse to get the array or update that this store operations applies to
-      printUpdatesAndArray(un->next, root);
-
-      printSeperator();
-
-      // print index
-      printExpression(un->index, SORT_BITVECTOR);
-      printSeperator();
-
-      // print value that is assigned to this index of the array
-      printExpression(un->value, SORT_BITVECTOR);
-
-      p->popIndent();
-      printSeperator();
-      *p << ")";
-    }else{
-	*p << "(";
-	printUpdatesAndArray(un->next, root);
-        printSeperator();
-	printExpression(un->value, SORT_BITVECTOR);
-	p->popIndent();
-        *p << ")";
-    }
-  } else {
+    *p << "(";
+    printExpression(un->value, SORT_BITVECTOR);
+    p->popIndent();
+    *p << ")";
+  }else{
     // The base case of the recursion
-    *p << root->name;
+    std::string res;
+    CE->toString(res, 10, 1);
+    *p << root->name + res;
   }
 }
 

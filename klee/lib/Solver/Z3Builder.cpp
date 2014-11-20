@@ -20,61 +20,51 @@ Z3Builder::~Z3Builder(){
   ///fix me: delete _arr_hash;
 }
 
-void Z3Builder::getInitialRead(const Array *os, model &m, std::vector<unsigned char> &value){  
+void Z3Builder::getInitialRead(const Array *os, const unsigned index, 
+			       model &m, std::vector<unsigned char> &value){  
+  float v;
   value.resize(4);
-  expr res = m.get_const_interp(getInitialArray(os).decl());
-  std::cout << "ast: " << res << std::endl;
+  
+  try{
+  expr res = m.get_const_interp(getInitialArray(os,index).decl());
+
   Z3_string s = Z3_get_numeral_decimal_string(*c, res, 50);
-  std::cout << os->name << ":" << s << std::endl;  
+  std::stringstream sstm;
+  sstm << os->name << index;
+  std::cout << sstm.str() << ":" << s << std::endl;  
   char *stopString;
-  float v = strtof(s, &stopString);
+  v = strtof(s, &stopString);
+  }catch(exception e){
+    v = 0;
+  }
+
   char *p = reinterpret_cast<char*>(&v);
   std::copy(p, p + sizeof(float), value.begin());
 }
 
-expr Z3Builder::getInitialArray(const Array *root){
+expr Z3Builder::getInitialArray(const Array *root, const unsigned index){
   assert(root);
   expr *array_expr;
-  bool hashed = _arr_hash.lookupArrayExpr(root, array_expr);
-  if(!hashed){
-    if(root-> getDomain() != Expr::InvalidWidth){
-      sort I = c -> int_sort();
-      sort R = c -> real_sort();
-      sort A = c -> array_sort(I, R);
-      array_expr = new expr(c -> constant(c -> str_symbol((root -> name).c_str()), A));
-    } else {
-      array_expr = new expr(c -> real_const((root -> name).c_str()));
-    }
-    _arr_hash.hashArrayExpr(root, array_expr);
-  }
+  std::stringstream sstm;
+  sstm << root->name << index;
+  array_expr = new expr(c -> real_const((sstm.str()).c_str()));
   return *array_expr;
 }
 
 expr Z3Builder::getArrayForUpdate(const Array *root, 
-                                       const UpdateNode *un) {
+				  const UpdateNode *un,
+				  const unsigned index) {
   expr *un_expr;
   if (!un) {
-    return getInitialArray(root);
-  }
-  else {
-      // FIXME: This really needs to be non-recursive.
-    if(root -> getDomain() != Expr::InvalidWidth){
-      bool hashed = _arr_hash.lookupUpdateNodeExpr(un, un_expr);
-      
-      if (!hashed) {
-	un_expr = new expr(store(getArrayForUpdate(root, un->next), construct(un->index), construct(un->value)));
+    return getInitialArray(root, index);
+  } else {
+    // FIXME: This really needs to be non-recursive.
+    bool hashed = _arr_hash.lookupUpdateNodeExpr(un, un_expr);
+    if(!hashed){
+      	un_expr = new expr(construct(un->value));
        _arr_hash.hashUpdateNodeExpr(un, un_expr);
-      }
-      return(*un_expr);
     }
-    else{
-      bool hashed = _arr_hash.lookupUpdateNodeExpr(un, un_expr);
-      if(!hashed){
-	un_expr = new expr(construct(un->value));
-	_arr_hash.hashUpdateNodeExpr(un, un_expr);
-      }
-      return *un_expr;
-    }
+    return *un_expr;
   }
 }
 
@@ -105,12 +95,15 @@ expr Z3Builder::construct(ref<Expr> e){
   }
 
   case Expr::Read: {
+    ///We require re->index is constant
     ReadExpr *re = cast<ReadExpr>(e);
     assert(re && re->updates.root);
-    if((re->updates.root)-> getDomain() != Expr::InvalidWidth){
-      return select(getArrayForUpdate(re->updates.root, re->updates.head), construct(re->index));
+    if(ConstantExpr *CE=dyn_cast<ConstantExpr>(re->index)){
+      uint64_t index = CE->getZExtValue();
+      return getArrayForUpdate(re->updates.root, re->updates.head, index);
+    }else{
+      assert(0 && "non-constant index for array");
     }
-    return getArrayForUpdate(re->updates.root, re->updates.head);
   }
 
   case Expr::Select: {

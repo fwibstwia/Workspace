@@ -759,24 +759,6 @@ ref<Expr> ReadExpr::create(const UpdateList &ul, ref<Expr> index) {
   return ReadExpr::alloc(ul, index);
 }
 
-ref<Expr> ReadExpr::create(const UpdateList &ul) {
-  // rollback index when possible... 
-
-  // XXX this doesn't really belong here... there are basically two
-  // cases, one is rebuild, where we want to optimistically try various
-  // optimizations when the index has changed, and the other is 
-  // initial creation, where we expect the ObjectState to have constructed
-  // a smart UpdateList so it is not worth rescanning.
-
-  const UpdateNode *un = ul.head;
-
-  if(un){
-    return un -> value;
-  }
-
-  return ReadExpr::alloc(ul);
-}
-
 int ReadExpr::compareContents(const Expr &b) const { 
   return updates.compare(static_cast<const ReadExpr&>(b).updates);
 }

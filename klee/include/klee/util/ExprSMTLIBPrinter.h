@@ -301,7 +301,7 @@ protected:
                                            ExprSMTLIBPrinter::SMTLIB_SORT s);
 
   /// Recursively prints updatesNodes
-  virtual void printUpdatesAndArray(const UpdateNode *un, const Array *root);
+  virtual void printUpdatesAndArray(const UpdateNode *un, const Array *root, const ref<Expr> index);
 
   /// This method does the translation between Expr classes and SMTLIBv2
   /// keywords

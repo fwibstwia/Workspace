@@ -703,8 +703,6 @@ public:
   UpdateNode(const UpdateNode *_next, 
              const ref<Expr> &_index, 
              const ref<Expr> &_value);
-  UpdateNode(const UpdateNode *_next,
-	     const ref<Expr> &_value);
 
   unsigned getSize() const { return size; }
 
@@ -791,7 +789,6 @@ public:
   unsigned getSize() const { return (head ? head->getSize() : 0); }
   
   void extend(const ref<Expr> &index, const ref<Expr> &value);
-  void extend(const ref<Expr> &value); // for non aggregate type
 
   int compare(const UpdateList &b) const;
   unsigned hash() const;
@@ -813,14 +810,8 @@ public:
     r->computeHash();
     return r;
   }
-  static ref<Expr> alloc(const UpdateList &updates){
-    ref<Expr> r(new ReadExpr(updates));
-    r->computeHash();
-    return r;
-  }
   
   static ref<Expr> create(const UpdateList &updates, ref<Expr> i);
-  static ref<Expr> create(const UpdateList &updates);
   
   Width getWidth() const { assert(updates.root); return updates.root->getRange(); }
   Kind getKind() const { return Read; }
@@ -839,9 +830,6 @@ public:
 private:
   ReadExpr(const UpdateList &_updates, const ref<Expr> &_index) : 
     updates(_updates), index(_index) { assert(updates.root); }
-
-  ReadExpr(const UpdateList &_updates) :
-    updates(_updates), index(new InvalidExpr()) {assert(updates.root);}
 
 public:
   static bool classof(const Expr *E) {

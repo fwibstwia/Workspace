@@ -1,13 +1,17 @@
 #include <klee/klee.h>
 
 int ray_tracing(float *r) {
-  float A = r[0]*r[0]+r[1]*r[1]+r[2]*r[2];               
-  if (A > 0)
+  float A = 0;  
+  int i = 0;
+  for(i = 0; i < 3; i ++){
+      A = A + r[i];
+  }             
+  if (A > 5)
     return 0;
 } 
 
 int main() {
-  float r[3];
+  float r[30000];
   klee_make_symbolic_with_sort(&r, sizeof(r), "r", 8, 32);
   return ray_tracing(r);
 } 

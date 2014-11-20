@@ -686,17 +686,30 @@ ref<Expr> ObjectState::readWhole(unsigned offset, Expr::Width width) const {
   //    return ExtractExpr::create(read8(offset), 0, Expr::Bool);
 
   // Otherwise, follow the slow general case.
-  unsigned index = offset/width;
-  if (isByteConcrete(offset)) {
+  unsigned index = offset/(width/8);
+  if (isByteConcrete(index)) {
       switch(width){
       case 8:
 	return ConstantExpr::create(concreteStore[offset], Expr::Int8);
       case 16:
 	return ConstantExpr::create( ((uint16_t*) concreteStore)[offset], Expr::Int16);
       case 32:
-	return ConstantExpr::create(((uint32_t*) concreteStore)[offset], Expr::Int32);
+	if((object->allocType)->isFloatTy()){
+	  ref<ConstantExpr> CE = ConstantExpr::create(((uint32_t*) concreteStore)[offset], Expr::Int32);
+	  CE->isFloat = true;
+	  return CE;
+	}else{
+	  return ConstantExpr::create(((uint32_t*) concreteStore)[offset], Expr::Int32);
+	}
+
       case 64:
-	return ConstantExpr::create( ((uint64_t*) concreteStore)[offset], Expr::Int64);
+	if((object->allocType)->isDoubleTy()){
+	  ref<ConstantExpr> CE = ConstantExpr::create(((uint64_t*) concreteStore)[offset], Expr::Int64);
+	  CE->isFloat = true;
+	  return CE;
+	}else{
+	  return ConstantExpr::create(((uint64_t*) concreteStore)[offset], Expr::Int64);
+	}
       }
   } else if (isByteKnownSymbolic(index)) {
     return knownSymbolics[index];
@@ -706,44 +719,6 @@ ref<Expr> ObjectState::readWhole(unsigned offset, Expr::Width width) const {
     return ReadExpr::create(getUpdates(), 
                             ConstantExpr::create(index, Expr::Int32));
   }    
-}
-
-ref<Expr> ObjectState::readWhole(Expr::Width width) const{
-  // Treat bool specially, it is the only non-byte sized write we allow.
-  //if (width == Expr::Bool)
-  //return ExtractExpr::create(read8(offset), 0, Expr::Bool);
-
-  // Otherwise, follow the slow general case.
-  if (isByteConcrete(0)) {
-      switch(width){
-	case 8:
-	  return ConstantExpr::create(concreteStore[0], Expr::Int8);
-        case 16:
-	  return ConstantExpr::create(((uint16_t*) concreteStore)[0], Expr::Int16);
-	case 32:
-	  if((object->allocType)->isFloatTy()){
-	    ref<ConstantExpr> CE = ConstantExpr::create(((uint32_t*) concreteStore)[0], Expr::Int32);
-	    CE->isFloat = true;
-	    return CE;
-	  }else{
-	    return ConstantExpr::create(((uint32_t*) concreteStore)[0], Expr::Int32);
-	  }
-	case 64:
-          if((object->allocType)->isDoubleTy()){
-	    ref<ConstantExpr> CE = ConstantExpr::create(((uint64_t*) concreteStore)[0], Expr::Int64);
-	    CE->isFloat = true;
-	    return CE;
-	  }else{
-	    return ConstantExpr::create(((uint64_t*) concreteStore)[0], Expr::Int64);
-	  }
-	}
-
-  } else if (isByteKnownSymbolic(0)) {
-    return knownSymbolics[0];
-  } else {
-    assert(isByteFlushed(0) && "unflushed byte without cache value");
-    return ReadExpr::create(getUpdates());
-  }   
 }
 
 void ObjectState::writeWhole(ref<Expr> offset, ref<Expr> value) {
@@ -783,7 +758,7 @@ void ObjectState::writeWhole(ref<Expr> offset, ref<Expr> value) {
 void ObjectState::writeWhole(unsigned offset, ref<Expr> value) {
   // Check for writes of constant values.
   Expr::Width w = value->getWidth();
-  unsigned index = offset/w;
+  unsigned index = offset/(w/8);
   if (ConstantExpr *CE = dyn_cast<ConstantExpr>(value)) {
     if (w <= 64) {
       switch (w) {
@@ -820,8 +795,4 @@ void ObjectState::writeWhole(unsigned offset, ref<Expr> value) {
   markByteSymbolic(index);
   markByteUnflushed(index);
 } 
-
-void ObjectState::writeWhole(ref<Expr> value) {
-  writeWhole(0, value);
-}
 

@@ -1066,7 +1066,11 @@ SolverImpl::SolverRunStatus Z3SolverImpl::runAndGetCex(ref<Expr> query_expr,
     for (std::vector<const Array*>::const_iterator it = objects.begin(), ie = objects.end(); it != ie; ++it) {
       const Array *array = *it;
       std::vector<unsigned char> data;
-      builder->getInitialRead(array, m, data);
+      for(unsigned i = 0; i < array->size; i ++){
+	std::vector<unsigned char> floatData;
+	builder->getInitialRead(array, i, m, floatData);
+	data.insert(data.end(), floatData.begin(), floatData.end());
+      }
       values.push_back(data);
     }
     hasSolution = true;
