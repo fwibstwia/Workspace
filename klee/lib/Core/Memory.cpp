@@ -687,6 +687,12 @@ ref<Expr> ObjectState::readWhole(unsigned offset, Expr::Width width) const {
 
   // Otherwise, follow the slow general case.
   unsigned index = offset/(width/8);
+  const llvm::Type *ty;
+  if((object->allocType)->isArrayTy()){
+    ty = (object->allocType)->getContainedType(0);
+  }else{
+    ty = object->allocType;
+  }
   if (isByteConcrete(index)) {
       switch(width){
       case 8:
@@ -694,7 +700,7 @@ ref<Expr> ObjectState::readWhole(unsigned offset, Expr::Width width) const {
       case 16:
 	return ConstantExpr::create( ((uint16_t*) concreteStore)[offset], Expr::Int16);
       case 32:
-	if((object->allocType)->isFloatTy()){
+	if(ty->isFloatTy()){
 	  ref<ConstantExpr> CE = ConstantExpr::create(((uint32_t*) concreteStore)[offset], Expr::Int32);
 	  CE->isFloat = true;
 	  return CE;
@@ -703,7 +709,7 @@ ref<Expr> ObjectState::readWhole(unsigned offset, Expr::Width width) const {
 	}
 
       case 64:
-	if((object->allocType)->isDoubleTy()){
+	if(ty->isDoubleTy()){
 	  ref<ConstantExpr> CE = ConstantExpr::create(((uint64_t*) concreteStore)[offset], Expr::Int64);
 	  CE->isFloat = true;
 	  return CE;

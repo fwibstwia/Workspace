@@ -4,36 +4,39 @@
 
 #include <klee/klee.h>
 
-int ray_tracing(float rx, float ry, float rz, float sx, float sy, float sz) {
-  sx = 17.988571f;
-  sy = 19.597578f;
-  sz = 135.595596f;
+int ray_tracing(float *r, float *s) {
+  //s[0] = 17.988571f;
+  //s[1] = 19.597578f;
+  //s[2] = 135.595596f;
   //sx = 0.005782f ;
   //sy = 31.999878f;
   //sz = 0.111744f;
-  float A = rx*rx+ry*ry+rz*rz;
+  float A = 0; 
+  int i = 0;
+  for(; i< 300; i ++){
+    A = A + r[i]*r[i];
+  }  
+
   klee_tag_reorderable(&A, 0, 2);
 
-  float B1 = sx*rx + sy*ry + sz*rz;
+  float B1 = s[0]*r[0] + s[1]*r[1] + s[2]*r[2];
   klee_tag_reorderable(&B1, 0, 2); 
   float B = -2.0 * B1;
 
-  float C1 = sx*sx+sy*sy+sz*sz;
+  float C1 = s[0]*s[0]+s[1]*s[1]+s[2]*s[2];
   klee_tag_reorderable(&C1, 0, 2);
   float C =  C1 - 14.128791f;
-  float D = B*B-4*A*C;                  
+  //float D = B*B-4*A*C;  
+  float D = A + B - C ;                
   if (D > 0)
     return 0;
 } 
 
 int main() {
-  float rx, ry, rz, sx, sy, sz;
-  klee_make_symbolic_with_sort(&rx, sizeof(rx), "rx", 0, 32);
-  klee_make_symbolic_with_sort(&ry, sizeof(ry), "ry", 0, 32);
-  klee_make_symbolic_with_sort(&rz, sizeof(rz), "rz", 0, 32);
-  klee_make_symbolic_with_sort(&sx, sizeof(sx), "sx", 0, 32);
-  klee_make_symbolic_with_sort(&sy, sizeof(sy), "sy", 0, 32);
-  klee_make_symbolic_with_sort(&sz, sizeof(sz), "sz", 0, 32);
-  return ray_tracing(rx, ry, rz, sx, sy, sz);
+  float r[300], s[3];
+  klee_make_symbolic_with_sort(&r, sizeof(r), "r", 8, 32);
+  klee_make_symbolic_with_sort(&s, sizeof(s), "s", 8, 32);
+  
+  return ray_tracing(r, s);
 } 
 
