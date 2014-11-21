@@ -12,12 +12,12 @@ int ray_tracing(float *r, float *s) {
   //sy = 31.999878f;
   //sz = 0.111744f;
   float A = 0; 
-  int i = 0;
-  for(; i< 100; i ++){
+  int i;
+  for(i = 0; i< 3; i ++){
     A = A + r[i]*r[i];
   }  
   
-  klee_tag_reorderable(&A, 0, 2);
+  klee_tag_reorderable(&A, 1, 2);
 
   float B1 = s[0]*r[0] + s[1]*r[1] + s[2]*r[2];
   klee_tag_reorderable(&B1, 0, 2); 
@@ -27,13 +27,13 @@ int ray_tracing(float *r, float *s) {
   klee_tag_reorderable(&C1, 0, 2);
   float C =  C1 - 14.128791f;
   float D = B*B-4*A*C;  
-  //float D = A + B - C ;              
+  //float D = A + B - C ;*/              
   if (D > 0)
     return 0;
 } 
 
 int main() {
-  float r[100], s[3];
+  float r[3], s[3];
   klee_make_symbolic_with_sort(&r, sizeof(r), "r", 8, 32);
   klee_make_symbolic_with_sort(&s, sizeof(s), "s", 8, 32);
   

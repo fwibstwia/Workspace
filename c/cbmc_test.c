@@ -1,8 +1,20 @@
 int main(){
-  float x1, y1, x2, y2, x3, y3;
-  float q1 = (x1*x1 + x2*x2) + x3*x3;
-  float q2 = x1*x1 + (x2*x2 + x3*x3);
-  if ( q1 - q2 > 0.000005 && x1 > 10 && x1 < 20 && x2 > 10 && x2 < 20 && x3 > 100 && x3 < 200){
-    assert(q2 == q1);
+  float rx, ry, rz, sx, sy, sz;
+  float A1 = (rx*rx + ry*ry) + rz*rz;
+  float A2 = rx*rx + (ry*ry + rz*rz);
+  
+  float B1 = (sx*rx + sy*ry) + sz*rz;
+  float B2 = sx*rx + (sy*ry + sz*rz);
+
+  float C1 = (sx*sx + sy*sy) + sz*sz;
+  float C2 = sx*sx + (sy*sy + sz*sz);
+  
+
+  float D1 = B1*B1 - 4*A1*C1;
+  float D2 = B2*B2 - 4*A2*C2;
+
+  if ( D1 == 0 && D1 - D2 > 0.000001 && sx > 0 && sx < 10 && sy > 0 && sy < 10 
+	&& sz > 0 && sz < 10 && rx > 0 && rx < 10 && ry > 0 && ry < 10 && rz > 0 && rz < 10){
+    assert(D2 == D1);
   }
 }

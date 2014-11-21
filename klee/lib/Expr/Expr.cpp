@@ -23,6 +23,7 @@
 
 
 #include <sstream>
+#include <iostream>
 
 using namespace klee;
 using namespace llvm;
@@ -684,9 +685,12 @@ ReorderExpr::ReorderExpr(const ref<Expr> &_src, int _dir, int _cat):src(_src),
 	i = r;
       }
     }
-    BinaryExpr *t = cast<BinaryExpr>(i);
-    operands.push_back(t->left);
-    operands.push_back(t->right);
+
+    if(i->getKind() >= BinaryKindFirst && i -> getKind() <=BinaryKindLast){ 
+      BinaryExpr *t = cast<BinaryExpr>(i);
+      operands.push_back(t->left);
+      operands.push_back(t->right);
+    }
     break;
   }
   case RE_Mult:{
