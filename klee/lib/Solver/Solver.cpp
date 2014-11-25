@@ -32,6 +32,7 @@
 #include <map>
 #include <vector>
 #include <iostream>
+#include <iomanip> 
 
 #include <errno.h>
 #include <unistd.h>
@@ -168,9 +169,9 @@ void Query::changeConstant(ref<Expr> &epsilon){
   consEps->toString(eps, 10, 1);
   ref<ConstantExpr> res = CE->FAdd(consEps);
   res->toString(upd, 10, 1);
-  std::cout << "ori: " << ori << std::endl;
-  std::cout << "eps: " << eps << std::endl;
-  std::cout << "upd: " << upd << std::endl;
+  std::cout << "ori: " << std::setprecision(9) << ori << std::endl;
+  std::cout << "eps: " << std::setprecision(9) << eps << std::endl;
+  std::cout << "upd: " << std::setprecision(9) << upd << std::endl;
   eq->left = res;
 }
 

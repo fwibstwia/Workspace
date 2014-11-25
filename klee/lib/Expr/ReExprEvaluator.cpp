@@ -55,7 +55,7 @@ void ReExprEvaluator::evalReorder(const ReorderExpr *e, vector<ref<Expr> > &res)
   //in this function we call the min/max method 
   //Fix me: need to add type support, currently we assume float
   //Fix me: need to add round mode support
-  float max = 0.0f, min = 0.0f;
+  float max = 0.0f, min = 0.0f, fmaMax = 0.0f, fmaMin = 0.0f;
   vector<float> ops;
   vector<float> opl;
   vector<float> opr;
@@ -77,13 +77,10 @@ void ReExprEvaluator::evalReorder(const ReorderExpr *e, vector<ref<Expr> > &res)
   
   if(e->cat == Expr::RE_FMA){
     for(int i = 0; i < len; i = i + 2){
+      float x,y;
       if(ConstantExpr *CE = dyn_cast<ConstantExpr>(kids[i])){        
 	llvm::APFloat v = CE->getAPFValue();
-	random = rand()%100+1;
-	float x = v.convertToFloat();
-	/*for(int j = 0; j < random; j ++){
-	  x = ::nextafterf(x, 1.0);
-	  }*/
+	x = v.convertToFloat();
 	opl.push_back(x);
       }else{
 	assert(0 && "encounter non-constant in Reorder Rebuild");
@@ -91,15 +88,13 @@ void ReExprEvaluator::evalReorder(const ReorderExpr *e, vector<ref<Expr> > &res)
 
       if(ConstantExpr *CE = dyn_cast<ConstantExpr>(kids[i+1])){
 	llvm::APFloat v = CE->getAPFValue();
-        random = rand()%100+1;
-	float x = v.convertToFloat();
-	/*for(int j = 0; j < random; j ++){
-	  x = ::nextafterf(x, 1.0);
-	  }*/
-	opr.push_back(x);
+	y = v.convertToFloat();
+	opr.push_back(y);
       }else{
 	assert(0 && "encounter non-constant in Reorder Rebuild");
-      }      
+      }
+      
+      ops.push_back(x*y);     
     }
   } else {
     for(int i = 0; i < len; i ++){
@@ -126,8 +121,13 @@ void ReExprEvaluator::evalReorder(const ReorderExpr *e, vector<ref<Expr> > &res)
   }
 
   case Expr::RE_FMA:{
-    max = ro.getFMAMax(opl, opr);
-    min = ro.getFMAMin(opl, opr);
+    fmaMax = ro.getFMAMax(opl, opr);
+    fmaMin = ro.getFMAMin(opl, opr);
+    llvm::APFloat apFmaMax(fmaMax), apFmaMin(fmaMin);
+    res.push_back(ConstantExpr::alloc(apFmaMin));
+    res.push_back(ConstantExpr::alloc(apFmaMax));
+    max = ro.getPlusMax(ops);
+    min = ro.getPlusMin(ops);
     break;
   }
   default:
