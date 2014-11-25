@@ -8,6 +8,7 @@
 //===----------------------------------------------------------------------===//
 #include "klee/Reorder.h"
 #include <cmath>
+#include <immintrin.h>
 
 using namespace std;
 using namespace klee;
@@ -83,8 +84,16 @@ float Reorder::getFMABound(int direction, const std::vector<float> &opsl, const 
   for(int i = 0; i < len - 1; i ++){
     float t1 = opsl[i+1] * opsr[i+1];
     float t2 = opsl[i] * opsr[i];
-    float r1 = opsl[i] * opsr[i] + t1;
-    float r2 = opsl[i+1] * opsr[i+1] + t2;
+    __m128 a, b, c, r;
+    a[0] = opsl[i];
+    a[1] = opsl[i+1];
+    b[0] = opsr[i];
+    b[1] = opsr[i+1];
+    c[0] = t1;
+    c[1] = t2;
+    r = _mm_fmadd_ps(a, b, c);
+    float r1 = r[0];
+    float r2 = r[1];
 
     if(direction == 1){
       if(r1 > r2){
@@ -107,8 +116,16 @@ float Reorder::getFMABound(int direction, const std::vector<float> &opsl, const 
   for(int l = 3; l <= len; l ++){
     for(int i = 0; i < len - l + 1; i ++){
       int j = i + l - 1;
-      float r1 = opsl[i] * opsr[i] + values[i+1][j];
-      float r2 = opsl[j] * opsr[j] + values[i][j-1];
+      __m128 a, b, c, r;
+      a[0] = opsl[i];
+      a[1] = opsl[j];
+      b[0] = opsr[i];
+      b[1] = opsr[j];
+      c[0] = values[i+1][j];
+      c[1] = values[i][j-1];
+      r = _mm_fmadd_ps(a, b, c);
+      float r1 = r[0];
+      float r2 = r[1];
       if(direction == 1){
 	if(r1 > r2){
 	  values[i][j] = r1;

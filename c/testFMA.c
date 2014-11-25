@@ -12,5 +12,5 @@ void testFMAOrder(float a, float b, float c){
 }
 
 int main(){
-  testFMAOrder(1, 2, 3);
+  testFMAOrder(1.2, 2.1, 3.1);
 }
