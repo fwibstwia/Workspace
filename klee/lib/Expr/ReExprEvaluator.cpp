@@ -51,11 +51,12 @@ void ReExprEvaluator::evalUpdate(const UpdateList &ul,
   getInitialValue(*ul.root, index, res);
 }
 
-void ReExprEvaluator::evalReorder(const ReorderExpr *e, vector<ref<Expr> > &res){
+void ReExprEvaluator::evalReorder(const ReorderExpr *e, ReExprRes &res){
   //in this function we call the min/max method 
   //Fix me: need to add type support, currently we assume float
   //Fix me: need to add round mode support
   float max = 0.0f, min = 0.0f, fmaMax = 0.0f, fmaMin = 0.0f;
+  vector<float> resVal;
   vector<float> ops;
   vector<float> opl;
   vector<float> opr;
@@ -124,8 +125,8 @@ void ReExprEvaluator::evalReorder(const ReorderExpr *e, vector<ref<Expr> > &res)
     fmaMax = ro.getFMAMax(opl, opr);
     fmaMin = ro.getFMAMin(opl, opr);
     llvm::APFloat apFmaMax(fmaMax), apFmaMin(fmaMin);
-    res.push_back(ConstantExpr::alloc(apFmaMin));
-    res.push_back(ConstantExpr::alloc(apFmaMax));
+    resVal.push_back(ConstantExpr::alloc(apFmaMin));
+    resVal.push_back(ConstantExpr::alloc(apFmaMax));   
     max = ro.getPlusMax(ops);
     min = ro.getPlusMin(ops);
     break;
@@ -133,11 +134,10 @@ void ReExprEvaluator::evalReorder(const ReorderExpr *e, vector<ref<Expr> > &res)
   default:
     assert(0 && "unsupported reorderable expression");
   }
-  std::cout << "min: " << std::setprecision(9) << min << std::endl;
-  std::cout << "max: " << std::setprecision(9) << max << std::endl;
+
   llvm::APFloat apMax(max), apMin(min);
-  res.push_back(ConstantExpr::alloc(apMin));
-  res.push_back(ConstantExpr::alloc(apMax));
+  resVal.push_back(ConstantExpr::alloc(apMin));
+  resVal.push_back(ConstantExpr::alloc(apMax));
   return;
 }
 
@@ -152,9 +152,6 @@ void ReExprEvaluator::evalFOlt(const FOltExpr *e, vector<ref<Expr> > &res){
     tmp[0] = e->getKid(0);
     for(int i = 0; i < kidEvalRes.size(); i ++){
       if(ConstantExpr *CEL = dyn_cast<ConstantExpr>(kidEvalRes[i])){
-	std::string test;
-	CEL->toString(test, 10, 1);
-	std::cout << "extreme value: " << test << std::endl;
 	ref<ConstantExpr> value = CER->FSub(CEL);
 	ref<ConstantExpr> dist = CER->FAbs(CEL);
 	if(minValue.get()){
@@ -260,7 +257,8 @@ bool ReExprEvaluator::isAssignmentStable(const ref<Expr> &e, ref<Expr> &eps){
   vector<ref<Expr> > res;
   evaluate(e,res);
   vector<ref<Expr> >::iterator ite = res.begin();
-
+  
+  std::cout << "res.size: " << res.size() << std::endl;
   for(; ite != res.end(); ite++){
     if(ConstantExpr *CE = dyn_cast<ConstantExpr>(*ite)){
       if(CE->isTrue()){

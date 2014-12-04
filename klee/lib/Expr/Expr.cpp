@@ -24,6 +24,7 @@
 
 #include <sstream>
 #include <iostream>
+#include <iomanip>
 
 using namespace klee;
 using namespace llvm;
@@ -382,7 +383,8 @@ void ConstantExpr::toString(std::string &Res, unsigned radix, unsigned logic) co
 #else
 	llvm::APFloat F(value);
 #endif
-	F.toString(Buffer);
+        F.toString(Buffer, 20, 10);
+
 	Res = std::string(Buffer.data(), Buffer.size());
     }else{
       Res = value.toString(radix, true);

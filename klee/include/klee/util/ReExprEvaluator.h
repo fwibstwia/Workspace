@@ -11,6 +11,7 @@
 
 #include <vector>
 #include <map>
+#include <set>
 #include <iostream>
 
 #include "klee/Expr.h"
@@ -18,16 +19,41 @@
 namespace klee{
   class Array;
 
+  class ReExprRes{
+  private:
+    std::set<ref<Expr> > contains;
+    std::set<ref<Expr> > complements;
+  public:
+    ReExprRes(const std::set<ref<Expr> > &_contains, 
+	      const std::set<ref<Expr> > &_complements){
+      contains = _contains;
+      complements = _complements;
+    } 
+    
+    ReExprRes(const ReExprRes &r){
+      contains = r.contains;
+      complements = r.complements;
+    }
+    
+    bool isConflict(const ReExprRes &r){
+      
+    }
+
+    void merge(const ReExprRes &){
+
+    }
+  }; 
+
   class ReExprEvaluator{
   public:
     typedef std::map<const Array*, std::vector<unsigned char> > bindings_ty;
     bindings_ty bindings;
   private:
-    void evalRead(const ReadExpr *e, std::vector<ref<Expr> > &res);
-    void evalReorder(const ReorderExpr *e, std::vector<ref<Expr> > &res);
-    void evalFOlt(const FOltExpr *e, std::vector<ref<Expr> > &res);
-    void getInitialValue(const Array& os, unsigned index, std::vector<ref<Expr> > &res); 
-    void evalUpdate(const UpdateList &ul, unsigned index, std::vector<ref<Expr> > &res);
+    void evalRead(const ReadExpr *e, std::vector<ReExprRes> &res);
+    void evalReorder(const ReorderExpr *e, std::vector<ReExprRes> &res);
+    void evalFOlt(const FOltExpr *e, std::vector<ReExprRes> &res);
+    void getInitialValue(const Array& os, unsigned index, std::vector<ReExprRes> &res); 
+    void evalUpdate(const UpdateList &ul, unsigned index, std::vector<ReExprRes> &res);
     ref<Expr> getArrayValue(const Array *array, unsigned index) const;
   private:
     ref<Expr> epsilon;
