@@ -21,26 +21,50 @@ namespace klee{
 
   class ReExprRes{
   private:
-    std::set<ref<Expr> > contains;
-    std::set<ref<Expr> > complements;
+    std::set<ref<Expr> > reorders;
+    std::set<ref<Expr> > reorderCompls;
+    ref<Expr> resVal;
   public:
-    ReExprRes(const std::set<ref<Expr> > &_contains, 
-	      const std::set<ref<Expr> > &_complements){
-      contains = _contains;
-      complements = _complements;
-    } 
+    ReExprRes(){}
+    ReExprRes(const std::set<ref<Expr> > &_reorders,
+	      const std::set<ref<Expr> > &_reorderCompls,
+	      ref<Expr> _resVal){
+      reorders = _reorders;
+      reorderCompls = _reorderCompls;
+      resVal = _resVal;
+    }
     
     ReExprRes(const ReExprRes &r){
-      contains = r.contains;
-      complements = r.complements;
+      reorders = r.reorders;
+      reorderCompls = r.reorderCompls;
+      resVal = r.resVal;
     }
     
     bool isConflict(const ReExprRes &r){
-      
+      std::set<ref<Expr> > v;
+      std::set_intersection(reorders.begin(), reorders.end(),
+			    (r.reorderCompls).begin(), (r.reorderCompls).end(),
+			    v.begin());
+      if(v.size() != 0)
+	return true;
+      return false;			    
     }
 
-    void merge(const ReExprRes &){
+    void merge(const ReExprRes &r1, const ReExprRes &r2){
+      std::set_union((r1.reorders).begin(), (r1.reorders).end(), 
+		      (r2.reorders).begin(), (r2.reorders).end(), reorders.begin());
 
+      std::set_union((r1.reorderCompls).begin(), (r1.reorderCompls).end(),
+		     (r2.reorderCompls).begin(), (r2.reorderCompls).end(),
+		     reorderCompls.begin());
+    }
+
+    ref<Expr> getResVal(){
+      return resVal;
+    }
+
+    void setResVal(const ref<Expr>  _resVal){
+      resVal = _resVal;
     }
   }; 
 
@@ -52,11 +76,12 @@ namespace klee{
     void evalRead(const ReadExpr *e, std::vector<ReExprRes> &res);
     void evalReorder(const ReorderExpr *e, std::vector<ReExprRes> &res);
     void evalFOlt(const FOltExpr *e, std::vector<ReExprRes> &res);
-    void getInitialValue(const Array& os, unsigned index, std::vector<ReExprRes> &res); 
+    void getInitialValue(const Array &os, unsigned index, std::vector<ReExprRes> &res); 
     void evalUpdate(const UpdateList &ul, unsigned index, std::vector<ReExprRes> &res);
     ref<Expr> getArrayValue(const Array *array, unsigned index) const;
   private:
     ref<Expr> epsilon;
+    std::map<const ReorderExpr *, std::vector<ReExprRes> > reorderMap;
   public:
     void evaluate(const ref<Expr> &e, std::vector<ref<Expr> > &res);
     bool isAssignmentStable(const ref<Expr> &e, ref<Expr> &epsilon);
@@ -76,9 +101,11 @@ namespace klee{
  
   inline void ReExprEvaluator::getInitialValue(const Array& os, 
 					       unsigned index, 
-					       std::vector<ref<Expr> > &res){
-    res.push_back(getArrayValue(&os, index));
-    return;
+					       std::vector<ReExprRes> &res){
+    ReExprRes re;
+    ref<Expr> arrayV = getArrayValue(&os, index));
+    re.setResVal(arrayV);
+    res.push_back(re);
   }
 
   inline ref<Expr> ReExprEvaluator::getArrayValue(const Array *array, 

@@ -21,7 +21,7 @@ using namespace std;
 
 /***/
 
-void ReExprEvaluator::evalRead(const ReadExpr *e, vector<ref<Expr> > &res){
+void ReExprEvaluator::evalRead(const ReadExpr *e, vector<ReExprRes> &res){
   if(ConstantExpr *CE = dyn_cast<ConstantExpr>(e->index)){
     evalUpdate(e->updates, CE->getZExtValue(), res);
   }else{
@@ -31,7 +31,7 @@ void ReExprEvaluator::evalRead(const ReadExpr *e, vector<ref<Expr> > &res){
 
 void ReExprEvaluator::evalUpdate(const UpdateList &ul,
 				   unsigned index, 
-				   vector<ref<Expr> > &res) {
+				   vector<ReExprRes> &res) {
   for (const UpdateNode *un=ul.head; un; un=un->next) {    
     if (ConstantExpr *CE = dyn_cast<ConstantExpr>(un->index)) {
       if (CE->getZExtValue() == index){
@@ -51,12 +51,16 @@ void ReExprEvaluator::evalUpdate(const UpdateList &ul,
   getInitialValue(*ul.root, index, res);
 }
 
-void ReExprEvaluator::evalReorder(const ReorderExpr *e, ReExprRes &res){
+void ReExprEvaluator::evalReorder(const ReorderExpr *e, vector<ReExprRes> &res){
   //in this function we call the min/max method 
   //Fix me: need to add type support, currently we assume float
   //Fix me: need to add round mode support
+  if(reorderMap.find(e) != reorderMap.end()){
+    res = reorderMap.find(e) -> second();
+    return;
+  }
+
   float max = 0.0f, min = 0.0f, fmaMax = 0.0f, fmaMin = 0.0f;
-  vector<float> resVal;
   vector<float> ops;
   vector<float> opl;
   vector<float> opr;
@@ -109,6 +113,35 @@ void ReExprEvaluator::evalReorder(const ReorderExpr *e, ReExprRes &res){
   }
 
   switch(e->cat){
+  case Expr::RE_FMA:{
+    vector<ref<Expr> > extremes;
+    fmaMax = ro.getFMAMax(opl, opr);
+    fmaMin = ro.getFMAMin(opl, opr);
+    max = ro.getPlusMax(ops);
+    min = ro.getPlusMin(ops);
+
+    llvm::APFloat apFmaMax(fmaMax), apFmaMin(fmaMin),
+      apMax(max), apMin(min);
+    extremes.push_back(ConstantExpr::alloc(apFmaMin));
+    extremes.push_back(ConstantExpr::alloc(apFmaMax));
+    extremes.push_back(ConstantExpr::alloc(apMin));
+    extremes.push_back(ConstantExpr::alloc(apMax));   
+    
+    for(int i = 0; i < extremes.size(); i ++){
+      set<ref<Expr> > reorders;
+      set<ref<Expr> > reorderCompls;
+      reorders.insert(extremes[i]);
+      for(int j = 0; j < extremes.size(); j ++){
+	if(j != i){
+	  reorderCompls.insert(extremes[j]);
+	}
+      }
+      res.push_back(ReExprRes(reorders, reorderCompls, extremes[i]));
+    }
+    reorderMap[e] = res;
+    return;
+  }
+
   case Expr::RE_Plus:{
     max = ro.getPlusMax(ops);
     min = ro.getPlusMin(ops);
@@ -121,37 +154,37 @@ void ReExprEvaluator::evalReorder(const ReorderExpr *e, ReExprRes &res){
     break;
   }
 
-  case Expr::RE_FMA:{
-    fmaMax = ro.getFMAMax(opl, opr);
-    fmaMin = ro.getFMAMin(opl, opr);
-    llvm::APFloat apFmaMax(fmaMax), apFmaMin(fmaMin);
-    resVal.push_back(ConstantExpr::alloc(apFmaMin));
-    resVal.push_back(ConstantExpr::alloc(apFmaMax));   
-    max = ro.getPlusMax(ops);
-    min = ro.getPlusMin(ops);
-    break;
-  }
   default:
     assert(0 && "unsupported reorderable expression");
   }
 
-  llvm::APFloat apMax(max), apMin(min);
-  resVal.push_back(ConstantExpr::alloc(apMin));
-  resVal.push_back(ConstantExpr::alloc(apMax));
+  set<ref<Expr> > reorders;
+  set<ref<Expr> > reorderCompls;
+
+  llvm::APFloat apMin(min), apMax(max);
+  ref<Expr> minExpr = ConstantExpr::alloc(apMin);
+  ref<Expr> maxEXpr = ConstantExpr::alloc(apMax);
+  
+  reorders.insert(minExpr);
+  reorderCompls.insert(maxExpr);
+  res.push_back(ReExprRes(reorders, reorderCompls, minExpr));
+  res.push_back(ReExprRes(reorderCompls, reorders, maxExpr));  
+
+  reorderMap[e] = res;
   return;
 }
 
-void ReExprEvaluator::evalFOlt(const FOltExpr *e, vector<ref<Expr> > &res){
+void ReExprEvaluator::evalFOlt(const FOltExpr *e, vector<ReExprRes> &res){
   //Fix me:: handle e-> left is constant
-  vector<ref<Expr> > kidEvalRes;
+  vector<ReExprRes> kidRes;
   ref<ConstantExpr> minDist;
   ref<ConstantExpr> minValue;
   if(ConstantExpr *CER = dyn_cast<ConstantExpr>(e->getKid(0))){
-    evaluate(e->getKid(1), kidEvalRes);
     ref<Expr> tmp[2];
     tmp[0] = e->getKid(0);
-    for(int i = 0; i < kidEvalRes.size(); i ++){
-      if(ConstantExpr *CEL = dyn_cast<ConstantExpr>(kidEvalRes[i])){
+    evaluate(e->getKid(1), kidRes);
+    for(int i = 0; i < kidRes.size(); i ++){
+      if(ConstantExpr *CEL = dyn_cast<ConstantExpr>(kidRes[i].getResVal())){
 	ref<ConstantExpr> value = CER->FSub(CEL);
 	ref<ConstantExpr> dist = CER->FAbs(CEL);
 	if(minValue.get()){
@@ -166,10 +199,12 @@ void ReExprEvaluator::evalFOlt(const FOltExpr *e, vector<ref<Expr> > &res){
       }else{
 	assert(0 && "encounter non-constantExpr after evaluate");
       }
-      tmp[1] = kidEvalRes[i];
-      res.push_back(e->rebuild(tmp));
+      ReExprRes re(kidRes[i]);
+      tmp[1] = kidRes[i].getResVal();
+      re.setResVal(e->rebuild(tmp));
+      res.push_back(re);
     }
-  }else if(ConstantExpr *CE = dyn_cast<ConstantExpr>(e->getKid(1))){
+  }/*else if(ConstantExpr *CE = dyn_cast<ConstantExpr>(e->getKid(1))){
     evaluate(e->getKid(0), kidEvalRes);
     ref<Expr> tmp[2];
     tmp[1] = e->getKid(1);
@@ -194,7 +229,7 @@ void ReExprEvaluator::evalFOlt(const FOltExpr *e, vector<ref<Expr> > &res){
     }
   }else{
     assert(0 && "we need one side of evalFOlt is constant");
-  }
+    }*/
   epsilon = minValue;
 } 
 
@@ -223,7 +258,7 @@ void ReExprEvaluator::evaluate(const ref<Expr> &e, vector<ref<Expr> > &res){
       assert(0 && "evaluate invalid expr");
     }
     default: {
-      vector<vector<ref<Expr> > > kids;
+      vector<vector<ReExprRes> > kids;
       unsigned count = e->getNumKids();
       kids.resize(count);
       assert(count < 3); //Fix me: need to handle select
