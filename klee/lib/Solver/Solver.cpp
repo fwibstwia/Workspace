@@ -178,9 +178,11 @@ void Query::changeConstant(ref<Expr> &epsilon){
 bool Solver::checkStable(const Query& query, bool &result){
   //Fix me: hasSolution == false
   std::vector<const Array*> objects;
+  EvalState state;
+  int trials = 0;
   bool hasSolution = true;
   bool success = false;
-  int trials = 0;
+
   if(BinaryExpr *BE = dyn_cast<BinaryExpr>(query.expr)){
     Query q = Query(query.constraints, EqExpr::alloc(BE->left, BE->right));
     findSymbolicObjects(query.expr, objects);
@@ -190,11 +192,17 @@ bool Solver::checkStable(const Query& query, bool &result){
       if(hasSolution){
 	ReExprEvaluator a(objects, values);
 	ref<Expr> epsilon;
-	success = a.isAssignmentStable(query.expr, epsilon);
-	if(success){
+	state = a.isAssignmentStable(query.expr, epsilon);
+        switch(state){
+	case Success:
+	  success = true;
 	  break;
-	}else{
+	case Epsilon:
 	  q.changeConstant(epsilon);
+	  values.clear();
+	  break;
+	case MinEqualMax:
+	  break;
 	}
       }else{
 	assert(0 && "no solution");
@@ -1058,7 +1066,19 @@ SolverImpl::SolverRunStatus Z3SolverImpl::runAndGetCex(ref<Expr> query_expr,
 {
   // assume the negation of the query  
   //s->add(builder->construct(Expr::createIsZero(query_expr)));
-  s->add(builder->construct(query_expr));
+
+  if(values.size() == 0){ // we need to reconstruct the query, because we change the epsilon
+    s->reset(); // clear existing constraints
+    s->add(builder->construct(query_expr));
+  } else {
+    for(unsigned i = 0; i < objects.size(); i ++){
+      const Array *array = objects[i];
+      for(unsigned j = 0; j < array -> size; j ++){
+	s->add(builder->constructBlockClause(array, j, values[i]));
+      }
+    }
+    values.clear();
+  }
 
   switch (s->check()) {
   case z3::sat:{

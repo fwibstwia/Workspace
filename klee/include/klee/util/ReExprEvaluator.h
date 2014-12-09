@@ -72,6 +72,11 @@ namespace klee{
   public:
     typedef std::map<const Array*, std::vector<unsigned char> > bindings_ty;
     bindings_ty bindings;
+    enum EvalState{
+      Success = 0,
+      Epsilon = 1,
+      MinEqualMax = 2
+    };
   private:
     void evalRead(const ReadExpr *e, std::vector<ReExprRes> &res);
     void evalReorder(const ReorderExpr *e, std::vector<ReExprRes> &res);
@@ -82,11 +87,13 @@ namespace klee{
   private:
     ref<Expr> epsilon;
     std::map<const ReorderExpr *, std::vector<ReExprRes> > reorderMap;
+    bool isMinEqMax;
   public:
     void evaluate(const ref<Expr> &e, std::vector<ref<Expr> > &res);
-    bool isAssignmentStable(const ref<Expr> &e, ref<Expr> &epsilon);
+    EvalState isAssignmentStable(const ref<Expr> &e, ref<Expr> &epsilon);
     ReExprEvaluator(std::vector<const Array*> &objects,
 		    std::vector< std::vector<unsigned char> > &values){
+      isMinEqMax = true;
       std::vector< std::vector<unsigned char> >::iterator valIt = 
         values.begin();
       for (std::vector<const Array*>::iterator it = objects.begin(),

@@ -188,10 +188,19 @@ void ReExprEvaluator::evalFOlt(const FOltExpr *e, vector<ReExprRes> &res){
 	ref<ConstantExpr> value = CER->FSub(CEL);
 	ref<ConstantExpr> dist = CER->FAbs(CEL);
 	if(minValue.get()){
+	  if(isMinEqMax){
+	    llvm::APFloat apfmin = minValue -> getAPFValue();
+	    llvm::APFloat apfv = value -> getAPFValue();
+            if(apfmin.convertToFloat() != apfv.convertToFloat()){
+	      isMinEqMax = false;
+	    }
+	  }
+
 	  if((minDist -> FOgt(dist)) -> isTrue()){
 	    minValue = value;
 	    minDist = dist;
 	  }
+
 	}else{
 	  minValue = value;
 	  minDist = dist;
@@ -233,9 +242,11 @@ void ReExprEvaluator::evalFOlt(const FOltExpr *e, vector<ReExprRes> &res){
   epsilon = minValue;
 } 
 
-void ReExprEvaluator::evaluate(const ref<Expr> &e, vector<ref<Expr> > &res){
+void ReExprEvaluator::evaluate(const ref<Expr> &e, vector<ReExprRes> &res){
   if(isa<ConstantExpr>(e)){
-    res.push_back(e);
+    ReExprRes r;
+    r.setResVal(e);
+    res.push_back(r);
     return;
   } else {
     switch(e->getKind()){
@@ -257,6 +268,7 @@ void ReExprEvaluator::evaluate(const ref<Expr> &e, vector<ref<Expr> > &res){
     case Expr::InvalidKind:{
       assert(0 && "evaluate invalid expr");
     }
+
     default: {
       vector<vector<ReExprRes> > kids;
       unsigned count = e->getNumKids();
@@ -274,10 +286,15 @@ void ReExprEvaluator::evaluate(const ref<Expr> &e, vector<ref<Expr> > &res){
       } else { // for count == 2
 	ref<Expr> tmp[2];
         for(unsigned i = 0; i < kids[0].size(); i ++){	    
-	  tmp[0] = kids[0][i];
 	  for(unsigned j = 0; j < kids[1].size(); j ++){
-	    tmp[1] = kids[1][j];
-	    res.push_back(e->rebuild(tmp));
+            if(!kids[0][i].isConflict(kids[1][j])){
+	      ReExprRes r;
+	      r.merge(kids[0][i], kids[1][j]);
+	      tmp[0] = kids[0][i].getResVal();
+	      tmp[1] = kids[1][j].getResVal();
+              r.setResVal(e->rebuild(tmp))
+	      res.push_back(r);
+	    }
 	  }
 	}
       }
@@ -287,15 +304,16 @@ void ReExprEvaluator::evaluate(const ref<Expr> &e, vector<ref<Expr> > &res){
   }
 }
 
-bool ReExprEvaluator::isAssignmentStable(const ref<Expr> &e, ref<Expr> &eps){
+EvalState ReExprEvaluator::isAssignmentStable(const ref<Expr> &e, ref<Expr> &eps){
   bool trueRe = false, falseRe = false;
-  vector<ref<Expr> > res;
+  vector<ReExprRes> res;
   evaluate(e,res);
   vector<ref<Expr> >::iterator ite = res.begin();
   
   std::cout << "res.size: " << res.size() << std::endl;
   for(; ite != res.end(); ite++){
-    if(ConstantExpr *CE = dyn_cast<ConstantExpr>(*ite)){
+    ref<Expr> v = ite->getResVal();
+    if(ConstantExpr *CE = dyn_cast<ConstantExpr>(v)){
       if(CE->isTrue()){
 	trueRe = true;
       }else if(CE->isFalse()){
@@ -306,5 +324,11 @@ bool ReExprEvaluator::isAssignmentStable(const ref<Expr> &e, ref<Expr> &eps){
     }
   }
   eps = epsilon;
-  return trueRe && falseRe;
+
+  if(trueRe && falseRe){
+    return Success;
+  }else if(isMinEqMax){
+    return MinEqualMax;
+  }
+  return Epsilon;
 }

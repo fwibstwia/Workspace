@@ -52,6 +52,9 @@ namespace klee {
 			z3::model &m, 
 			std::vector<unsigned char>  &value);
     z3::expr construct(ref<Expr> e);
+    z3::expr constructBlockClause(const Array* var, 
+				  const unsigned index, 
+				  const std::vector<unsigned char> &val);
   };
 
 }
