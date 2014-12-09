@@ -178,7 +178,7 @@ void Query::changeConstant(ref<Expr> &epsilon){
 bool Solver::checkStable(const Query& query, bool &result){
   //Fix me: hasSolution == false
   std::vector<const Array*> objects;
-  EvalState state;
+  ReExprEvaluator::EvalState state;
   int trials = 0;
   bool hasSolution = true;
   bool success = false;
@@ -194,14 +194,14 @@ bool Solver::checkStable(const Query& query, bool &result){
 	ref<Expr> epsilon;
 	state = a.isAssignmentStable(query.expr, epsilon);
         switch(state){
-	case Success:
+	case ReExprEvaluator::Success:
 	  success = true;
 	  break;
-	case Epsilon:
+	case ReExprEvaluator::Epsilon:
 	  q.changeConstant(epsilon);
 	  values.clear();
 	  break;
-	case MinEqualMax:
+	case ReExprEvaluator::MinEqualMax:
 	  break;
 	}
       }else{
@@ -1009,7 +1009,7 @@ bool Z3SolverImpl::computeValue(const Query& query, ref<Expr> &result){
       assert(hasSolution && "state has invalid constraint set");
       // Evaluate the expression with the computed assignment.
       ReExprEvaluator a(objects, values);
-      std::vector<ref<Expr> > res;
+      std::vector<ReExprRes> res;
       a.evaluate(query.expr, res);
       success = true;
   }

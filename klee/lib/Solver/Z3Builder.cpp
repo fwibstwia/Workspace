@@ -71,19 +71,19 @@ expr Z3Builder::getArrayForUpdate(const Array *root,
 expr Z3Builder::constructBlockClause(const Array* var, const unsigned index, const std::vector<unsigned char> &val){
   unsigned offset = index * (var->range/8);
   float v = *((float*)&val[offset]);
-  upper = nextafterf(v, v + 1.0f); // next floating-point value
-  lower = nextafterf(v, v - 1.0f); // previous floating-point value
+  float upper = nextafterf(v, v + 1.0f); // next floating-point value
+  float lower = nextafterf(v, v - 1.0f); // previous floating-point value
    
   std::ostringstream upperStream;
-  upperStream << fixed << setprecision(9) << upper;
-  string upper_s = upperStream.str();
+  upperStream << std::fixed << std::setprecision(9) << upper;
+  std::string upper_s = upperStream.str();
 
   std::ostringstream lowerStream;
-  lowerStream << fixed << setprecision(9) << lower;
-  string lower_s = lowerStream.str();
+  lowerStream << std::fixed << std::setprecision(9) << lower;
+  std::string lower_s = lowerStream.str();
 
-  expr upper_e = c.real_val(upper_s.c_str());
-  expr lower_e = c.real_val(lower_s.c_str());
+  expr upper_e = c->real_val(upper_s.c_str());
+  expr lower_e = c->real_val(lower_s.c_str());
    
   std::stringstream sstm;
   sstm << var->name << index;

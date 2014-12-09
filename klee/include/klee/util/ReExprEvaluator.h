@@ -28,7 +28,7 @@ namespace klee{
     ReExprRes(){}
     ReExprRes(const std::set<ref<Expr> > &_reorders,
 	      const std::set<ref<Expr> > &_reorderCompls,
-	      ref<Expr> _resVal){
+	      const ref<Expr> _resVal){
       reorders = _reorders;
       reorderCompls = _reorderCompls;
       resVal = _resVal;
@@ -44,7 +44,7 @@ namespace klee{
       std::set<ref<Expr> > v;
       std::set_intersection(reorders.begin(), reorders.end(),
 			    (r.reorderCompls).begin(), (r.reorderCompls).end(),
-			    v.begin());
+			    std::inserter(v, v.end()));
       if(v.size() != 0)
 	return true;
       return false;			    
@@ -52,11 +52,12 @@ namespace klee{
 
     void merge(const ReExprRes &r1, const ReExprRes &r2){
       std::set_union((r1.reorders).begin(), (r1.reorders).end(), 
-		      (r2.reorders).begin(), (r2.reorders).end(), reorders.begin());
+		      (r2.reorders).begin(), (r2.reorders).end(), 
+		     std::inserter(reorders, reorders.end()));
 
       std::set_union((r1.reorderCompls).begin(), (r1.reorderCompls).end(),
 		     (r2.reorderCompls).begin(), (r2.reorderCompls).end(),
-		     reorderCompls.begin());
+		     std::inserter(reorderCompls, reorderCompls.end()));
     }
 
     ref<Expr> getResVal(){
@@ -89,7 +90,7 @@ namespace klee{
     std::map<const ReorderExpr *, std::vector<ReExprRes> > reorderMap;
     bool isMinEqMax;
   public:
-    void evaluate(const ref<Expr> &e, std::vector<ref<Expr> > &res);
+    void evaluate(const ref<Expr> &e, std::vector<ReExprRes> &res);
     EvalState isAssignmentStable(const ref<Expr> &e, ref<Expr> &epsilon);
     ReExprEvaluator(std::vector<const Array*> &objects,
 		    std::vector< std::vector<unsigned char> > &values){
@@ -110,7 +111,7 @@ namespace klee{
 					       unsigned index, 
 					       std::vector<ReExprRes> &res){
     ReExprRes re;
-    ref<Expr> arrayV = getArrayValue(&os, index));
+    ref<Expr> arrayV = getArrayValue(&os, index);
     re.setResVal(arrayV);
     res.push_back(re);
   }

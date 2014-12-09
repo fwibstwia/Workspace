@@ -56,7 +56,7 @@ void ReExprEvaluator::evalReorder(const ReorderExpr *e, vector<ReExprRes> &res){
   //Fix me: need to add type support, currently we assume float
   //Fix me: need to add round mode support
   if(reorderMap.find(e) != reorderMap.end()){
-    res = reorderMap.find(e) -> second();
+    res = reorderMap.find(e)->second;
     return;
   }
 
@@ -68,11 +68,8 @@ void ReExprEvaluator::evalReorder(const ReorderExpr *e, vector<ReExprRes> &res){
 
   Reorder ro(FE_TONEAREST);
 
-  vector<ref<Expr> > kids;
-  vector<ref<Expr> > tmp;
-
-  srand(time(0));
-  int random;
+  vector<ReExprRes> kids;
+  vector<ReExprRes> tmp;
 
   for(int i = 0; i < len; i ++){
     evaluate((e->operands)[i], tmp);
@@ -83,7 +80,7 @@ void ReExprEvaluator::evalReorder(const ReorderExpr *e, vector<ReExprRes> &res){
   if(e->cat == Expr::RE_FMA){
     for(int i = 0; i < len; i = i + 2){
       float x,y;
-      if(ConstantExpr *CE = dyn_cast<ConstantExpr>(kids[i])){        
+      if(ConstantExpr *CE = dyn_cast<ConstantExpr>(kids[i].getResVal())){        
 	llvm::APFloat v = CE->getAPFValue();
 	x = v.convertToFloat();
 	opl.push_back(x);
@@ -91,7 +88,7 @@ void ReExprEvaluator::evalReorder(const ReorderExpr *e, vector<ReExprRes> &res){
 	assert(0 && "encounter non-constant in Reorder Rebuild");
       }
 
-      if(ConstantExpr *CE = dyn_cast<ConstantExpr>(kids[i+1])){
+      if(ConstantExpr *CE = dyn_cast<ConstantExpr>(kids[i+1].getResVal())){
 	llvm::APFloat v = CE->getAPFValue();
 	y = v.convertToFloat();
 	opr.push_back(y);
@@ -103,7 +100,7 @@ void ReExprEvaluator::evalReorder(const ReorderExpr *e, vector<ReExprRes> &res){
     }
   } else {
     for(int i = 0; i < len; i ++){
-      if(ConstantExpr *CE = dyn_cast<ConstantExpr>(kids[i])){
+      if(ConstantExpr *CE = dyn_cast<ConstantExpr>(kids[i].getResVal())){
 	llvm::APFloat v = CE->getAPFValue();
 	ops.push_back(v.convertToFloat());
       }else{
@@ -163,7 +160,7 @@ void ReExprEvaluator::evalReorder(const ReorderExpr *e, vector<ReExprRes> &res){
 
   llvm::APFloat apMin(min), apMax(max);
   ref<Expr> minExpr = ConstantExpr::alloc(apMin);
-  ref<Expr> maxEXpr = ConstantExpr::alloc(apMax);
+  ref<Expr> maxExpr = ConstantExpr::alloc(apMax);
   
   reorders.insert(minExpr);
   reorderCompls.insert(maxExpr);
@@ -292,7 +289,7 @@ void ReExprEvaluator::evaluate(const ref<Expr> &e, vector<ReExprRes> &res){
 	      r.merge(kids[0][i], kids[1][j]);
 	      tmp[0] = kids[0][i].getResVal();
 	      tmp[1] = kids[1][j].getResVal();
-              r.setResVal(e->rebuild(tmp))
+              r.setResVal(e->rebuild(tmp));
 	      res.push_back(r);
 	    }
 	  }
@@ -304,11 +301,11 @@ void ReExprEvaluator::evaluate(const ref<Expr> &e, vector<ReExprRes> &res){
   }
 }
 
-EvalState ReExprEvaluator::isAssignmentStable(const ref<Expr> &e, ref<Expr> &eps){
+ReExprEvaluator::EvalState ReExprEvaluator::isAssignmentStable(const ref<Expr> &e, ref<Expr> &eps){
   bool trueRe = false, falseRe = false;
   vector<ReExprRes> res;
   evaluate(e,res);
-  vector<ref<Expr> >::iterator ite = res.begin();
+  vector<ReExprRes>::iterator ite = res.begin();
   
   std::cout << "res.size: " << res.size() << std::endl;
   for(; ite != res.end(); ite++){
