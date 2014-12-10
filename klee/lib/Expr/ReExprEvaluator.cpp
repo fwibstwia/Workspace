@@ -112,25 +112,25 @@ void ReExprEvaluator::evalReorder(const ReorderExpr *e, vector<ReExprRes> &res){
   switch(e->cat){
   case Expr::RE_FMA:{
     vector<ref<Expr> > extremes;
-    fmaMax = ro.getFMAMax(opl, opr);
-    fmaMin = ro.getFMAMin(opl, opr);
+    //fmaMax = ro.getFMAMax(opl, opr);
+    //fmaMin = ro.getFMAMin(opl, opr);
     max = ro.getPlusMax(ops);
     min = ro.getPlusMin(ops);
 
     llvm::APFloat apFmaMax(fmaMax), apFmaMin(fmaMin),
       apMax(max), apMin(min);
-    extremes.push_back(ConstantExpr::alloc(apFmaMin));
-    extremes.push_back(ConstantExpr::alloc(apFmaMax));
+    //extremes.push_back(ConstantExpr::alloc(apFmaMin));
+    //extremes.push_back(ConstantExpr::alloc(apFmaMax));
     extremes.push_back(ConstantExpr::alloc(apMin));
     extremes.push_back(ConstantExpr::alloc(apMax));   
     
     for(int i = 0; i < extremes.size(); i ++){
-      set<ref<Expr> > reorders;
-      set<ref<Expr> > reorderCompls;
-      reorders.insert(extremes[i]);
+      set<int64_t> reorders;
+      set<int64_t> reorderCompls;
+      reorders.insert((int64_t)&extremes[i]);
       for(int j = 0; j < extremes.size(); j ++){
 	if(j != i){
-	  reorderCompls.insert(extremes[j]);
+	  reorderCompls.insert((int64_t)&extremes[j]);
 	}
       }
       res.push_back(ReExprRes(reorders, reorderCompls, extremes[i]));
@@ -155,15 +155,15 @@ void ReExprEvaluator::evalReorder(const ReorderExpr *e, vector<ReExprRes> &res){
     assert(0 && "unsupported reorderable expression");
   }
 
-  set<ref<Expr> > reorders;
-  set<ref<Expr> > reorderCompls;
+  set<int64_t> reorders;
+  set<int64_t> reorderCompls;
 
   llvm::APFloat apMin(min), apMax(max);
   ref<Expr> minExpr = ConstantExpr::alloc(apMin);
   ref<Expr> maxExpr = ConstantExpr::alloc(apMax);
   
-  reorders.insert(minExpr);
-  reorderCompls.insert(maxExpr);
+  reorders.insert((int64_t)&minExpr);
+  reorderCompls.insert((int64_t)&maxExpr);
   res.push_back(ReExprRes(reorders, reorderCompls, minExpr));
   res.push_back(ReExprRes(reorderCompls, reorders, maxExpr));  
 

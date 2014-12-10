@@ -21,13 +21,13 @@ namespace klee{
 
   class ReExprRes{
   private:
-    std::set<ref<Expr> > reorders;
-    std::set<ref<Expr> > reorderCompls;
+    std::set<int64_t> reorders;
+    std::set<int64_t> reorderCompls;
     ref<Expr> resVal;
   public:
     ReExprRes(){}
-    ReExprRes(const std::set<ref<Expr> > &_reorders,
-	      const std::set<ref<Expr> > &_reorderCompls,
+    ReExprRes(const std::set<int64_t> &_reorders,
+	      const std::set<int64_t> &_reorderCompls,
 	      const ref<Expr> _resVal){
       reorders = _reorders;
       reorderCompls = _reorderCompls;
@@ -41,7 +41,7 @@ namespace klee{
     }
     
     bool isConflict(const ReExprRes &r){
-      std::set<ref<Expr> > v;
+      std::set<int64_t> v;
       std::set_intersection(reorders.begin(), reorders.end(),
 			    (r.reorderCompls).begin(), (r.reorderCompls).end(),
 			    std::inserter(v, v.end()));

@@ -186,8 +186,8 @@ bool Solver::checkStable(const Query& query, bool &result){
   if(BinaryExpr *BE = dyn_cast<BinaryExpr>(query.expr)){
     Query q = Query(query.constraints, EqExpr::alloc(BE->left, BE->right));
     findSymbolicObjects(query.expr, objects);
-    while(!success && trials < 3){
-      std::vector< std::vector<unsigned char> > values;
+    std::vector< std::vector<unsigned char> > values;
+    while(!success && trials < 20){ 
       impl->computeInitialValues(q, objects, values, hasSolution);
       if(hasSolution){
 	ReExprEvaluator a(objects, values);
@@ -1053,7 +1053,7 @@ bool Z3SolverImpl::computeInitialValues(const Query& query,
       }
   }  
    
-  s->reset();
+  //s->reset();
   //pop(_meta_solver); 
   
   return(success);

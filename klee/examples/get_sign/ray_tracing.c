@@ -29,7 +29,7 @@ int ray_tracing(float *r, float *s, float radius) {
   float C =  C1 - radius;
   float D = B*B - 4*A*C;
   //float D = A + B - C ;*/              
-  if (D > 0)
+  if (D > 0.0001f)
     return 0;
 } 
 
