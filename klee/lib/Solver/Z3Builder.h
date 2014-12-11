@@ -33,7 +33,7 @@ namespace klee {
     /// optimizeDivides - Rewrite division and reminders by constants
     /// into multiplies and shifts. Z3 should probably handle this for
     /// use.
-    z3::context *c;
+    z3::context& c;
     bool optimizeDivides;
     Z3ArrayExprHash _arr_hash;
 
@@ -43,7 +43,7 @@ namespace klee {
 			       const UpdateNode *un,
 			       const unsigned index);
   public:
-    Z3Builder(z3::context *_c, bool _optimizeDivides=false): c(_c), 
+    Z3Builder(z3::context &_c, bool _optimizeDivides=false):c(_c),
 							    optimizeDivides(_optimizeDivides){
     }
     ~Z3Builder();

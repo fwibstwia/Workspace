@@ -30,7 +30,7 @@ void Z3Builder::getInitialRead(const Array *os, const unsigned index,
   try{
   expr res = m.get_const_interp(getInitialArray(os,index).decl());
 
-  Z3_string s = Z3_get_numeral_decimal_string(*c, res, 50);
+  Z3_string s = Z3_get_numeral_decimal_string(c, res, 50);
   std::stringstream sstm;
   sstm << os->name << index;
   std::cout << sstm.str() << ":" << s << std::endl;  
@@ -48,7 +48,7 @@ expr Z3Builder::getInitialArray(const Array *root, const unsigned index){
   assert(root);
   std::stringstream sstm;
   sstm << root->name << index;
-  return c -> real_const((sstm.str()).c_str());
+  return c.real_const((sstm.str()).c_str());
 }
 
 expr Z3Builder::getArrayForUpdate(const Array *root, 
@@ -82,12 +82,12 @@ expr Z3Builder::constructBlockClause(const Array* var, const unsigned index, con
   lowerStream << std::fixed << std::setprecision(9) << lower;
   std::string lower_s = lowerStream.str();
 
-  expr upper_e = c->real_val(upper_s.c_str());
-  expr lower_e = c->real_val(lower_s.c_str());
+  expr upper_e = c.real_val(upper_s.c_str());
+  expr lower_e = c.real_val(lower_s.c_str());
    
   std::stringstream sstm;
   sstm << var->name << index;
-  expr var_e =  c -> real_const((sstm.str()).c_str());
+  expr var_e =  c.real_const((sstm.str()).c_str());
   
   return var_e < lower_e || var_e > upper_e;
 }
@@ -101,11 +101,11 @@ expr Z3Builder::construct(ref<Expr> e){
   case Expr::Constant: {
     ConstantExpr *CE = cast<ConstantExpr>(e);
     if(CE->getWidth() == Expr::Bool){
-      return CE->isTrue()?c->bool_val(true):c->bool_val(false);
+      return CE->isTrue()?c.bool_val(true):c.bool_val(false);
     }
     std::string s;
     CE->toString(s, 10, 1);
-    return c->real_val(s.c_str());
+    return c.real_val(s.c_str());
   }
 
   case Expr::NotOptimized: {
@@ -270,6 +270,6 @@ expr Z3Builder::construct(ref<Expr> e){
 
   default:
     assert(0 && "unhandled Expr type");
-    return c->bool_val(true);
+    return c.bool_val(true);
   }
 }

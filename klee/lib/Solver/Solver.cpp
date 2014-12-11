@@ -910,8 +910,8 @@ SolverImpl::SolverRunStatus STPSolverImpl::getOperationStatusCode() {
 /***/
 class Z3SolverImpl : public SolverImpl {
 private:
-  z3::context *c;
-  z3::solver *s;
+  z3::context c;
+  z3::solver s;
   Z3Builder *builder;
   double timeout;
   bool useForkedZ3;
@@ -947,12 +947,14 @@ SolverImpl::SolverRunStatus Z3SolverImpl::getOperationStatusCode() {
 }
 
 Z3SolverImpl::Z3SolverImpl(bool _useForkedZ3, bool _optimizeDivides)
-  : timeout(0.0),
+  : s(z3::solver(c)),
+    timeout(0.0),
     useForkedZ3(false),
     runStatusCode(SOLVER_RUN_STATUS_FAILURE){
-  c = new z3::context();
   builder = new Z3Builder(c, _optimizeDivides);
-  s = new z3::solver(*c);
+  z3::params p(c);
+  p.set("shuffle_vars", true); 
+  s.set(p);
 
   assert(builder && "unable to create Z3Builder");
 
@@ -1028,7 +1030,7 @@ bool Z3SolverImpl::computeInitialValues(const Query& query,
   assert(builder);
   if (!useForkedZ3) {
     for (ConstraintManager::const_iterator it = query.constraints.begin(), ie = query.constraints.end(); it != ie; ++it) {
-      s->add(builder->construct(*it));  
+      s.add(builder->construct(*it));  
     }  
   }  
   ++stats::queries;
@@ -1068,22 +1070,22 @@ SolverImpl::SolverRunStatus Z3SolverImpl::runAndGetCex(ref<Expr> query_expr,
   //s->add(builder->construct(Expr::createIsZero(query_expr)));
 
   if(values.size() == 0){ // we need to reconstruct the query, because we change the epsilon
-    s->reset(); // clear existing constraints
-    s->add(builder->construct(query_expr));
+    s.reset(); // clear existing constraints
+    s.add(builder->construct(query_expr));
   } else {
     for(unsigned i = 0; i < objects.size(); i ++){
       const Array *array = objects[i];
       for(unsigned j = 0; j < array -> size; j ++){
-	s->add(builder->constructBlockClause(array, j, values[i]));
+	s.add(builder->constructBlockClause(array, j, values[i]));
       }
     }
     values.clear();
   }
 
-  switch (s->check()) {
+  switch (s.check()) {
   case z3::sat:{
     values.reserve(objects.size());
-    z3::model m = s->get_model();
+    z3::model m = s.get_model();
     for (std::vector<const Array*>::const_iterator it = objects.begin(), ie = objects.end(); it != ie; ++it) {
       const Array *array = *it;
       std::vector<unsigned char> data;
