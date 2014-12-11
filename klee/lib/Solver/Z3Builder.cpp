@@ -33,7 +33,7 @@ void Z3Builder::getInitialRead(const Array *os, const unsigned index,
   Z3_string s = Z3_get_numeral_decimal_string(c, res, 50);
   std::stringstream sstm;
   sstm << os->name << index;
-  std::cout << sstm.str() << ":" << s << std::endl;  
+  //std::cout << sstm.str() << ":" << s << std::endl;  
   char *stopString;
   v = strtof(s, &stopString);
   }catch(exception e){
@@ -75,11 +75,11 @@ expr Z3Builder::constructBlockClause(const Array* var, const unsigned index, con
   float lower = nextafterf(v, v - 1.0f); // previous floating-point value
    
   std::ostringstream upperStream;
-  upperStream << std::fixed << std::setprecision(9) << upper;
+  upperStream << std::fixed << std::setprecision(15) << upper;
   std::string upper_s = upperStream.str();
 
   std::ostringstream lowerStream;
-  lowerStream << std::fixed << std::setprecision(9) << lower;
+  lowerStream << std::fixed << std::setprecision(15) << lower;
   std::string lower_s = lowerStream.str();
 
   expr upper_e = c.real_val(upper_s.c_str());
@@ -88,6 +88,9 @@ expr Z3Builder::constructBlockClause(const Array* var, const unsigned index, con
   std::stringstream sstm;
   sstm << var->name << index;
   expr var_e =  c.real_const((sstm.str()).c_str());
+  
+  std::cout << sstm.str() << ":" << std::fixed << std::setprecision(15) 
+	    << lower << " " << upper << std::endl;  
   
   return var_e < lower_e || var_e > upper_e;
 }

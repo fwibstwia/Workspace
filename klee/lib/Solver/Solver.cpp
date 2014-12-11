@@ -187,7 +187,7 @@ bool Solver::checkStable(const Query& query, bool &result){
     Query q = Query(query.constraints, EqExpr::alloc(BE->left, BE->right));
     findSymbolicObjects(query.expr, objects);
     std::vector< std::vector<unsigned char> > values;
-    while(!success && trials < 20){ 
+    while(!success && trials < 200){ 
       impl->computeInitialValues(q, objects, values, hasSolution);
       if(hasSolution){
 	ReExprEvaluator a(objects, values);
