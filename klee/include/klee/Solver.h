@@ -58,7 +58,6 @@ namespace klee {
       False = -1,
       Unknown = 0
     };
-  
   public:
     /// validity_to_str - Return the name of given Validity enum value.
     static const char *validity_to_str(Validity v);
@@ -103,6 +102,8 @@ namespace klee {
     /// \return True on success.
     bool mustBeTrue(const Query&, bool &result);
     bool checkStable(const Query&, bool &result);
+    void printUnstableInput(const std::vector<const Array*> &objects,
+			    std::vector< std::vector<unsigned char> > &result);
 
     /// mustBeFalse - Determine if the expression is provably false.
     ///

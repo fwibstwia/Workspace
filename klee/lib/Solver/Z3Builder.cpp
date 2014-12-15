@@ -61,8 +61,8 @@ expr Z3Builder::getArrayForUpdate(const Array *root,
     // FIXME: This really needs to be non-recursive.
     bool hashed = _arr_hash.lookupUpdateNodeExpr(un, un_expr);
     if(!hashed){
-      	un_expr = new expr(construct(un->value));
-       _arr_hash.hashUpdateNodeExpr(un, un_expr);
+      un_expr = new expr(construct(un->value));
+      _arr_hash.hashUpdateNodeExpr(un, un_expr);
     }
     return *un_expr;
   }
@@ -73,7 +73,7 @@ expr Z3Builder::constructBlockClause(const Array* var, const unsigned index, con
   float v = *((float*)&val[offset]);
   float upper = nextafterf(v, v + 1.0f); // next floating-point value
   float lower = nextafterf(v, v - 1.0f); // previous floating-point value
-   
+  
   std::ostringstream upperStream;
   upperStream << std::fixed << std::setprecision(15) << upper;
   std::string upper_s = upperStream.str();
@@ -87,12 +87,31 @@ expr Z3Builder::constructBlockClause(const Array* var, const unsigned index, con
    
   std::stringstream sstm;
   sstm << var->name << index;
+
+  //std::cout << "var bound: "<< sstm.str() << ":" << lower_s << " " << upper_s << std::endl;
+
   expr var_e =  c.real_const((sstm.str()).c_str());
-  
-  std::cout << sstm.str() << ":" << std::fixed << std::setprecision(15) 
-	    << lower << " " << upper << std::endl;  
-  
-  return var_e < lower_e || var_e > upper_e;
+  return var_e < lower_e  || var_e > upper_e;
+}
+
+expr Z3Builder::constructSearchSpace(const Array *var, const unsigned index, float lower, float upper){
+  std::ostringstream upperStream;
+  upperStream << std::fixed << std::setprecision(15) << upper;
+  std::string upper_s = upperStream.str();
+
+  std::ostringstream lowerStream;
+  lowerStream << std::fixed << std::setprecision(15) << lower;
+  std::string lower_s = lowerStream.str();
+
+  std::cout << "search space: "<< lower_s << " " << upper_s << std::endl;
+
+  expr upper_e = c.real_val(upper_s.c_str());
+  expr lower_e = c.real_val(lower_s.c_str());
+
+  std::stringstream sstm;
+  sstm << var->name << index;
+  expr var_e =  c.real_const((sstm.str()).c_str());
+  return var_e < upper_e && var_e > lower_e;
 }
 
 expr Z3Builder::construct(ref<Expr> e){

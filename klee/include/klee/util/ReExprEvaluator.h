@@ -13,6 +13,7 @@
 #include <map>
 #include <set>
 #include <iostream>
+#include <iomanip> 
 
 #include "klee/Expr.h"
 
@@ -124,6 +125,7 @@ namespace klee{
     if (it!=bindings.end() && offset<it->second.size()) {
       //just for float
       float v = *((float*)&it->second[offset]);
+//std::cout << array-> name << index << std::fixed << std::setprecision(15) << v << std::endl;
       return ConstantExpr::alloc(llvm::APFloat(v));
     } else {
       return ConstantExpr::alloc(0, array->getRange());

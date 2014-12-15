@@ -182,6 +182,9 @@ void ReExprEvaluator::evalFOlt(const FOltExpr *e, vector<ReExprRes> &res){
     evaluate(e->getKid(1), kidRes);
     for(int i = 0; i < kidRes.size(); i ++){
       if(ConstantExpr *CEL = dyn_cast<ConstantExpr>(kidRes[i].getResVal())){
+	//std::string test;
+	//CEL->toString(test, 10, 1);
+	//std::cout << "extreme value: " << test << std::endl;
 	ref<ConstantExpr> value = CER->FSub(CEL);
 	ref<ConstantExpr> dist = CER->FAbs(CEL);
 	if(minValue.get()){
@@ -306,8 +309,7 @@ ReExprEvaluator::EvalState ReExprEvaluator::isAssignmentStable(const ref<Expr> &
   vector<ReExprRes> res;
   evaluate(e,res);
   vector<ReExprRes>::iterator ite = res.begin();
-  
-  std::cout << "res.size: " << res.size() << std::endl;
+ 
   for(; ite != res.end(); ite++){
     ref<Expr> v = ite->getResVal();
     if(ConstantExpr *CE = dyn_cast<ConstantExpr>(v)){

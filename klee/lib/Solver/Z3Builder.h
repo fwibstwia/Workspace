@@ -55,6 +55,10 @@ namespace klee {
     z3::expr constructBlockClause(const Array* var, 
 				  const unsigned index, 
 				  const std::vector<unsigned char> &val);
+    z3::expr constructSearchSpace(const Array* var, 
+				  const unsigned index,
+				  const float lower,
+				  const float upper);
   };
 
 }

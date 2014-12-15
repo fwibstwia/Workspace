@@ -49,6 +49,10 @@ IgnoreSolverFailures("ignore-solver-failures",
                      llvm::cl::init(false),
                      llvm::cl::desc("Ignore any solver failures (default=off)"));
 
+llvm::cl::opt<double>
+  SearchPoint("search-point",
+	      llvm::cl::desc("Search Point (default=0 (off))"),
+	      llvm::cl::init(0));
 
 using namespace klee;
 
@@ -68,7 +72,7 @@ using namespace metaSMT::solver;
 
 #endif /* SUPPORT_METASMT */
 
-
+float sp;
 
 /***/
 
@@ -143,8 +147,17 @@ bool Solver::evaluate(const Query& query, Validity &result) {
     return true;
   }
   bool stableResult;
-  checkStable(query, stableResult);
-  return impl->computeValidity(query, result);
+  int i = 0;
+  sp = SearchPoint;
+  while(i < 1000){
+    bool result = checkStable(query, stableResult);
+    if(result){
+      i ++;
+    }
+    sp += 0.01f;
+  }
+  return false;
+  //impl->computeValidity(query, result);
 }
 
 bool Solver::mustBeTrue(const Query& query, bool &result) {
@@ -169,9 +182,9 @@ void Query::changeConstant(ref<Expr> &epsilon){
   consEps->toString(eps, 10, 1);
   ref<ConstantExpr> res = CE->FAdd(consEps);
   res->toString(upd, 10, 1);
-  std::cout << "ori: " << std::setprecision(9) << ori << std::endl;
-  std::cout << "eps: " << std::setprecision(9) << eps << std::endl;
-  std::cout << "upd: " << std::setprecision(9) << upd << std::endl;
+  std::cout << "ori: " << std::setprecision(15) << ori << std::endl;
+  std::cout << "eps: " << std::setprecision(15) << eps << std::endl;
+  std::cout << "upd: " << std::setprecision(15) << upd << std::endl;
   eq->left = res;
 }
 
@@ -187,7 +200,7 @@ bool Solver::checkStable(const Query& query, bool &result){
     Query q = Query(query.constraints, EqExpr::alloc(BE->left, BE->right));
     findSymbolicObjects(query.expr, objects);
     std::vector< std::vector<unsigned char> > values;
-    while(!success && trials < 200){ 
+    while(!success && trials < 50){ 
       impl->computeInitialValues(q, objects, values, hasSolution);
       if(hasSolution){
 	ReExprEvaluator a(objects, values);
@@ -195,6 +208,7 @@ bool Solver::checkStable(const Query& query, bool &result){
 	state = a.isAssignmentStable(query.expr, epsilon);
         switch(state){
 	case ReExprEvaluator::Success:
+          printUnstableInput(objects, values);
 	  success = true;
 	  break;
 	case ReExprEvaluator::Epsilon:
@@ -205,13 +219,28 @@ bool Solver::checkStable(const Query& query, bool &result){
 	  break;
 	}
       }else{
-	assert(0 && "no solution");
+	trials = 50;
       }
       trials ++;
     }
     result = success;
   }
   return success;
+}
+
+void Solver::printUnstableInput(const std::vector<const Array*> &objects,
+				std::vector< std::vector<unsigned char> > &result){
+ for(unsigned i = 0; i < objects.size(); i ++){
+   const Array *array = objects[i];
+   for(unsigned j = 0; j < array -> size; j ++){
+     unsigned offset = j * (array->range/8);
+     float v = *((float*)&result[i][offset]);
+     std::cout << std::fixed 
+	       << std::setprecision(15) << v
+	       << " ";
+   }
+ }
+ std::cout << std::endl;
 }
 
 bool Solver::mustBeFalse(const Query& query, bool &result) {
@@ -952,8 +981,10 @@ Z3SolverImpl::Z3SolverImpl(bool _useForkedZ3, bool _optimizeDivides)
     useForkedZ3(false),
     runStatusCode(SOLVER_RUN_STATUS_FAILURE){
   builder = new Z3Builder(c, _optimizeDivides);
+
   z3::params p(c);
-  p.set("shuffle_vars", true); 
+  //  p.set("shuffle_vars", true); 
+  p.set("seed", (unsigned)4294967295);
   s.set(p);
 
   assert(builder && "unable to create Z3Builder");
@@ -1072,6 +1103,7 @@ SolverImpl::SolverRunStatus Z3SolverImpl::runAndGetCex(ref<Expr> query_expr,
   if(values.size() == 0){ // we need to reconstruct the query, because we change the epsilon
     s.reset(); // clear existing constraints
     s.add(builder->construct(query_expr));
+    s.add(builder->constructSearchSpace(objects[1], 0, sp, sp + 0.1f));
   } else {
     for(unsigned i = 0; i < objects.size(); i ++){
       const Array *array = objects[i];
