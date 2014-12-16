@@ -38,6 +38,7 @@ namespace klee {
     Z3ArrayExprHash _arr_hash;
 
   private:
+
     z3::expr getInitialArray(const Array *root, const unsigned index);
     z3::expr getArrayForUpdate(const Array *root, 
 			       const UpdateNode *un,
@@ -47,18 +48,23 @@ namespace klee {
 							    optimizeDivides(_optimizeDivides){
     }
     ~Z3Builder();
+    template <typename T>
     void getInitialRead(const Array *os, 
 			const unsigned index,
 			z3::model &m, 
 			std::vector<unsigned char>  &value);
+
     z3::expr construct(ref<Expr> e);
+   
+    template <typename T>
     z3::expr constructBlockClause(const Array* var, 
 				  const unsigned index, 
 				  const std::vector<unsigned char> &val);
+    template <typename T>
     z3::expr constructSearchSpace(const Array* var, 
 				  const unsigned index,
-				  const float lower,
-				  const float upper);
+				  const T lower,
+				  const T upper);
   };
 
 }

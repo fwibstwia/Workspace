@@ -16,32 +16,39 @@ using namespace z3;
 using namespace klee;
 
 Z3ArrayExprHash::~Z3ArrayExprHash(){
+
 }
 
 Z3Builder::~Z3Builder(){
   ///fix me: delete _arr_hash;
 }
 
+template <typename T>
 void Z3Builder::getInitialRead(const Array *os, const unsigned index, 
 			       model &m, std::vector<unsigned char> &value){  
-  float v;
-  value.resize(4);
+  T v;
+  value.resize(sizeof(T));
   
   try{
   expr res = m.get_const_interp(getInitialArray(os,index).decl());
 
   Z3_string s = Z3_get_numeral_decimal_string(c, res, 50);
-  std::stringstream sstm;
-  sstm << os->name << index;
+  //std::stringstream sstm;
+  //sstm << os->name << index;
   //std::cout << sstm.str() << ":" << s << std::endl;  
   char *stopString;
-  v = strtof(s, &stopString);
+  if(sizeof(T) == 4){
+    v = strtof(s, &stopString);
+  }else if(size(T) == 8){
+    v = strtod(s, &stopString); 
+  }
+
   }catch(exception e){
     v = 0;
   }
 
   char *p = reinterpret_cast<char*>(&v);
-  std::copy(p, p + sizeof(float), value.begin());
+  std::copy(p, p + sizeof(T), value.begin()); 
 }
 
 expr Z3Builder::getInitialArray(const Array *root, const unsigned index){
@@ -68,11 +75,19 @@ expr Z3Builder::getArrayForUpdate(const Array *root,
   }
 }
 
+template <typename T>
 expr Z3Builder::constructBlockClause(const Array* var, const unsigned index, const std::vector<unsigned char> &val){
+  T upper, lower;
   unsigned offset = index * (var->range/8);
-  float v = *((float*)&val[offset]);
-  float upper = nextafterf(v, v + 1.0f); // next floating-point value
-  float lower = nextafterf(v, v - 1.0f); // previous floating-point value
+  T v = *((T*)&val[offset]);
+  
+  if(sizeof(T) == 4){
+    upper = nextafterf(v, v + 1.0f); // next floating-point value
+    lower = nextafterf(v, v - 1.0f); // previous floating-point value
+  }else if(sizeof(T) == 8){
+    upper = nextafter(v, v + 1.0);
+    lower = nextafter(v, v - 1.0);
+  }
   
   std::ostringstream upperStream;
   upperStream << std::fixed << std::setprecision(15) << upper;
@@ -94,13 +109,14 @@ expr Z3Builder::constructBlockClause(const Array* var, const unsigned index, con
   return var_e < lower_e  || var_e > upper_e;
 }
 
-expr Z3Builder::constructSearchSpace(const Array *var, const unsigned index, float lower, float upper){
+template <typename T>
+expr Z3Builder::constructSearchSpace(const Array *var, const unsigned index, T lower, T upper){
   std::ostringstream upperStream;
-  upperStream << std::fixed << std::setprecision(15) << upper;
+  upperStream << std::fixed << std::setprecision(17) << upper;
   std::string upper_s = upperStream.str();
 
   std::ostringstream lowerStream;
-  lowerStream << std::fixed << std::setprecision(15) << lower;
+  lowerStream << std::fixed << std::setprecision(17) << lower;
   std::string lower_s = lowerStream.str();
 
   std::cout << "search space: "<< lower_s << " " << upper_s << std::endl;
@@ -295,3 +311,14 @@ expr Z3Builder::construct(ref<Expr> e){
     return c.bool_val(true);
   }
 }
+
+template void Z3Builder::getInitialRead<float>(const Array *os, const unsigned index, 
+					       model &m, std::vector<unsigned char> &value);
+template void Z3Builder::getInitialRead<double>(const Array *os, const unsigned index, 
+					       model &m, std::vector<unsigned char> &value);
+
+template expr Z3Builder::constructBlockClause<float>(const Array* var, const unsigned index, const std::vector<unsigned char> &val);
+template expr Z3Builder::constructBlockClause<double>(const Array* var, const unsigned index, const std::vector<unsigned char> &val);
+
+template expr Z3Builder::constructSearchSpace<float>(const Array *var, const unsigned index, float lower, float upper);
+template expr Z3Builder::constructSearchSpace<double>(const Array *var, const unsigned index, double lower, double upper);

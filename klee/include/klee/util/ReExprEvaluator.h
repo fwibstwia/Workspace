@@ -82,6 +82,8 @@ namespace klee{
   private:
     void evalRead(const ReadExpr *e, std::vector<ReExprRes> &res);
     void evalReorder(const ReorderExpr *e, std::vector<ReExprRes> &res);
+    template <typename T>
+    void getReorderExtreme<T>(const std::vector<ReExprRes> &kids, vector<ReExprRes> &res);
     void evalFOlt(const FOltExpr *e, std::vector<ReExprRes> &res);
     void getInitialValue(const Array &os, unsigned index, std::vector<ReExprRes> &res); 
     void evalUpdate(const UpdateList &ul, unsigned index, std::vector<ReExprRes> &res);
@@ -123,10 +125,14 @@ namespace klee{
     bindings_ty::const_iterator it = bindings.find(array);
     unsigned offset = index * (array->range/8);
     if (it!=bindings.end() && offset<it->second.size()) {
-      //just for float
-      float v = *((float*)&it->second[offset]);
-//std::cout << array-> name << index << std::fixed << std::setprecision(15) << v << std::endl;
-      return ConstantExpr::alloc(llvm::APFloat(v));
+      if(array->range == Expr::Int64){
+	double v = *((double*)&it->second[offset]);
+	return ConstantExpr::alloc(llvm::APFloat(v));
+      }else if(array->range == Expr::Int32){
+	float v = *((float*)&it->second[offset]);
+	return ConstantExpr::alloc(llvm::APFloat(v));
+	//std::cout << array-> name << index << std::fixed << std::setprecision(15) << v << std::endl;
+      }
     } else {
       return ConstantExpr::alloc(0, array->getRange());
     }

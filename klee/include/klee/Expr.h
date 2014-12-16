@@ -108,11 +108,13 @@ public:
     RE_FMA = 2
   };
 
+
+  /*
   enum ExprType{
     Int,
     Float,
     Double
-  };
+    };*/
 
   enum Kind {
     InvalidKind = -1,

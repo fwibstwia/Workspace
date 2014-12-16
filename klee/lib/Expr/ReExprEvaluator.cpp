@@ -60,14 +60,7 @@ void ReExprEvaluator::evalReorder(const ReorderExpr *e, vector<ReExprRes> &res){
     return;
   }
 
-  float max = 0.0f, min = 0.0f, fmaMax = 0.0f, fmaMin = 0.0f;
-  vector<float> ops;
-  vector<float> opl;
-  vector<float> opr;
   int len = (e->operands).size();
-
-  Reorder ro(FE_TONEAREST);
-
   vector<ReExprRes> kids;
   vector<ReExprRes> tmp;
 
@@ -76,13 +69,36 @@ void ReExprEvaluator::evalReorder(const ReorderExpr *e, vector<ReExprRes> &res){
     kids.push_back(tmp[0]);
     tmp.clear();
   }
-  
+
+  //detect the type of the operands
+ if(ConstantExpr *CE = dyn_cast<ConstantExpr>(kids[i].getResVal())){    
+   if(CE -> getWidth == Expr::Int32){
+     getReorderExtreme<float>(kids, res);
+   }else if(CE -> getWidth == Expr::Int64){
+     getReorderExtreme<double>(kids, res);
+   }
+ }else{
+   assert(0 && "encounter non-constant in Reorder Rebuild");
+ }  
+}
+
+template <typename T>
+void getReorderExtreme<T>(const vector<ReExprRes> &kids,vector<ReExprRes> &res){
+  T max = 0.0f, min = 0.0f, fmaMax = 0.0f, fmaMin = 0.0f;
+  vector<T> ops;
+  vector<T> opl;
+  vector<T> opr;
+  Reorder<T> ro(FE_TONEAREST);
   if(e->cat == Expr::RE_FMA){
     for(int i = 0; i < len; i = i + 2){
-      float x,y;
+      T x,y;
       if(ConstantExpr *CE = dyn_cast<ConstantExpr>(kids[i].getResVal())){        
 	llvm::APFloat v = CE->getAPFValue();
-	x = v.convertToFloat();
+	if(sizeof(T) == 4){
+	  x = v.convertToFloat();
+	}else if(sizeof(T) == 8){
+	  x = v.convertToDouble();
+	}
 	opl.push_back(x);
       }else{
 	assert(0 && "encounter non-constant in Reorder Rebuild");
@@ -90,7 +106,11 @@ void ReExprEvaluator::evalReorder(const ReorderExpr *e, vector<ReExprRes> &res){
 
       if(ConstantExpr *CE = dyn_cast<ConstantExpr>(kids[i+1].getResVal())){
 	llvm::APFloat v = CE->getAPFValue();
-	y = v.convertToFloat();
+	if(sizeof(T) == 4){
+	  y = v.convertToFloat();
+	}else if(sizeof(T) == 8){
+	  y = v.convertToDouble();
+	}
 	opr.push_back(y);
       }else{
 	assert(0 && "encounter non-constant in Reorder Rebuild");
@@ -102,7 +122,11 @@ void ReExprEvaluator::evalReorder(const ReorderExpr *e, vector<ReExprRes> &res){
     for(int i = 0; i < len; i ++){
       if(ConstantExpr *CE = dyn_cast<ConstantExpr>(kids[i].getResVal())){
 	llvm::APFloat v = CE->getAPFValue();
-	ops.push_back(v.convertToFloat());
+        if(sizeof(T) == 4){
+	  ops.push_back(v.convertToFloat());
+	}else if(sizeof(T) == 8){
+	  ops.push_back(v.convertToDouble());
+	}
       }else{
 	assert(0 && "encounter non-constant in Reorder Rebuild");
       }
@@ -331,3 +355,8 @@ ReExprEvaluator::EvalState ReExprEvaluator::isAssignmentStable(const ref<Expr> &
   }
   return Epsilon;
 }
+
+template void getReorderExtreme<float>(const vector<ReExprRes> &, vector<ReExprRes> &);
+template void getReorderExtreme<double>(const vector<ReExprRes> &, vector<ReExprRes> &);
+
+

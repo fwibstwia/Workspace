@@ -182,9 +182,9 @@ void Query::changeConstant(ref<Expr> &epsilon){
   consEps->toString(eps, 10, 1);
   ref<ConstantExpr> res = CE->FAdd(consEps);
   res->toString(upd, 10, 1);
-  std::cout << "ori: " << std::setprecision(15) << ori << std::endl;
-  std::cout << "eps: " << std::setprecision(15) << eps << std::endl;
-  std::cout << "upd: " << std::setprecision(15) << upd << std::endl;
+  std::cout << "ori: " << std::setprecision(17) << ori << std::endl;
+  std::cout << "eps: " << std::setprecision(17) << eps << std::endl;
+  std::cout << "upd: " << std::setprecision(17) << upd << std::endl;
   eq->left = res;
 }
 
@@ -236,7 +236,7 @@ void Solver::printUnstableInput(const std::vector<const Array*> &objects,
      unsigned offset = j * (array->range/8);
      float v = *((float*)&result[i][offset]);
      std::cout << std::fixed 
-	       << std::setprecision(15) << v
+	       << std::setprecision(17) << v
 	       << " ";
    }
  }
