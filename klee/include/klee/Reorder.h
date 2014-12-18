@@ -55,6 +55,8 @@ namespace klee {
       return getFMABound(0, opsl, opsr);
     }
 
+    T getFMA(const std::vector<T> &opsl, const std::vector<T> &opsr);
+
   private:
     T getCost(T a, T b, Operation op);
     T getValue(T a, T b, Operation op);
@@ -64,6 +66,24 @@ namespace klee {
   private:
     int roundMode;
   };
+
+  template <typename T>  
+  T Reorder<T>::getFMA(const vector<T> &opsl, const std::vector<T> &opsr){
+     if(sizeof(T) == 4){
+	__m128 a, b, c, r;
+	a[0] = opsl[0];
+	b[0] = opsl[1];
+	c[0] = opsr[0];
+	r = _mm_fmadd_ps(a, b, c);
+	return r[0];
+     }
+     __m128d a, b, c, r;
+     a[0] = opsl[0];
+     b[0] = opsl[1];
+     c[0] = opsr[2];
+     r = _mm_fmadd_pd(a, b, c);
+     return r[0];
+  }
 
   template <typename T>  
   T Reorder<T>::getBound(int direction, Operation op, const vector<T> &ops){
@@ -138,7 +158,7 @@ namespace klee {
       T t1 = opsl[i+1] * opsr[i+1];
       T t2 = opsl[i] * opsr[i];
       T r1, r2;
-      if(sizeof(T) == 32){
+      if(sizeof(T) == 4){
 	__m128 a, b, c, r;
 	a[0] = opsl[i];
 	a[1] = opsl[i+1];
@@ -184,7 +204,7 @@ namespace klee {
       for(int i = 0; i < len - l + 1; i ++){
 	int j = i + l - 1;
 	T r1, r2;
-	if(sizeof(T) == 32){
+	if(sizeof(T) == 4){
 	  __m128 a, b, c, r;
 	  a[0] = opsl[i];
 	  a[1] = opsl[j];

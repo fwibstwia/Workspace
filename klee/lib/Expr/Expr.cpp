@@ -695,6 +695,26 @@ ReorderExpr::ReorderExpr(const ref<Expr> &_src, int _dir, int _cat):src(_src),
     }
     break;
   }
+  case FMA_NONFMA:{
+    ref<Expr> i = src;
+    if(i->getKind() == FAdd){
+      BinaryExpr *be = cast<BinaryExpr>(i);
+      ref<Expr> l = be -> left;
+      ref<Expr> r = be -> right;
+      if(dir == 0){  // left operand is multiplication
+	BinaryExpr *t = cast<BinaryExpr>(l);
+	operands.push_back(t->left);
+	operands.push_back(t->right);
+	operands.push_back(r);
+      } else { // right operand is multiplication
+	BinaryExpr *t = cast<BinaryExpr>(r);
+	operands.push_back(t->left);
+	operands.push_back(t->right);
+	operands.push_back(l);
+      }
+    }
+    break;
+  }
   case RE_Mult:{
     ref<Expr> i = src;
     while(i->getKind() == FMul){

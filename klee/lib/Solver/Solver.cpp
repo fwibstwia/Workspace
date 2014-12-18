@@ -1103,12 +1103,20 @@ SolverImpl::SolverRunStatus Z3SolverImpl::runAndGetCex(ref<Expr> query_expr,
   if(values.size() == 0){ // we need to reconstruct the query, because we change the epsilon
     s.reset(); // clear existing constraints
     s.add(builder->construct(query_expr));
-    s.add(builder->constructSearchSpace(objects[1], 0, sp, sp + 0.1f));
+    if(objects[1] -> range == Expr::Int32){
+      s.add(builder->constructSearchSpace<float>(objects[1], 0, sp, sp + 0.1f));
+    }else if(objects[1] -> range == Expr::Int64){
+      s.add(builder->constructSearchSpace<double>(objects[1], 0, sp, sp + 0.1f));
+    }
   } else {
     for(unsigned i = 0; i < objects.size(); i ++){
       const Array *array = objects[i];
       for(unsigned j = 0; j < array -> size; j ++){
-	s.add(builder->constructBlockClause(array, j, values[i]));
+	if(array -> range == Expr::Int32){
+	  s.add(builder->constructBlockClause<float>(array, j, values[i]));
+	}else if(array -> range == Expr::Int64){
+	  s.add(builder->constructBlockClause<double>(array, j, values[i]));
+	}
       }
     }
     values.clear();
@@ -1123,7 +1131,11 @@ SolverImpl::SolverRunStatus Z3SolverImpl::runAndGetCex(ref<Expr> query_expr,
       std::vector<unsigned char> data;
       for(unsigned i = 0; i < array->size; i ++){
 	std::vector<unsigned char> floatData;
-	builder->getInitialRead(array, i, m, floatData);
+	if(array -> range == Expr::Int32){
+	  builder->getInitialRead<float>(array, i, m, floatData);
+	}else if(array -> range == Expr::Int64){
+	  builder->getInitialRead<double>(array, i, m, floatData);
+	}
 	data.insert(data.end(), floatData.begin(), floatData.end());
       }
       values.push_back(data);

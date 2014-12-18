@@ -782,6 +782,7 @@ void SpecialFunctionHandler::handleTagReorderable(ExecutionState &state,
   }
 }
 
+
 void SpecialFunctionHandler::handleMarkGlobal(ExecutionState &state,
                                               KInstruction *target,
                                               std::vector<ref<Expr> > &arguments) {

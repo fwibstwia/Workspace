@@ -51,9 +51,48 @@ void ReExprEvaluator::evalUpdate(const UpdateList &ul,
   getInitialValue(*ul.root, index, res);
 }
 
+void ReExprEvaluator::evalReorderFMANONFMA(const ReorderExpr *e, vector<ReExprRes> &res){
+
+  if(reorderMap.find(e) != reorderMap.end()){
+    res = reorderMap.find(e)->second;
+    return;
+  }
+  
+  vector<ReExprRes> multiplicand0;
+  vector<ReExprRes> multiplicand1;
+  vector<ReExprRes> addend;
+
+  evaluate((e->operands)[0], multiplicand0);
+  evaluate((e->operands)[1], multiplicand1);
+  evaluate((e->operands)[2], addend);
+  for(int i = 0; i < multiplicand0.size(); i ++){
+    for(int j = 0; j < multiplicand1.size(); j ++){
+      for(int k = 0; k < addend.size();  k ++){
+	if(!multiplicand0[i].isConflict(multiplicand1[j])   
+	   && !multiplicand0[i].isConflict(addend[k])
+	   && !multiplicand1[j].isConflict(addend[k])){
+	  vector<ReExprRes> kids;
+	  kids.push_back(multiplicand0[i]);
+	  kids.push_back(multiplicand1[j]);
+	  kids.push_back(addend[k]);
+	   if(ConstantExpr *CE = dyn_cast<ConstantExpr>(kids[0].getResVal())){    
+	     if(CE -> getWidth() == Expr::Int32){
+	       getReorderExtreme<float>(e, kids, res);
+	     }else if(CE -> getWidth() == Expr::Int64){
+	       getReorderExtreme<double>(e, kids, res);
+	     }
+	   }else{
+	     assert(0 && "encounter non-constant in Reorder Rebuild");
+	   }
+	}
+      }
+    }
+  }
+  reorderMap[e] = res;
+}
+
 void ReExprEvaluator::evalReorder(const ReorderExpr *e, vector<ReExprRes> &res){
   //in this function we call the min/max method 
-  //Fix me: need to add type support, currently we assume float
   //Fix me: need to add round mode support
   if(reorderMap.find(e) != reorderMap.end()){
     res = reorderMap.find(e)->second;
@@ -71,26 +110,28 @@ void ReExprEvaluator::evalReorder(const ReorderExpr *e, vector<ReExprRes> &res){
   }
 
   //detect the type of the operands
- if(ConstantExpr *CE = dyn_cast<ConstantExpr>(kids[i].getResVal())){    
-   if(CE -> getWidth == Expr::Int32){
-     getReorderExtreme<float>(kids, res);
-   }else if(CE -> getWidth == Expr::Int64){
-     getReorderExtreme<double>(kids, res);
+ if(ConstantExpr *CE = dyn_cast<ConstantExpr>(kids[0].getResVal())){    
+   if(CE -> getWidth() == Expr::Int32){
+     getReorderExtreme<float>(e, kids, res);
+   }else if(CE -> getWidth() == Expr::Int64){
+     getReorderExtreme<double>(e, kids, res);
    }
+  reorderMap[e] = res;
  }else{
    assert(0 && "encounter non-constant in Reorder Rebuild");
  }  
 }
 
 template <typename T>
-void getReorderExtreme<T>(const vector<ReExprRes> &kids,vector<ReExprRes> &res){
+void ReExprEvaluator::getReorderExtreme(const ReorderExpr *e, vector<ReExprRes> &kids,vector<ReExprRes> &res){
   T max = 0.0f, min = 0.0f, fmaMax = 0.0f, fmaMin = 0.0f;
   vector<T> ops;
   vector<T> opl;
   vector<T> opr;
   Reorder<T> ro(FE_TONEAREST);
+
   if(e->cat == Expr::RE_FMA){
-    for(int i = 0; i < len; i = i + 2){
+    for(int i = 0; i < kids.size(); i = i + 2){
       T x,y;
       if(ConstantExpr *CE = dyn_cast<ConstantExpr>(kids[i].getResVal())){        
 	llvm::APFloat v = CE->getAPFValue();
@@ -118,8 +159,42 @@ void getReorderExtreme<T>(const vector<ReExprRes> &kids,vector<ReExprRes> &res){
       
       ops.push_back(x*y);     
     }
-  } else {
-    for(int i = 0; i < len; i ++){
+  }else if(e->cat == Expr::FMA_NONFMA){
+    T x, y, z;
+    if(ConstantExpr *CE = dyn_cast<ConstantExpr>(kids[0].getResVal())){  
+      llvm::APFloat v = CE->getAPFValue();
+      if(sizeof(T) == 4){
+	x = v.convertToFloat();
+      }else if(sizeof(T) == 8){
+	x = v.convertToDouble();
+      }
+      opl.push_back(x);
+    }
+
+    if(ConstantExpr *CE = dyn_cast<ConstantExpr>(kids[1].getResVal())){   
+      llvm::APFloat v = CE->getAPFValue();
+      if(sizeof(T) == 4){
+	y = v.convertToFloat();
+      }else if(sizeof(T) == 8){
+	y = v.convertToDouble();
+      }
+      opl.push_back(y);
+    }
+
+    if(ConstantExpr *CE = dyn_cast<ConstantExpr>(kids[2].getResVal())){   
+      llvm::APFloat v = CE->getAPFValue();
+      if(sizeof(T) == 4){
+	z = v.convertToFloat();
+      }else if(sizeof(T) == 8){
+	z = v.convertToDouble();
+      }
+      opr.push_back(z);
+    }
+
+    ops.push_back(x*y);
+    ops.push_back(z);
+  }else {
+    for(int i = 0; i < kids.size(); i ++){
       if(ConstantExpr *CE = dyn_cast<ConstantExpr>(kids[i].getResVal())){
 	llvm::APFloat v = CE->getAPFValue();
         if(sizeof(T) == 4){
@@ -136,15 +211,15 @@ void getReorderExtreme<T>(const vector<ReExprRes> &kids,vector<ReExprRes> &res){
   switch(e->cat){
   case Expr::RE_FMA:{
     vector<ref<Expr> > extremes;
-    //fmaMax = ro.getFMAMax(opl, opr);
-    //fmaMin = ro.getFMAMin(opl, opr);
+    fmaMax = ro.getFMAMax(opl, opr);
+    fmaMin = ro.getFMAMin(opl, opr);
     max = ro.getPlusMax(ops);
     min = ro.getPlusMin(ops);
 
     llvm::APFloat apFmaMax(fmaMax), apFmaMin(fmaMin),
       apMax(max), apMin(min);
-    //extremes.push_back(ConstantExpr::alloc(apFmaMin));
-    //extremes.push_back(ConstantExpr::alloc(apFmaMax));
+    extremes.push_back(ConstantExpr::alloc(apFmaMin));
+    extremes.push_back(ConstantExpr::alloc(apFmaMax));
     extremes.push_back(ConstantExpr::alloc(apMin));
     extremes.push_back(ConstantExpr::alloc(apMax));   
     
@@ -159,7 +234,21 @@ void getReorderExtreme<T>(const vector<ReExprRes> &kids,vector<ReExprRes> &res){
       }
       res.push_back(ReExprRes(reorders, reorderCompls, extremes[i]));
     }
-    reorderMap[e] = res;
+    return;
+  }
+
+  case Expr::FMA_NONFMA:{
+    T fma = ro.getFMA(opl, opr);
+    T nonfma = ro.getPlusMin(ops);
+    llvm::APFloat apFma(fma), apNonfma(nonfma);
+    ref<Expr> fmaExpr = ConstantExpr::alloc(apFma);
+    ref<Expr> nonfmaExpr = ConstantExpr::alloc(apNonfma);
+    set<int64_t> reorders;
+    set<int64_t> reorderCompls;
+    reorders.insert((int64_t)0);
+    reorderCompls.insert((int64_t)1);
+    res.push_back(ReExprRes(reorders, reorderCompls, fmaExpr));
+    res.push_back(ReExprRes(reorderCompls, reorders, nonfmaExpr)); 
     return;
   }
 
@@ -191,7 +280,7 @@ void getReorderExtreme<T>(const vector<ReExprRes> &kids,vector<ReExprRes> &res){
   res.push_back(ReExprRes(reorders, reorderCompls, minExpr));
   res.push_back(ReExprRes(reorderCompls, reorders, maxExpr));  
 
-  reorderMap[e] = res;
+
   return;
 }
 
@@ -206,9 +295,9 @@ void ReExprEvaluator::evalFOlt(const FOltExpr *e, vector<ReExprRes> &res){
     evaluate(e->getKid(1), kidRes);
     for(int i = 0; i < kidRes.size(); i ++){
       if(ConstantExpr *CEL = dyn_cast<ConstantExpr>(kidRes[i].getResVal())){
-	//std::string test;
-	//CEL->toString(test, 10, 1);
-	//std::cout << "extreme value: " << test << std::endl;
+	std::string test;
+	CEL->toString(test, 10, 1);
+	std::cout << "extreme value: " << test << std::endl;
 	ref<ConstantExpr> value = CER->FSub(CEL);
 	ref<ConstantExpr> dist = CER->FAbs(CEL);
 	if(minValue.get()){
@@ -275,7 +364,12 @@ void ReExprEvaluator::evaluate(const ref<Expr> &e, vector<ReExprRes> &res){
   } else {
     switch(e->getKind()){
     case Expr::Reorder:{
-      evalReorder(dyn_cast<ReorderExpr>(e), res);
+      ReorderExpr *re = dyn_cast<ReorderExpr>(e);
+      if(re -> cat == Expr::FMA_NONFMA){
+	evalReorderFMANONFMA(re, res);
+      }else{
+	evalReorder(re, res);
+      }
       break;
     }
 
@@ -356,7 +450,7 @@ ReExprEvaluator::EvalState ReExprEvaluator::isAssignmentStable(const ref<Expr> &
   return Epsilon;
 }
 
-template void getReorderExtreme<float>(const vector<ReExprRes> &, vector<ReExprRes> &);
-template void getReorderExtreme<double>(const vector<ReExprRes> &, vector<ReExprRes> &);
+template void ReExprEvaluator::getReorderExtreme<float>(const ReorderExpr *, vector<ReExprRes> &, vector<ReExprRes> &);
+template void ReExprEvaluator::getReorderExtreme<double>(const ReorderExpr *, vector<ReExprRes> &, vector<ReExprRes> &);
 
 

@@ -105,7 +105,8 @@ public:
   enum ReorderCat{
     RE_Plus = 0,
     RE_Mult = 1,
-    RE_FMA = 2
+    RE_FMA = 2,
+    FMA_NONFMA = 3
   };
 
 
@@ -617,7 +618,6 @@ public:
 };
 
 // Special
-
 class ReorderExpr : public NonConstantExpr{
 public:
   static const Kind kind = Reorder;

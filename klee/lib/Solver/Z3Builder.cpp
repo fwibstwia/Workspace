@@ -39,7 +39,7 @@ void Z3Builder::getInitialRead(const Array *os, const unsigned index,
   char *stopString;
   if(sizeof(T) == 4){
     v = strtof(s, &stopString);
-  }else if(size(T) == 8){
+  }else if(sizeof(T) == 8){
     v = strtod(s, &stopString); 
   }
 

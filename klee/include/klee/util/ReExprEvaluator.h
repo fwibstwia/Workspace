@@ -82,8 +82,11 @@ namespace klee{
   private:
     void evalRead(const ReadExpr *e, std::vector<ReExprRes> &res);
     void evalReorder(const ReorderExpr *e, std::vector<ReExprRes> &res);
+    void evalReorderFMANONFMA(const ReorderExpr *e, std::vector<ReExprRes> &res);
     template <typename T>
-    void getReorderExtreme<T>(const std::vector<ReExprRes> &kids, vector<ReExprRes> &res);
+    void getReorderExtreme(const ReorderExpr *e, 
+			   std::vector<ReExprRes> &kids, 
+			   std::vector<ReExprRes> &res);
     void evalFOlt(const FOltExpr *e, std::vector<ReExprRes> &res);
     void getInitialValue(const Array &os, unsigned index, std::vector<ReExprRes> &res); 
     void evalUpdate(const UpdateList &ul, unsigned index, std::vector<ReExprRes> &res);
