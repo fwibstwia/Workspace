@@ -55,7 +55,7 @@ namespace klee {
       return getFMABound(0, opsl, opsr);
     }
 
-    T getFMA(const std::vector<T> &opsl, const std::vector<T> &opsr);
+    T getFMAExp(const T mult0, const T mult1, const T addend);
 
   private:
     T getCost(T a, T b, Operation op);
@@ -68,19 +68,19 @@ namespace klee {
   };
 
   template <typename T>  
-  T Reorder<T>::getFMA(const vector<T> &opsl, const std::vector<T> &opsr){
+  T Reorder<T>::getFMAExp(const T mult0, const T mult1, const T addend){
      if(sizeof(T) == 4){
 	__m128 a, b, c, r;
-	a[0] = opsl[0];
-	b[0] = opsl[1];
-	c[0] = opsr[0];
+	a[0] = mult0;
+	b[0] = mult1;
+	c[0] = addend;
 	r = _mm_fmadd_ps(a, b, c);
 	return r[0];
      }
      __m128d a, b, c, r;
-     a[0] = opsl[0];
-     b[0] = opsl[1];
-     c[0] = opsr[2];
+     a[0] = mult0;
+     b[0] = mult1;
+     c[0] = addend;
      r = _mm_fmadd_pd(a, b, c);
      return r[0];
   }

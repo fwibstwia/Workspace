@@ -65,30 +65,109 @@ void ReExprEvaluator::evalReorderFMANONFMA(const ReorderExpr *e, vector<ReExprRe
   evaluate((e->operands)[0], multiplicand0);
   evaluate((e->operands)[1], multiplicand1);
   evaluate((e->operands)[2], addend);
+
   for(int i = 0; i < multiplicand0.size(); i ++){
     for(int j = 0; j < multiplicand1.size(); j ++){
       for(int k = 0; k < addend.size();  k ++){
 	if(!multiplicand0[i].isConflict(multiplicand1[j])   
 	   && !multiplicand0[i].isConflict(addend[k])
 	   && !multiplicand1[j].isConflict(addend[k])){
-	  vector<ReExprRes> kids;
-	  kids.push_back(multiplicand0[i]);
-	  kids.push_back(multiplicand1[j]);
-	  kids.push_back(addend[k]);
-	   if(ConstantExpr *CE = dyn_cast<ConstantExpr>(kids[0].getResVal())){    
-	     if(CE -> getWidth() == Expr::Int32){
-	       getReorderExtreme<float>(e, kids, res);
-	     }else if(CE -> getWidth() == Expr::Int64){
-	       getReorderExtreme<double>(e, kids, res);
-	     }
-	   }else{
-	     assert(0 && "encounter non-constant in Reorder Rebuild");
-	   }
+	  if(multiplicand0[i].isFMAExpIn() || multiplicand1[j].isFMAExpIn() ||
+	     addend[k].isFMAExpIn()){
+	    evalFMAExp(multiplicand0[i].getResVal(), 
+		       multiplicand1[j].getResVal(), addend[k].getResVal(), res);
+	  }else if(multiplicand0[i].isNonFMAExpIn() || multiplicand1[j].isNonFMAExpIn() ||
+		   addend[k].isNonFMAExpIn()){
+	    evalNonFMAExp(multiplicand0[i].getResVal(), 
+			  multiplicand1[j].getResVal(), addend[k].getResVal(), res);
+	  }else{
+	    evalFMAExp(multiplicand0[i].getResVal(), 
+		       multiplicand1[j].getResVal(), addend[k].getResVal(), res);
+	    evalNonFMAExp(multiplicand0[i].getResVal(), 
+			  multiplicand1[j].getResVal(), addend[k].getResVal(), res);
+	  }
 	}
       }
     }
   }
   reorderMap[e] = res;
+}
+
+void ReExprEvaluator::evalNonFMAExp(const ref<Expr> mult0, const ref<Expr> mult1,
+				    const ref<Expr> addend, vector<ReExprRes> &res){
+  ConstantExpr *mult0CE = dyn_cast<ConstantExpr>(mult0);
+  ConstantExpr *mult1CE = dyn_cast<ConstantExpr>(mult1);
+  ConstantExpr *addendCE = dyn_cast<ConstantExpr>(addend);
+  if(mult0CE->getWidth() == Expr::Int32){
+    float mult0_v = (mult0CE->getAPFValue()).convertToFloat();
+    float mult1_v = (mult1CE->getAPFValue()).convertToFloat();
+    float addend_v = (addendCE->getAPFValue()).convertToFloat();
+    vector<float> ops;
+    ops.push_back(mult0_v*mult1_v);
+    ops.push_back(addend_v);
+    Reorder<float> ro(FE_TONEAREST);
+    float nonfma = ro.getPlusMin(ops);
+    llvm::APFloat apNonfma(nonfma);
+    ref<Expr> nonfmaExpr = ConstantExpr::alloc(apNonfma);
+    set<int64_t> reorders;
+    set<int64_t> reorderCompls;
+    reorders.insert((int64_t)0);
+    reorderCompls.insert((int64_t)1);
+    res.push_back(ReExprRes(reorderCompls, reorders, nonfmaExpr)); 
+
+  }else if(mult0CE->getWidth() == Expr::Int64){
+    double mult0_v = (mult0CE->getAPFValue()).convertToDouble();
+    double mult1_v = (mult1CE->getAPFValue()).convertToDouble();
+    double addend_v = (addendCE->getAPFValue()).convertToDouble();
+    vector<double> ops;
+    ops.push_back(mult0_v*mult1_v);
+    ops.push_back(addend_v);
+    Reorder<double> ro(FE_TONEAREST);
+    double nonfma = ro.getPlusMin(ops);
+    llvm::APFloat apNonfma(nonfma);
+    ref<Expr> nonfmaExpr = ConstantExpr::alloc(apNonfma);
+    set<int64_t> reorders;
+    set<int64_t> reorderCompls;
+    reorders.insert((int64_t)0);
+    reorderCompls.insert((int64_t)1);
+    res.push_back(ReExprRes(reorderCompls, reorders, nonfmaExpr)); 
+  }
+}
+
+void ReExprEvaluator::evalFMAExp(const ref<Expr> mult0, const ref<Expr> mult1, 
+				 const ref<Expr> addend, vector<ReExprRes> &res){
+
+  ConstantExpr *mult0CE = dyn_cast<ConstantExpr>(mult0);
+  ConstantExpr *mult1CE = dyn_cast<ConstantExpr>(mult1);
+  ConstantExpr *addendCE = dyn_cast<ConstantExpr>(addend);
+  if(mult0CE->getWidth() == Expr::Int32){
+    float mult0_v = (mult0CE->getAPFValue()).convertToFloat();
+    float mult1_v = (mult1CE->getAPFValue()).convertToFloat();
+    float addend_v = (addendCE->getAPFValue()).convertToFloat();
+    Reorder<float> ro(FE_TONEAREST);
+    float fma = ro.getFMAExp(mult0_v, mult1_v, addend_v);
+    llvm::APFloat apFma(fma);
+    ref<Expr> fmaExpr = ConstantExpr::alloc(apFma);
+    set<int64_t> reorders;
+    set<int64_t> reorderCompls;
+    reorders.insert((int64_t)0);
+    reorderCompls.insert((int64_t)1);
+    res.push_back(ReExprRes(reorders, reorderCompls, fmaExpr));
+
+  }else if(mult0CE->getWidth() == Expr::Int64){
+    double mult0_v = (mult0CE->getAPFValue()).convertToDouble();
+    double mult1_v = (mult1CE->getAPFValue()).convertToDouble();
+    double addend_v = (addendCE->getAPFValue()).convertToDouble();
+    Reorder<double> ro(FE_TONEAREST);
+    double fma = ro.getFMAExp(mult0_v, mult1_v, addend_v);
+    llvm::APFloat apFma(fma);
+    ref<Expr> fmaExpr = ConstantExpr::alloc(apFma);
+    set<int64_t> reorders;
+    set<int64_t> reorderCompls;
+    reorders.insert((int64_t)0);
+    reorderCompls.insert((int64_t)1);
+    res.push_back(ReExprRes(reorders, reorderCompls, fmaExpr));
+  }
 }
 
 void ReExprEvaluator::evalReorder(const ReorderExpr *e, vector<ReExprRes> &res){
@@ -159,40 +238,6 @@ void ReExprEvaluator::getReorderExtreme(const ReorderExpr *e, vector<ReExprRes> 
       
       ops.push_back(x*y);     
     }
-  }else if(e->cat == Expr::FMA_NONFMA){
-    T x, y, z;
-    if(ConstantExpr *CE = dyn_cast<ConstantExpr>(kids[0].getResVal())){  
-      llvm::APFloat v = CE->getAPFValue();
-      if(sizeof(T) == 4){
-	x = v.convertToFloat();
-      }else if(sizeof(T) == 8){
-	x = v.convertToDouble();
-      }
-      opl.push_back(x);
-    }
-
-    if(ConstantExpr *CE = dyn_cast<ConstantExpr>(kids[1].getResVal())){   
-      llvm::APFloat v = CE->getAPFValue();
-      if(sizeof(T) == 4){
-	y = v.convertToFloat();
-      }else if(sizeof(T) == 8){
-	y = v.convertToDouble();
-      }
-      opl.push_back(y);
-    }
-
-    if(ConstantExpr *CE = dyn_cast<ConstantExpr>(kids[2].getResVal())){   
-      llvm::APFloat v = CE->getAPFValue();
-      if(sizeof(T) == 4){
-	z = v.convertToFloat();
-      }else if(sizeof(T) == 8){
-	z = v.convertToDouble();
-      }
-      opr.push_back(z);
-    }
-
-    ops.push_back(x*y);
-    ops.push_back(z);
   }else {
     for(int i = 0; i < kids.size(); i ++){
       if(ConstantExpr *CE = dyn_cast<ConstantExpr>(kids[i].getResVal())){
@@ -236,22 +281,6 @@ void ReExprEvaluator::getReorderExtreme(const ReorderExpr *e, vector<ReExprRes> 
     }
     return;
   }
-
-  case Expr::FMA_NONFMA:{
-    T fma = ro.getFMA(opl, opr);
-    T nonfma = ro.getPlusMin(ops);
-    llvm::APFloat apFma(fma), apNonfma(nonfma);
-    ref<Expr> fmaExpr = ConstantExpr::alloc(apFma);
-    ref<Expr> nonfmaExpr = ConstantExpr::alloc(apNonfma);
-    set<int64_t> reorders;
-    set<int64_t> reorderCompls;
-    reorders.insert((int64_t)0);
-    reorderCompls.insert((int64_t)1);
-    res.push_back(ReExprRes(reorders, reorderCompls, fmaExpr));
-    res.push_back(ReExprRes(reorderCompls, reorders, nonfmaExpr)); 
-    return;
-  }
-
   case Expr::RE_Plus:{
     max = ro.getPlusMax(ops);
     min = ro.getPlusMin(ops);
@@ -295,17 +324,24 @@ void ReExprEvaluator::evalFOlt(const FOltExpr *e, vector<ReExprRes> &res){
     evaluate(e->getKid(1), kidRes);
     for(int i = 0; i < kidRes.size(); i ++){
       if(ConstantExpr *CEL = dyn_cast<ConstantExpr>(kidRes[i].getResVal())){
-	std::string test;
-	CEL->toString(test, 10, 1);
-	std::cout << "extreme value: " << test << std::endl;
+	//std::string test;
+	//CEL->toString(test, 10, 1);
+	//std::cout << "extreme value: " << test << std::endl;
+
 	ref<ConstantExpr> value = CER->FSub(CEL);
 	ref<ConstantExpr> dist = CER->FAbs(CEL);
 	if(minValue.get()){
 	  if(isMinEqMax){
 	    llvm::APFloat apfmin = minValue -> getAPFValue();
 	    llvm::APFloat apfv = value -> getAPFValue();
-            if(apfmin.convertToFloat() != apfv.convertToFloat()){
-	      isMinEqMax = false;
+            if(value -> getWidth() == Expr::Int32){
+	      if(apfmin.convertToFloat() != apfv.convertToFloat()){
+		isMinEqMax = false;
+	      }
+	    }else if(value -> getWidth() == Expr::Int64){
+	      if(apfmin.convertToDouble() != apfv.convertToDouble()){
+		isMinEqMax = false;
+	      }
 	    }
 	  }
 

@@ -200,7 +200,7 @@ bool Solver::checkStable(const Query& query, bool &result){
     Query q = Query(query.constraints, EqExpr::alloc(BE->left, BE->right));
     findSymbolicObjects(query.expr, objects);
     std::vector< std::vector<unsigned char> > values;
-    while(!success && trials < 50){ 
+    while(!success && trials < 20){ 
       impl->computeInitialValues(q, objects, values, hasSolution);
       if(hasSolution){
 	ReExprEvaluator a(objects, values);
@@ -234,10 +234,18 @@ void Solver::printUnstableInput(const std::vector<const Array*> &objects,
    const Array *array = objects[i];
    for(unsigned j = 0; j < array -> size; j ++){
      unsigned offset = j * (array->range/8);
-     float v = *((float*)&result[i][offset]);
-     std::cout << std::fixed 
-	       << std::setprecision(17) << v
-	       << " ";
+      if(array->range == Expr::Int64){
+	double v = *((double*)&result[i][offset]);
+	std::cout << std::fixed 
+		  << std::setprecision(19) << v
+		  << " ";
+      }else{
+	float v = *((float*)&result[i][offset]);
+	std::cout << std::fixed 
+		  << std::setprecision(17) << v
+		  << " ";
+      }
+
    }
  }
  std::cout << std::endl;
@@ -1103,6 +1111,7 @@ SolverImpl::SolverRunStatus Z3SolverImpl::runAndGetCex(ref<Expr> query_expr,
   if(values.size() == 0){ // we need to reconstruct the query, because we change the epsilon
     s.reset(); // clear existing constraints
     s.add(builder->construct(query_expr));
+    
     if(objects[1] -> range == Expr::Int32){
       s.add(builder->constructSearchSpace<float>(objects[1], 0, sp, sp + 0.1f));
     }else if(objects[1] -> range == Expr::Int64){

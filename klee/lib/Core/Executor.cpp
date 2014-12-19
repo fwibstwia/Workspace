@@ -3358,7 +3358,8 @@ void Executor::executeTagReorderable(ExecutionState &state,
 				     const ObjectState *os,
 				     int dir,
 				     int cat){
-  ref<Expr> result = os->readWhole(0,32);
+  unsigned width = (os -> size / os -> arraySize)*8;   
+  ref<Expr> result = os->readWhole(0,width);
   ref<Expr> reValue = ReorderExpr::create(result, dir, cat);
   ObjectState *wos = state.addressSpace.getWriteable(mo, os);
   wos->writeWhole(0,reValue);

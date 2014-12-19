@@ -61,6 +61,16 @@ namespace klee{
 		     std::inserter(reorderCompls, reorderCompls.end()));
     }
 
+    bool isFMAExpIn(){
+      std::set<int64_t>::iterator it = reorders.find(0);
+      return it != reorders.end();
+    }
+
+    bool isNonFMAExpIn(){
+      std::set<int64_t>::iterator it = reorders.find(1);
+      return it != reorders.end();
+    }
+    
     ref<Expr> getResVal(){
       return resVal;
     }
@@ -83,6 +93,10 @@ namespace klee{
     void evalRead(const ReadExpr *e, std::vector<ReExprRes> &res);
     void evalReorder(const ReorderExpr *e, std::vector<ReExprRes> &res);
     void evalReorderFMANONFMA(const ReorderExpr *e, std::vector<ReExprRes> &res);
+    void evalFMAExp(const ref<Expr> mult0, const ref<Expr> mult1, 
+		    const ref<Expr> addend, std::vector<ReExprRes> &res);
+    void evalNonFMAExp(const ref<Expr> mult0, const ref<Expr> mult1,
+		       const ref<Expr> addend, std::vector<ReExprRes> &res);
     template <typename T>
     void getReorderExtreme(const ReorderExpr *e, 
 			   std::vector<ReExprRes> &kids, 
@@ -130,11 +144,12 @@ namespace klee{
     if (it!=bindings.end() && offset<it->second.size()) {
       if(array->range == Expr::Int64){
 	double v = *((double*)&it->second[offset]);
+	//std::cout << array-> name << index << std::fixed << std::setprecision(17) << v << std::endl;
 	return ConstantExpr::alloc(llvm::APFloat(v));
       }else if(array->range == Expr::Int32){
 	float v = *((float*)&it->second[offset]);
-	return ConstantExpr::alloc(llvm::APFloat(v));
 	//std::cout << array-> name << index << std::fixed << std::setprecision(15) << v << std::endl;
+	return ConstantExpr::alloc(llvm::APFloat(v));	
       }
     } else {
       return ConstantExpr::alloc(0, array->getRange());
