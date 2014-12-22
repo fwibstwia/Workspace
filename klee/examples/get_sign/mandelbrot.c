@@ -21,12 +21,17 @@ mandelbrot(double x, double y)
         //cx = (((float)hx)/((float)hxres)-0.5)/magnify*3.0-0.7;
         //cy = (((float)hy)/((float)hyres)-0.5)/magnify*3.0;
         
-        double cx = -2.1939999997150154698;
-	double cy = -1.4939999997150152922;
+        //double cx = 2.1939999997150154698;
+	//double cy = -1.4939999997150152922;
+
+        //double cx = 2.1700000006705524314;    
+        //double cy = -1.4400000013411045074;
+        
+        double cx = 2.1879999994300307620;    
+        double cy = -1.4819999998435378075;
          
         
-        for (iteration = 1;iteration < 3;iteration++)  {
-           cx = -cx;
+        for (iteration = 1;iteration < 4;iteration++)  {
 	   double xx1 = y*y + cx;
 	   klee_tag_reorderable(&xx1, 0, 3);
            xx1 = -xx1;

@@ -149,7 +149,7 @@ bool Solver::evaluate(const Query& query, Validity &result) {
   bool stableResult;
   int i = 0;
   sp = SearchPoint;
-  while(i < 1000){
+  while(i < 100){
     bool result = checkStable(query, stableResult);
     if(result){
       i ++;
@@ -183,8 +183,8 @@ void Query::changeConstant(ref<Expr> &epsilon){
   ref<ConstantExpr> res = CE->FAdd(consEps);
   res->toString(upd, 10, 1);
   std::cout << "ori: " << std::setprecision(17) << ori << std::endl;
-  std::cout << "eps: " << std::setprecision(17) << eps << std::endl;
-  std::cout << "upd: " << std::setprecision(17) << upd << std::endl;
+  //std::cout << "eps: " << std::setprecision(17) << eps << std::endl;
+  //std::cout << "upd: " << std::setprecision(17) << upd << std::endl;
   eq->left = res;
 }
 

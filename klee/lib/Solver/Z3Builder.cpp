@@ -119,7 +119,7 @@ expr Z3Builder::constructSearchSpace(const Array *var, const unsigned index, T l
   lowerStream << std::fixed << std::setprecision(17) << lower;
   std::string lower_s = lowerStream.str();
 
-  std::cout << "search space: "<< lower_s << " " << upper_s << std::endl;
+  //std::cout << "search space: "<< lower_s << " " << upper_s << std::endl;
 
   expr upper_e = c.real_val(upper_s.c_str());
   expr lower_e = c.real_val(lower_s.c_str());
