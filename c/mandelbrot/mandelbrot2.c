@@ -2,7 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-void mandelbrot(double x, double y, double cx, double cy)
+void mandelbrot(double cx, double cy)
 {
   
         int iteration;
@@ -12,6 +12,8 @@ void mandelbrot(double x, double y, double cx, double cy)
         //cx = (((float)hx)/((float)hxres)-0.5)/magnify*3.0-0.7;
         //cy = (((float)hy)/((float)hyres)-0.5)/magnify*3.0;
         double xx;
+        double x = 0.0;
+	double y = 0.0;
         for (iteration = 1;iteration < 100;iteration++)  {
 	   xx = x*x-y*y+cx;
            y = 2.0*x*y+cy;
@@ -41,18 +43,12 @@ int main() {
   
   while ((read = getline(&line, &len, fh)) != -1) {
      token = strtok_r(line, " ", &saveptr1);
-     x = atof(token);
-     line = NULL;
-     token = strtok_r(line, " ", &saveptr1);
-     y = atof(token);
-     line = NULL;
-     token = strtok_r(line, " ", &saveptr1);
      cx = atof(token);
      line = NULL;
      token = strtok_r(line, " ", &saveptr1);
      cy = atof(token);
      line = NULL;
-     mandelbrot(x, y, cx, cy);
+     mandelbrot(cx, cy);
   }
   return 0;
 } 

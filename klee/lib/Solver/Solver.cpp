@@ -182,7 +182,7 @@ void Query::changeConstant(ref<Expr> &epsilon){
   consEps->toString(eps, 10, 1);
   ref<ConstantExpr> res = CE->FAdd(consEps);
   res->toString(upd, 10, 1);
-  std::cout << "ori: " << std::setprecision(17) << ori << std::endl;
+  //std::cout << "ori: " << std::setprecision(17) << ori << std::endl;
   //std::cout << "eps: " << std::setprecision(17) << eps << std::endl;
   //std::cout << "upd: " << std::setprecision(17) << upd << std::endl;
   eq->left = res;
