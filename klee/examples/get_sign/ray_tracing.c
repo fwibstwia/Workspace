@@ -4,31 +4,17 @@
 
 #include <klee/klee.h>
 
-int ray_tracing(float *r, float *s, float radius) {
-  float A = 0; 
-  int i;
-  for(i = 0; i < 3; i ++){
-    A = A + r[i]*r[i];
-  }  
-  
-  klee_tag_reorderable(&A, 1, 2);
-  float B1 = 0;
-  for(i = 0; i < 3; i ++){
-    B1 = B1 + s[i]*r[i];
-  }
+float dot3(float[] a, float[] b){     //Dot Product 3-Vectors
+  float r = a[0] * b[0] + a[1] * b[1] + a[2] * b[2];
+  klee_tag_reorderable(&r, 1, 2);
+  return r;
+}
 
-  klee_tag_reorderable(&B1, 1, 2); 
-  float B = -2.0 * B1;
-  
-  float C1 = 0;
-  for(i = 0; i < 3; i ++){
-    C1 = C1 + s[i]*s[i];
-  }
-
-  klee_tag_reorderable(&C1, 1, 2);
-  float C =  C1 - radius;
-  float D = B*B - 4*A*C;
-  //float D = A + B - C ;*/              
+int raySphere(float *r, float *s, float radius) {
+  float A = dot3(r,r);                       
+  float B = -2.0 * dot3(s,r);               
+  float C = dot3(s,s) - radius;          
+  float D = B*B - 4*A*C;                       
   if (D > 0)
     return 0;
 } 
