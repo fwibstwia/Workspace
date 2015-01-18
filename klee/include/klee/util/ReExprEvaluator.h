@@ -102,6 +102,7 @@ namespace klee{
 			   std::vector<ReExprRes> &kids, 
 			   std::vector<ReExprRes> &res);
     void evalFOlt(const FOltExpr *e, std::vector<ReExprRes> &res);
+    void evalFOle(const FOleExpr *e, std::vector<ReExprRes> &res);
     void getInitialValue(const Array &os, unsigned index, std::vector<ReExprRes> &res); 
     void evalUpdate(const UpdateList &ul, unsigned index, std::vector<ReExprRes> &res);
     ref<Expr> getArrayValue(const Array *array, unsigned index) const;

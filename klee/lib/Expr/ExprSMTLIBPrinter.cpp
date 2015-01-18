@@ -449,6 +449,9 @@ const char *ExprSMTLIBPrinter::getSMTLIBKeyword(const ref<Expr> &e) {
   case Expr::FOlt:
     return "<";
 
+  case Expr::FOle:
+    return "<=";
+
   default:
     return "<error>";
   }

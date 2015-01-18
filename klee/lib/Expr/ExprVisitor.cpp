@@ -95,6 +95,7 @@ ref<Expr> ExprVisitor::visitActual(const ref<Expr> &e) {
     case Expr::Sge: res = visitSge(static_cast<SgeExpr&>(ep)); break;
     case Expr::FOgt: res = visitFOgt(static_cast<FOgtExpr&>(ep)); break;
     case Expr::FOlt: res = visitFOlt(static_cast<FOltExpr&>(ep)); break;
+    case Expr::FOle: res = visitFOle(static_cast<FOleExpr&>(ep)); break;
     case Expr::InvalidKind: return e;
     case Expr::Constant:
     default:
@@ -295,6 +296,10 @@ ExprVisitor::Action ExprVisitor::visitFOgt(const FOgtExpr&) {
 }
 
 ExprVisitor::Action ExprVisitor::visitFOlt(const FOltExpr&) {
+  return Action::doChildren(); 
+}
+
+ExprVisitor::Action ExprVisitor::visitFOle(const FOleExpr&) {
   return Action::doChildren(); 
 }
 

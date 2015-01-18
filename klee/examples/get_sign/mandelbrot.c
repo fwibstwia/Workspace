@@ -11,13 +11,13 @@
 
 #include <klee/klee.h>
 
-mandelbrot(double cx, double cy)
+mandelbrot(float cx, float cy)
 {
-        double cond;
-        double x,y; //cx, cy;
+        float cond;
+        float x,y; //cx, cy;
         int iteration;
         //int itermax = 100;              /* how many iterations to do    */
-        //double magnify=1.0;             /* no magnification             */
+        //float magnify=1.0;             /* no magnification             */
   
         //cx = (windowPosX/500.0-0.5)/1.0*3.0-0.7;
         //cy = (windowPosY/500.0-0.5)/1.0*3.0;
@@ -26,12 +26,12 @@ mandelbrot(double cx, double cy)
         y = 0.0; 
         
         for (iteration = 1;iteration < 5;iteration++)  {
-	   double xx1 = y*y + cx;
+	   float xx1 = y*y + cx;
 	   klee_tag_reorderable(&xx1, 0, 3);
            xx1 = -xx1;
-           double xx = x*x + xx1;
+           float xx = x*x + xx1;
            klee_tag_reorderable(&xx, 0, 3);
-           double y1 = 2.0*x;
+           float y1 = 2.0*x;
            y = y1*y+cy;
            klee_tag_reorderable(&y, 0, 3);
            x = xx;          
@@ -39,13 +39,13 @@ mandelbrot(double cx, double cy)
        
         cond = x*x + y*y; 
         klee_tag_reorderable(&cond, 0, 3);
-	if (cond - 100.0 > 0)  
+	if (cond > 1.0)  
 	  iteration = 999999;	
 }
 
 int main() {
-  double windowPosX, windowPosY;
-  klee_make_symbolic_with_sort(&windowPosX, sizeof(windowPosX), "windowPosX", 0, 64);
-  klee_make_symbolic_with_sort(&windowPosY, sizeof(windowPosY), "windowPosY", 0, 64);
+  float windowPosX, windowPosY;
+  klee_make_symbolic_with_sort(&windowPosX, sizeof(windowPosX), "windowPosX", 0, 32);
+  klee_make_symbolic_with_sort(&windowPosY, sizeof(windowPosY), "windowPosY", 0, 32);
   return mandelbrot(windowPosX, windowPosY);
 } 

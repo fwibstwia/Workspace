@@ -313,6 +313,59 @@ void ReExprEvaluator::getReorderExtreme(const ReorderExpr *e, vector<ReExprRes> 
   return;
 }
 
+void ReExprEvaluator::evalFOle(const FOleExpr *e, vector<ReExprRes> &res){
+  //Fix me:: handle e-> left is constant
+  vector<ReExprRes> kidRes;
+  ref<ConstantExpr> minDist;
+  ref<ConstantExpr> minValue;
+  if(ConstantExpr *CER = dyn_cast<ConstantExpr>(e->getKid(1))){
+    ref<Expr> tmp[2];
+    tmp[1] = e->getKid(1);
+    evaluate(e->getKid(0), kidRes);
+    for(int i = 0; i < kidRes.size(); i ++){
+      if(ConstantExpr *CEL = dyn_cast<ConstantExpr>(kidRes[i].getResVal())){
+	//std::string test;
+	//CEL->toString(test, 10, 1);
+	//std::cout << "extreme value: " << test << std::endl;
+
+	ref<ConstantExpr> value = CER->FSub(CEL);
+	ref<ConstantExpr> dist = CER->FAbs(CEL);
+	if(minValue.get()){
+	  if(isMinEqMax){
+	    llvm::APFloat apfmin = minValue -> getAPFValue();
+	    llvm::APFloat apfv = value -> getAPFValue();
+            if(value -> getWidth() == Expr::Int32){
+	      if(apfmin.convertToFloat() != apfv.convertToFloat()){
+		isMinEqMax = false;
+	      }
+	    }else if(value -> getWidth() == Expr::Int64){
+	      if(apfmin.convertToDouble() != apfv.convertToDouble()){
+		isMinEqMax = false;
+	      }
+	    }
+	  }
+
+	  if((minDist -> FOgt(dist)) -> isTrue()){
+	    minValue = value;
+	    minDist = dist;
+	  }
+
+	}else{
+	  minValue = value;
+	  minDist = dist;
+	}
+      }else{
+	assert(0 && "encounter non-constantExpr after evaluate");
+      }
+      ReExprRes re(kidRes[i]);
+      tmp[0] = kidRes[i].getResVal();
+      re.setResVal(e->rebuild(tmp));
+      res.push_back(re);
+    }
+  }
+  epsilon = minValue;
+} 
+
 void ReExprEvaluator::evalFOlt(const FOltExpr *e, vector<ReExprRes> &res){
   //Fix me:: handle e-> left is constant
   vector<ReExprRes> kidRes;
@@ -416,6 +469,11 @@ void ReExprEvaluator::evaluate(const ref<Expr> &e, vector<ReExprRes> &res){
 
     case Expr::FOlt:{
       evalFOlt(dyn_cast<FOltExpr>(e), res);
+      break;
+    }
+
+    case Expr::FOle:{
+      evalFOle(dyn_cast<FOleExpr>(e), res);
       break;
     }
 

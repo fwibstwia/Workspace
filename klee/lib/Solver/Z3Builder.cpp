@@ -297,6 +297,13 @@ expr Z3Builder::construct(ref<Expr> e){
     return left < right;
   }
 
+  case Expr::FOle: {
+    FOleExpr *ee = cast<FOleExpr>(e);
+    expr left = construct(ee->left);
+    expr right = construct(ee->right);
+    return left <= right;
+  }
+
 #if 0
   case Expr::Ne:
   case Expr::Ugt:

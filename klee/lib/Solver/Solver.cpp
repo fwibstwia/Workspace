@@ -38,6 +38,7 @@
 #include <unistd.h>
 #include <signal.h>
 #include <sys/wait.h>
+#include <sys/time.h>
 #include <sys/ipc.h>
 #include <sys/shm.h>
 
@@ -149,12 +150,12 @@ bool Solver::evaluate(const Query& query, Validity &result) {
   bool stableResult;
   int i = 0;
   sp = SearchPoint;
-  while(i < 100){
+  while(i < 50){
     bool result = checkStable(query, stableResult);
     if(result){
       i ++;
     }
-    sp += 0.01f;
+    sp += 0.1f;
   }
   return false;
   //impl->computeValidity(query, result);
@@ -201,7 +202,19 @@ bool Solver::checkStable(const Query& query, bool &result){
     findSymbolicObjects(query.expr, objects);
     std::vector< std::vector<unsigned char> > values;
     while(!success && trials < 20){ 
+      /*
+      timeval t;
+      gettimeofday(&t, NULL);
+      long start = t.tv_usec;*/
       impl->computeInitialValues(q, objects, values, hasSolution);
+      /*
+      gettimeofday(&t, NULL);
+      long end = t.tv_usec;
+      std::cout << "Solver time: " << end - start << std::endl;
+
+      gettimeofday(&t, NULL);
+      start = t.tv_usec;*/
+
       if(hasSolution){
 	ReExprEvaluator a(objects, values);
 	ref<Expr> epsilon;
@@ -222,6 +235,12 @@ bool Solver::checkStable(const Query& query, bool &result){
 	trials = 50;
       }
       trials ++;
+
+      /*
+      gettimeofday(&t, NULL);
+      end = t.tv_usec;
+      std::cout << "Bound time: " << end - start << std::endl;
+      */
     }
     result = success;
   }

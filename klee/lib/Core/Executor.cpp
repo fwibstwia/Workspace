@@ -2220,6 +2220,14 @@ void Executor::executeInstruction(ExecutionState &state, KInstruction *ki) {
       bindLocal(ki, state,result);
       break;
     }
+    
+    case FCmpInst::FCMP_OLE:{
+      ref<Expr> left = eval(ki, 0, state).value;
+      ref<Expr> right = eval(ki, 1, state).value;
+      ref<Expr> result = FOleExpr::create(left, right);
+      bindLocal(ki, state, result);
+      break;
+    }
       /*
     case FCmpInst::FCMP_ORD:
       Result = CmpRes != APFloat::cmpUnordered;

@@ -162,6 +162,7 @@ void Expr::printKind(llvm::raw_ostream &os, Kind k) {
     X(Sge);
     X(FOgt);
     X(FOlt);
+    X(FOle);
 #undef X
   default:
     assert(0 && "invalid kind");
@@ -307,6 +308,7 @@ ref<Expr> Expr::createFromKind(Kind k, std::vector<CreateArg> args) {
       BINARY_EXPR_CASE(Sge);
       BINARY_EXPR_CASE(FOgt);
       BINARY_EXPR_CASE(FOlt);
+      BINARY_EXPR_CASE(FOle);
   }
 }
 
@@ -610,6 +612,31 @@ ref<ConstantExpr> ConstantExpr::FOgt(const ref<ConstantExpr> &RHS) {
 #else
   llvm::APFloat Res(getAPValue());
   if(Res.compare(APFloat(RHS->getAPValue())) == llvm::APFloat::cmpGreaterThan){
+     result = true;
+  }
+  else{
+    result = false;
+  }
+#endif
+  return ConstantExpr::alloc(result, Expr::Bool);
+}
+
+ref<ConstantExpr> ConstantExpr::FOle(const ref<ConstantExpr> &RHS) {
+  bool result;
+#if LLVM_VERSION_CODE >= LLVM_VERSION(3, 3)
+  llvm::APFloat Res(ConstantExpr::fpWidthToSemantics(getWidth()), getAPValue());
+  if(Res.compare(APFloat(ConstantExpr::fpWidthToSemantics(RHS->getWidth()), RHS->getAPValue())) == 
+     llvm::APFloat::cmpLessThan 
+  || Res.compare(APFloat(ConstantExpr::fpWidthToSemantics(RHS->getWidth()), RHS->getAPValue())) == 
+     llvm::APFloat::cmpEqual){
+    result = true;
+  }else{
+    result = false;
+  }
+#else
+  llvm::APFloat Res(getAPValue());
+  if(Res.compare(APFloat(RHS->getAPValue())) == llvm::APFloat::cmpLessThan 
+     || Res.compare(APFloat(RHS->getAPValue())) == llvm::APFloat::cmpEqual){
      result = true;
   }
   else{
@@ -1459,9 +1486,6 @@ ref<Expr> SgtExpr::create(const ref<Expr> &l, const ref<Expr> &r) {
 ref<Expr> SgeExpr::create(const ref<Expr> &l, const ref<Expr> &r) {
   return SleExpr::create(r, l);
 }
-ref<Expr> FOgtExpr::create(const ref<Expr> &l, const ref<Expr> &r) {
-  return FOltExpr::create(r, l);
-}
 
 
 static ref<Expr> UltExpr_create(const ref<Expr> &l, const ref<Expr> &r) {
@@ -1497,9 +1521,19 @@ static ref<Expr> SleExpr_create(const ref<Expr> &l, const ref<Expr> &r) {
   }
 }
 
-static ref<Expr> FOltExpr_create(const ref<Expr> &l, const ref<Expr> &r) {
-    return FOltExpr::alloc(l, r);
+ref<Expr> FOgtExpr::create(const ref<Expr> &l, const ref<Expr> &r) {
+  return FOltExpr::create(r, l);
 }
+
+
+static ref<Expr> FOltExpr_create(const ref<Expr> &l, const ref<Expr> &r) {
+  return FOltExpr::alloc(l, r);
+}
+
+static ref<Expr> FOleExpr_create(const ref<Expr> &l, const ref<Expr> &r){
+  return FOleExpr::alloc(l, r);
+}
+
 
 CMPCREATE_T(EqExpr, Eq, EqExpr, EqExpr_createPartial, EqExpr_createPartialR)
 CMPCREATE(UltExpr, Ult)
@@ -1507,3 +1541,4 @@ CMPCREATE(UleExpr, Ule)
 CMPCREATE(SltExpr, Slt)
 CMPCREATE(SleExpr, Sle)
 CMPCREATE(FOltExpr, FOlt)
+CMPCREATE(FOleExpr, FOle)
