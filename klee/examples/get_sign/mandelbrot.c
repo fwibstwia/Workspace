@@ -25,7 +25,7 @@ mandelbrot(float cx, float cy)
         x = 0.0;
         y = 0.0; 
         
-        for (iteration = 1;iteration < 5;iteration++)  {
+        for (iteration = 1;iteration < 6;iteration++)  {
 	   float xx1 = y*y + cx;
 	   klee_tag_reorderable(&xx1, 0, 3);
            xx1 = -xx1;

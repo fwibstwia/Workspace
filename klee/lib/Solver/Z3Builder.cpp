@@ -275,7 +275,7 @@ expr Z3Builder::construct(ref<Expr> e){
       if(CE->isFalse())
 	return !right;
     }
-    return left == right;
+    return left < right && left > right - 1;
   }
 
   case Expr::Ult: {

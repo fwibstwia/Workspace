@@ -3,7 +3,7 @@
 int ray_tracing(float *r) {
   float A = 0;  
   int i;
-  for(i = 0; i < 64; i ++){
+  for(i = 0; i < 1000; i ++){
       A = A + r[i];
   }       
   klee_tag_reorderable(&A, 1, 0);    
@@ -12,7 +12,7 @@ int ray_tracing(float *r) {
 } 
 
 int main() {
-  float r[64];
+  float r[1000];
   klee_make_symbolic_with_sort(&r, sizeof(r), "r", 8, 32);
   return ray_tracing(r);
 } 

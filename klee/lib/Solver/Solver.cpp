@@ -157,7 +157,8 @@ bool Solver::evaluate(const Query& query, Validity &result) {
     }
     sp += 0.1f;
   }
-  return false;
+  result = Solver::True;
+  return true;
   //impl->computeValidity(query, result);
 }
 
@@ -1130,12 +1131,12 @@ SolverImpl::SolverRunStatus Z3SolverImpl::runAndGetCex(ref<Expr> query_expr,
   if(values.size() == 0){ // we need to reconstruct the query, because we change the epsilon
     s.reset(); // clear existing constraints
     s.add(builder->construct(query_expr));
-    
+    /*
     if(objects[0] -> range == Expr::Int32){
       s.add(builder->constructSearchSpace<float>(objects[0], 0, sp, sp + 0.1f));
     }else if(objects[0] -> range == Expr::Int64){
       s.add(builder->constructSearchSpace<double>(objects[0], 0, sp, sp + 0.1f));
-    }
+      }*/
   } else {
     for(unsigned i = 0; i < objects.size(); i ++){
       const Array *array = objects[i];
