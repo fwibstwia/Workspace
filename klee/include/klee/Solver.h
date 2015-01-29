@@ -102,6 +102,7 @@ namespace klee {
     /// \return True on success.
     bool mustBeTrue(const Query&, bool &result);
     bool checkStable(const Query&, bool &result);
+    bool isVolatileConditional(const ref<Expr> e);
     void printUnstableInput(const std::vector<const Array*> &objects,
 			    std::vector< std::vector<unsigned char> > &result);
 

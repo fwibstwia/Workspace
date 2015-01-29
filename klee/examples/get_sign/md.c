@@ -3,7 +3,7 @@
 
 double SignR(double v,double x) {if (x > 0) return v; else return -v;}
 
-void ComputeAccel(double *r_j1, double *r_j2){
+int ComputeAccel(double *r_j1, double *r_j2){
   double RegionH[3];/* Half the box lengths */
   double dr[3];
   double rr;
@@ -20,16 +20,14 @@ void ComputeAccel(double *r_j1, double *r_j2){
     rr = dr[k]*dr[k] + rr;
     klee_tag_reorderable(&rr, 0, 3);
   }
-  if(rr < rrCut){
-    return;
+  if(rr > rrCut){
+    return 0;
   }
 
 }
 int main() {
   double r_j1[3], r_j2[3];
-
   klee_make_symbolic_with_sort(&r_j1, sizeof(r_j1), "r_j1", 8, 64);
   klee_make_symbolic_with_sort(&r_j2, sizeof(r_j2), "r_j2", 8, 64);
-  ComputeAccel(r_j1, r_j2);
-  return 0;
+  return ComputeAccel(r_j1, r_j2);
 } 

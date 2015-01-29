@@ -82,6 +82,8 @@ SolverImpl::~SolverImpl() {
 
 bool SolverImpl::computeValidity(const Query& query, Solver::Validity &result) {
   bool isTrue, isFalse;
+
+  /*
   if (!computeTruth(query, isTrue))
     return false;
   if (isTrue) {
@@ -90,7 +92,8 @@ bool SolverImpl::computeValidity(const Query& query, Solver::Validity &result) {
     if (!computeTruth(query.negateExpr(), isFalse))
       return false;
     result = isFalse ? Solver::False : Solver::Unknown;
-  }
+    }*/
+  result = Solver::Unknown; //temporary solution
   return true;
 }
 
@@ -147,19 +150,170 @@ bool Solver::evaluate(const Query& query, Validity &result) {
     result = CE->isTrue() ? True : False;
     return true;
   }
-  bool stableResult;
-  int i = 0;
-  sp = SearchPoint;
-  while(i < 50){
-    bool result = checkStable(query, stableResult);
-    if(result){
-      i ++;
+
+  if (isVolatileConditional(query.expr)){
+    bool stableResult;
+    int i = 0;
+    sp = SearchPoint;
+    while(i < 50){
+      bool result = checkStable(query, stableResult);
+      if(result){
+	i ++;
+      }
+      sp += 0.1f;
     }
-    sp += 0.1f;
+    result = Solver::Unknown;
+    return true;
   }
-  result = Solver::True;
-  return true;
-  //impl->computeValidity(query, result);
+  
+  return impl->computeValidity(query, result); //for non-volatile conditionals
+}
+
+bool Solver::isVolatileConditional(const ref<Expr> e){
+  switch (e->getKind()){
+  case Expr::Constant: {
+    return false;
+  }
+  case Expr::NotOptimized:{
+     NotOptimizedExpr *noe = cast<NotOptimizedExpr>(e);
+     return isVolatileConditional(noe->src);
+  }
+  case Expr::Reorder:{
+    return true;
+  }
+  case Expr::Read:{
+    return false;
+  }
+  case Expr::Select: {
+    SelectExpr *se = cast<SelectExpr>(e);
+    return isVolatileConditional(se->cond) || 
+      isVolatileConditional(se->trueExpr) || 
+      isVolatileConditional(se->falseExpr);
+  }
+
+ //Arithmetic
+
+  case Expr::Add: {
+    AddExpr *ae = cast<AddExpr>(e);
+    return isVolatileConditional(ae->left) || 
+      isVolatileConditional(ae->right);
+  }
+
+  case Expr::Sub: {
+    SubExpr *ae = cast<SubExpr>(e);
+    return isVolatileConditional(ae->left) || 
+      isVolatileConditional(ae->right);
+  }
+
+  case Expr::Mul: {
+    MulExpr *ae = cast<MulExpr>(e);
+    return isVolatileConditional(ae->left) || 
+      isVolatileConditional(ae->right);
+  }
+
+  case Expr::UDiv: {
+  }
+
+  case Expr::SDiv: {
+  }
+
+  case Expr::URem: {
+  }
+
+  case Expr::SRem: {
+  }
+
+  case Expr::FAdd: {
+    FAddExpr *ae = cast<FAddExpr>(e);
+    return isVolatileConditional(ae->left) || 
+      isVolatileConditional(ae->right);
+  }
+
+  case Expr::FSub: {
+    FSubExpr *ae = cast<FSubExpr>(e);
+   return isVolatileConditional(ae->left) || 
+      isVolatileConditional(ae->right);
+  }
+
+  case Expr::FMul: {
+    FMulExpr *ae = cast<FMulExpr>(e);
+    return isVolatileConditional(ae->left) || 
+      isVolatileConditional(ae->right);
+  }
+  case Expr::FDiv: {
+    FDivExpr *ae = cast<FDivExpr>(e);
+    return isVolatileConditional(ae->left) || 
+      isVolatileConditional(ae->right);
+  }
+
+  case Expr::FRem: {
+  }
+    //logic
+  case Expr::Not: {
+    NotExpr *ne = cast<NotExpr>(e);
+    return  isVolatileConditional(ne->expr);
+
+  }
+    
+  case Expr::And: {
+    AndExpr *ae = cast<AndExpr>(e);
+    return isVolatileConditional(ae->left) || 
+      isVolatileConditional(ae->right);
+  }
+
+  case Expr::Or: {
+    OrExpr *ae = cast<OrExpr>(e);
+    return isVolatileConditional(ae->left) || 
+      isVolatileConditional(ae->right);
+  }
+
+  case Expr::Xor: {
+  }
+
+    //comparison
+  case Expr::Eq: {
+    EqExpr *ee = cast<EqExpr>(e);
+    return isVolatileConditional(ee->left) || 
+      isVolatileConditional(ee->right);
+  }
+
+  case Expr::Ult: {
+  }
+
+  case Expr::Ule: {
+  }
+
+  case Expr::Slt: {
+  }
+
+  case Expr::Sle: {
+  }
+  
+  case Expr::FOlt: {
+    FOltExpr *ee = cast<FOltExpr>(e);
+    return isVolatileConditional(ee->left) || 
+      isVolatileConditional(ee->right);
+  }
+
+  case Expr::FOle: {
+    FOleExpr *ee = cast<FOleExpr>(e);
+     return isVolatileConditional(ee->left) || 
+      isVolatileConditional(ee->right);
+  }
+
+#if 0
+  case Expr::Ne:
+  case Expr::Ugt:
+  case Expr::Uge:
+  case Expr::Sgt:
+  case Expr::Sge:
+  case Expr::FOgt;
+#endif
+
+  default:
+    assert(0 && "unhandled Expr type");
+    return false;
+  }
 }
 
 bool Solver::mustBeTrue(const Query& query, bool &result) {
@@ -1131,12 +1285,12 @@ SolverImpl::SolverRunStatus Z3SolverImpl::runAndGetCex(ref<Expr> query_expr,
   if(values.size() == 0){ // we need to reconstruct the query, because we change the epsilon
     s.reset(); // clear existing constraints
     s.add(builder->construct(query_expr));
-    /*
+   
     if(objects[0] -> range == Expr::Int32){
       s.add(builder->constructSearchSpace<float>(objects[0], 0, sp, sp + 0.1f));
     }else if(objects[0] -> range == Expr::Int64){
-      s.add(builder->constructSearchSpace<double>(objects[0], 0, sp, sp + 0.1f));
-      }*/
+      s.add(builder->constructSearchSpace<double>(objects[1], 0, sp, sp + 0.1f));
+    }
   } else {
     for(unsigned i = 0; i < objects.size(); i ++){
       const Array *array = objects[i];
