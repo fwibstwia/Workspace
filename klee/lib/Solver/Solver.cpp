@@ -160,7 +160,7 @@ bool Solver::evaluate(const Query& query, Validity &result) {
       if(result){
 	i ++;
       }
-      sp += 0.1f;
+      sp += 0.01f;
     }
     result = Solver::Unknown;
     return true;

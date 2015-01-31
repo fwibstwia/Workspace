@@ -415,19 +415,38 @@ void ReExprEvaluator::evalFOlt(const FOltExpr *e, vector<ReExprRes> &res){
       re.setResVal(e->rebuild(tmp));
       res.push_back(re);
     }
-  }/*else if(ConstantExpr *CE = dyn_cast<ConstantExpr>(e->getKid(1))){
-    evaluate(e->getKid(0), kidEvalRes);
+  }else if(ConstantExpr *CER = dyn_cast<ConstantExpr>(e->getKid(1))){
     ref<Expr> tmp[2];
     tmp[1] = e->getKid(1);
-    for(int i = 0; i < kidEvalRes.size(); i ++){
-      if(ConstantExpr *CEL = dyn_cast<ConstantExpr>(kidEvalRes[i])){
-	ref<ConstantExpr> value = CE->FSub(CEL);
-	ref<ConstantExpr> dist = CE->FAbs(CEL);
-        if(minValue.get()){
+    evaluate(e->getKid(0), kidRes);
+    for(int i = 0; i < kidRes.size(); i ++){
+      if(ConstantExpr *CEL = dyn_cast<ConstantExpr>(kidRes[i].getResVal())){
+	//std::string test;
+	//CEL->toString(test, 10, 1);
+	//std::cout << "extreme value: " << test << std::endl;
+
+	ref<ConstantExpr> value = CER->FSub(CEL);
+	ref<ConstantExpr> dist = CER->FAbs(CEL);
+	if(minValue.get()){
+	  if(isMinEqMax){
+	    llvm::APFloat apfmin = minValue -> getAPFValue();
+	    llvm::APFloat apfv = value -> getAPFValue();
+            if(value -> getWidth() == Expr::Int32){
+	      if(apfmin.convertToFloat() != apfv.convertToFloat()){
+		isMinEqMax = false;
+	      }
+	    }else if(value -> getWidth() == Expr::Int64){
+	      if(apfmin.convertToDouble() != apfv.convertToDouble()){
+		isMinEqMax = false;
+	      }
+	    }
+	  }
+
 	  if((minDist -> FOgt(dist)) -> isTrue()){
 	    minValue = value;
 	    minDist = dist;
 	  }
+
 	}else{
 	  minValue = value;
 	  minDist = dist;
@@ -435,13 +454,12 @@ void ReExprEvaluator::evalFOlt(const FOltExpr *e, vector<ReExprRes> &res){
       }else{
 	assert(0 && "encounter non-constantExpr after evaluate");
       }
-      tmp[0] = kidEvalRes[i];
-      res.push_back(e->rebuild(tmp));
+      ReExprRes re(kidRes[i]);
+      tmp[0] = kidRes[i].getResVal();
+      re.setResVal(e->rebuild(tmp));
+      res.push_back(re);
     }
-  }else{
-    assert(0 && "we need one side of evalFOlt is constant");
-    }*/
-  epsilon = minValue;
+  }
 } 
 
 void ReExprEvaluator::evaluate(const ref<Expr> &e, vector<ReExprRes> &res){
