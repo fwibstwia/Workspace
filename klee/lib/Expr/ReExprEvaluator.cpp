@@ -377,6 +377,7 @@ void ReExprEvaluator::evalFOlt(const FOltExpr *e, vector<ReExprRes> &res){
     evaluate(e->getKid(1), kidRes);
     for(int i = 0; i < kidRes.size(); i ++){
       if(ConstantExpr *CEL = dyn_cast<ConstantExpr>(kidRes[i].getResVal())){
+	
 	//std::string test;
 	//CEL->toString(test, 10, 1);
 	//std::cout << "extreme value: " << test << std::endl;
@@ -460,6 +461,7 @@ void ReExprEvaluator::evalFOlt(const FOltExpr *e, vector<ReExprRes> &res){
       res.push_back(re);
     }
   }
+  epsilon = minValue;
 } 
 
 void ReExprEvaluator::evaluate(const ref<Expr> &e, vector<ReExprRes> &res){

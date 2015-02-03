@@ -740,7 +740,7 @@ Executor::fork(ExecutionState &current, ref<Expr> condition, bool isInternal) {
   if (isSeeding)
     timeout *= it->second.size();
   solver->setTimeout(timeout);
-  klee_message("smt log");
+  //klee_message("smt log");
   std::string Str;
   llvm::raw_string_ostream info(Str);
   ExprSMTLIBPrinter *printer = new ExprSMTLIBPrinter();
@@ -748,7 +748,7 @@ Executor::fork(ExecutionState &current, ref<Expr> condition, bool isInternal) {
   Query query(current.constraints, condition);
   printer->setQuery(query);
   printer->generateOutput();
-  klee_message("%s", info.str().c_str());
+  //klee_message("%s", info.str().c_str());
   bool success = solver->evaluate(current, condition, res);
   solver->setTimeout(0);
   if (!success) {

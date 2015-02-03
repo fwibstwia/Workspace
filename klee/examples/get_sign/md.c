@@ -22,7 +22,7 @@ int ComputeAccel(double *r_j1, double *r_j2){
     rr = dr[k]*dr[k] + rr;
     klee_tag_reorderable(&rr, 0, 3);
   }
-  if(rr > rrCut){
+  if(rr < rrCut){
     return 0;
   }
  }

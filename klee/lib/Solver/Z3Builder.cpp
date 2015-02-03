@@ -92,11 +92,11 @@ expr Z3Builder::constructBlockClause(const Array* var, const unsigned index, con
   }
   
   std::ostringstream upperStream;
-  upperStream << std::fixed << std::setprecision(15) << upper;
+  upperStream << std::fixed << std::setprecision(19) << upper;
   std::string upper_s = upperStream.str();
 
   std::ostringstream lowerStream;
-  lowerStream << std::fixed << std::setprecision(15) << lower;
+  lowerStream << std::fixed << std::setprecision(19) << lower;
   std::string lower_s = lowerStream.str();
 
   expr upper_e = c.real_val(upper_s.c_str());

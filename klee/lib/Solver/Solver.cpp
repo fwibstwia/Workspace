@@ -155,13 +155,13 @@ bool Solver::evaluate(const Query& query, Validity &result) {
     bool stableResult;
     int i = 0;
     sp = SearchPoint;
-    while(i < 50){
+    //while(i < 1){
       bool result = checkStable(query, stableResult);
       if(result){
 	i ++;
       }
-      sp += 0.01f;
-    }
+      //sp += 0.01f;
+      //}
     result = Solver::Unknown;
     return true;
   }
@@ -331,17 +331,24 @@ bool Solver::mustBeTrue(const Query& query, bool &result) {
 void Query::changeConstant(ref<Expr> &epsilon){
   //fix me:handle constant in the right
   std::string ori, eps, upd;
-  EqExpr *eq = dyn_cast<EqExpr>(expr);
-  ConstantExpr *CE = dyn_cast<ConstantExpr>(eq -> left);
+  EqExpr *eq = dyn_cast<EqExpr>(expr); 
   ConstantExpr *consEps = dyn_cast<ConstantExpr>(epsilon);
-  CE->toString(ori, 10, 1);
-  consEps->toString(eps, 10, 1);
-  ref<ConstantExpr> res = CE->FAdd(consEps);
-  res->toString(upd, 10, 1);
-  //std::cout << "ori: " << std::setprecision(17) << ori << std::endl;
-  //std::cout << "eps: " << std::setprecision(17) << eps << std::endl;
-  //std::cout << "upd: " << std::setprecision(17) << upd << std::endl;
-  eq->left = res;
+  if(ConstantExpr *CE = dyn_cast<ConstantExpr>(eq -> left)){
+      CE->toString(ori, 10, 1);
+      consEps->toString(eps, 10, 1);
+      ref<ConstantExpr> res = CE->FAdd(consEps);
+      res->toString(upd, 10, 1);
+      std::cout << "ori: " << std::setprecision(17) << ori << std::endl;
+      std::cout << "eps: " << std::setprecision(17) << eps << std::endl;
+      std::cout << "upd: " << std::setprecision(17) << upd << std::endl;
+      eq->left = res;
+  }else if(ConstantExpr *CE = dyn_cast<ConstantExpr>(eq -> right)){
+    CE->toString(ori, 10, 1);
+    consEps->toString(eps, 10, 1);
+    ref<ConstantExpr> res = CE->FAdd(consEps);
+    res->toString(upd, 10, 1);
+    eq->right = res;
+  }
 }
 
 bool Solver::checkStable(const Query& query, bool &result){
@@ -1165,7 +1172,7 @@ Z3SolverImpl::Z3SolverImpl(bool _useForkedZ3, bool _optimizeDivides)
   builder = new Z3Builder(c, _optimizeDivides);
 
   z3::params p(c);
-  //  p.set("shuffle_vars", true); 
+  //p.set("shuffle_vars", true); 
   p.set("seed", (unsigned)4294967295);
   s.set(p);
 
