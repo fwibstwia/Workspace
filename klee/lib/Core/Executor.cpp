@@ -748,7 +748,7 @@ Executor::fork(ExecutionState &current, ref<Expr> condition, bool isInternal) {
   Query query(current.constraints, condition);
   printer->setQuery(query);
   printer->generateOutput();
-  //klee_message("%s", info.str().c_str());
+  klee_message("%s", info.str().c_str());
   bool success = solver->evaluate(current, condition, res);
   solver->setTimeout(0);
   if (!success) {
@@ -2233,6 +2233,30 @@ void Executor::executeInstruction(ExecutionState &state, KInstruction *ki) {
       ref<Expr> left = eval(ki, 0, state).value;
       ref<Expr> right = eval(ki, 1, state).value;
       ref<Expr> result = FOleExpr::create(left, right);
+      bindLocal(ki, state, result);
+      break;
+    }
+
+    case FCmpInst::FCMP_OGE:{
+      ref<Expr> left = eval(ki, 0, state).value;
+      ref<Expr> right = eval(ki, 1, state).value;
+      ref<Expr> result = FOgeExpr::create(left, right);
+      bindLocal(ki, state, result);
+      break;
+    }
+
+    case FCmpInst::FCMP_UNE:{
+      ref<Expr> left = eval(ki, 0, state).value;
+      ref<Expr> right = eval(ki, 1, state).value;
+      ref<Expr> result = FUneExpr::create(left, right);
+      bindLocal(ki, state, result);
+      break;
+    }
+    
+    case FCmpInst::FCMP_UEQ:{
+      ref<Expr> left = eval(ki, 0, state).value;
+      ref<Expr> right = eval(ki, 1, state).value;
+      ref<Expr> result = FUeqExpr::create(left, right);
       bindLocal(ki, state, result);
       break;
     }

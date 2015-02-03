@@ -172,6 +172,9 @@ public:
     FOgt,
     FOlt,
     FOle,
+    FOge,
+    FUeq,
+    FUne,
 
     // Reorder
     Reorder,
@@ -563,6 +566,9 @@ public:
   ref<ConstantExpr> FOgt(const ref<ConstantExpr> &RHS);
   ref<ConstantExpr> FOlt(const ref<ConstantExpr> &RHS);
   ref<ConstantExpr> FOle(const ref<ConstantExpr> &RHS);
+  ref<ConstantExpr> FOge(const ref<ConstantExpr> &RHS);
+  ref<ConstantExpr> FUeq(const ref<ConstantExpr> &RHS);
+  ref<ConstantExpr> FUne(const ref<ConstantExpr> &RHS);
   ref<ConstantExpr> Neg();
   ref<ConstantExpr> Not();
 };
@@ -1241,6 +1247,9 @@ COMPARISON_EXPR_CLASS(Sge)
 COMPARISON_EXPR_CLASS(FOgt)
 COMPARISON_EXPR_CLASS(FOlt)
 COMPARISON_EXPR_CLASS(FOle)
+COMPARISON_EXPR_CLASS(FOge)
+COMPARISON_EXPR_CLASS(FUeq)
+COMPARISON_EXPR_CLASS(FUne)
 // Implementations
 
 inline bool Expr::isZero() const {

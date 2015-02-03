@@ -78,7 +78,9 @@ namespace klee {
     virtual Action visitLShr(const LShrExpr&);
     virtual Action visitAShr(const AShrExpr&);
     virtual Action visitEq(const EqExpr&);
+    virtual Action visitFUeq(const FUeqExpr&);
     virtual Action visitNe(const NeExpr&);
+    virtual Action visitFUne(const FUneExpr&);
     virtual Action visitUlt(const UltExpr&);
     virtual Action visitUle(const UleExpr&);
     virtual Action visitUgt(const UgtExpr&);

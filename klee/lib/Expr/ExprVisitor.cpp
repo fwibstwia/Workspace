@@ -84,7 +84,9 @@ ref<Expr> ExprVisitor::visitActual(const ref<Expr> &e) {
     case Expr::LShr: res = visitLShr(static_cast<LShrExpr&>(ep)); break;
     case Expr::AShr: res = visitAShr(static_cast<AShrExpr&>(ep)); break;
     case Expr::Eq: res = visitEq(static_cast<EqExpr&>(ep)); break;
+    case Expr::FUeq: res = visitFUeq(static_cast<FUeqExpr&>(ep)); break;
     case Expr::Ne: res = visitNe(static_cast<NeExpr&>(ep)); break;
+    case Expr::FUne: res = visitFUne(static_cast<FUneExpr&>(ep)); break;
     case Expr::Ult: res = visitUlt(static_cast<UltExpr&>(ep)); break;
     case Expr::Ule: res = visitUle(static_cast<UleExpr&>(ep)); break;
     case Expr::Ugt: res = visitUgt(static_cast<UgtExpr&>(ep)); break;
@@ -255,7 +257,15 @@ ExprVisitor::Action ExprVisitor::visitEq(const EqExpr&) {
   return Action::doChildren(); 
 }
 
+ExprVisitor::Action ExprVisitor::visitFUeq(const FUeqExpr&) {
+  return Action::doChildren(); 
+}
+
 ExprVisitor::Action ExprVisitor::visitNe(const NeExpr&) {
+  return Action::doChildren(); 
+}
+
+ExprVisitor::Action ExprVisitor::visitFUne(const FUneExpr&) {
   return Action::doChildren(); 
 }
 

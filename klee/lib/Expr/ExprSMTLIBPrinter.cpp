@@ -398,6 +398,12 @@ const char *ExprSMTLIBPrinter::getSMTLIBKeyword(const ref<Expr> &e) {
 
   case Expr::Eq:
     return "=";
+ 
+  case Expr::FUeq:
+    return "=";
+
+  case Expr::FUne:
+    return "!=";
 
   // Not Equal does not exist directly in SMTLIBv2
 

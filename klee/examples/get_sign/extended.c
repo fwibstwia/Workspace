@@ -1,18 +1,14 @@
-struct Point {
-    double x, y;
-};
-
-int f_orientation(Point* p, Point* q, Point* r) {
-    // return sign((q.x-p.x) * (r.y-p.y) - (q.y-p.y) * (r.x-p.x));
-    double det = (q.x-p.x)*(r.y-p.y) + (q.y-p.y)*(r.x-p.x);
-    if ( det < 0.0) return -1;
-    if ( det > 0.0) return  1;
-    return 0;
+#include <klee/klee.h>
+double f_orientation(double* p, double* q, double* r) {
+    double det = (q[0]-p[0])*(r[1]-p[1]) + (q[1]-p[1])*(r[0]-p[0]);
+    klee_tag_reorderable(&det, 1, 2);  
+    return det;
 }
 
-bool f_extended(Point* p, Point* q, Point* r) {
-     return ((q.x-p.x) * (r.x-q.x) >= (p.y-q.y) * (r.y-q.y));
-    //return (multd( q.x-p.x, r.x-q.x) >= multd( p.y-q.y, r.y-q.y));
+double f_extended(double* p, double* q, double* r) {
+     double l = (q[0]-p[0]) * (r[0]-q[0]) + (q[1] - p[1]) * (r[1]-q[1]);
+     klee_tag_reorderable(&l, 1, 2);
+     return l;
 }
 
 // extended_rightturn: Returns true if pqr form a rightturn, or if pqr are 
@@ -20,18 +16,18 @@ bool f_extended(Point* p, Point* q, Point* r) {
 // the direction q-p, i.e., if (q-p)*(r-q) >= 0.
 // All points must be from the range [first,last), which will be used
 // for computing indices in the verbose trace output.
-bool extended_rightturn( const Point& p, const Point& q, const Point& r, 
-                         ForwardIterator first, ForwardIterator last) {
-    int orient = f_orientation(p,q,r);
-    bool result = (orient == -1) || (orient == 0 && f_extended(p,q,r));
-    if ( verbose_pred_summary) {
-        std::cerr << "  Extended_rightturn( " 
-                  <<   "p" << 1+std::distance( first, std::find( first,last,p))
-                  << ", p" << 1+std::distance( first, std::find( first,last,q))
-                  << ", p" << 1+std::distance( first, std::find( first,last,r))
-                  << ") == " << (result ? "true " : "false");
-        std::cerr << std::endl;
+int extended_rightturn(double* p, double* q, double* r) {
+    double det = f_orientation(p,q,r);
+    if(det < 0.0 || (det == 0.0 && f_extended(p,q,r) >= 0.0)){
+	return 1;
     }
-    return result;
+    return 0;
 }
 
+int main() {
+  double p[2], q[2], r[2];
+  klee_make_symbolic_with_sort(&p, sizeof(p), "p", 8, 64);
+  klee_make_symbolic_with_sort(&q, sizeof(q), "q", 8, 64);
+  klee_make_symbolic_with_sort(&r, sizeof(r), "r", 8, 64);
+  return extended_rightturn(p, q, r);
+}

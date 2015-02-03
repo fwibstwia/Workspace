@@ -276,6 +276,12 @@ bool Solver::isVolatileConditional(const ref<Expr> e){
     return isVolatileConditional(ee->left) || 
       isVolatileConditional(ee->right);
   }
+  
+  case Expr::FUeq:{
+    FUeqExpr *ee = cast<FUeqExpr>(e);
+    return isVolatileConditional(ee->left) || 
+      isVolatileConditional(ee->right);
+  }
 
   case Expr::Ult: {
   }

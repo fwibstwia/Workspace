@@ -280,6 +280,20 @@ expr Z3Builder::construct(ref<Expr> e){
     return left == right;
   }
 
+  case Expr::FUeq: {
+    FUeqExpr *ee = cast<FUeqExpr>(e);
+    expr left = construct(ee->left);
+    expr right = construct(ee->right);
+    return left == right;
+  }
+
+  case Expr::FUne: {
+    FUneExpr *ee = cast<FUneExpr>(e);
+    expr left = construct(ee->left);
+    expr right = construct(ee->right);
+    return left != right;
+  }
+
   case Expr::Ult: {
   }
 
