@@ -385,6 +385,19 @@ void ConstantExpr::toString(std::string &Res, unsigned radix, unsigned logic) co
     Res = value.toString(radix, false);
   }else{
     if(isFloat){
+      llvm::APFloat F(value);
+      if(getWidth() == Expr::Int32){
+        float v = F.convertToFloat();
+        std::ostringstream stream;
+        stream << std::fixed << std::setprecision(19) << v;
+        Res = stream.str();
+      }else if(getWidth() == Expr::Int64){
+        double v = F.convertToDouble();
+        std::ostringstream stream;
+        stream << std::fixed << std::setprecision(19) << v;
+        Res = stream.str();
+      }
+      /*
         llvm::SmallVector<char, 100> Buffer;
 #if LLVM_VERSION_CODE >= LLVM_VERSION(3,3)
 	llvm::APFloat F(ConstantExpr::fpWidthToSemantics(width), value);
@@ -393,7 +406,7 @@ void ConstantExpr::toString(std::string &Res, unsigned radix, unsigned logic) co
 #endif
         F.toString(Buffer, 20, 10);
 
-	Res = std::string(Buffer.data(), Buffer.size());
+	Res = std::string(Buffer.data(), Buffer.size());*/
     }else{
       Res = value.toString(radix, true);
     }

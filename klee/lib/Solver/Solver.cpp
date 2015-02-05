@@ -353,6 +353,9 @@ void Query::changeConstant(ref<Expr> &epsilon){
     consEps->toString(eps, 10, 1);
     ref<ConstantExpr> res = CE->FAdd(consEps);
     res->toString(upd, 10, 1);
+    std::cout << "ori: " << std::setprecision(17) << ori << std::endl;
+    std::cout << "eps: " << std::setprecision(17) << eps << std::endl;
+    std::cout << "upd: " << std::setprecision(17) << upd << std::endl;
     eq->right = res;
   }
 }
@@ -393,13 +396,16 @@ bool Solver::checkStable(const Query& query, bool &result){
 	  success = true;
 	  break;
 	case ReExprEvaluator::Epsilon:
+	  //std::cout << "change epsilon" << std::endl;
 	  q.changeConstant(epsilon);
 	  values.clear();
 	  break;
 	case ReExprEvaluator::MinEqualMax:
+	  //std::cout << "min = max" << std::endl;
 	  break;
 	}
       }else{
+	std::cout << "no solution" << std::endl;
 	trials = 50;
       }
       trials ++;
@@ -1300,7 +1306,7 @@ SolverImpl::SolverRunStatus Z3SolverImpl::runAndGetCex(ref<Expr> query_expr,
     s.add(builder->construct(query_expr));
    
     if(objects[0] -> range == Expr::Int32){
-      s.add(builder->constructSearchSpace<float>(objects[0], 0, sp, sp + 0.1f));
+      s.add(builder->constructSearchSpace<float>(objects[1], 0, sp, sp + 0.1f));
     }else if(objects[0] -> range == Expr::Int64){
       s.add(builder->constructSearchSpace<double>(objects[1], 0, sp, sp + 0.1f));
     }

@@ -33,11 +33,11 @@ void Z3Builder::getInitialRead(const Array *os, const unsigned index,
   expr res = m.get_const_interp(getInitialArray(os,index).decl());
 
   Z3_string s = Z3_get_numeral_decimal_string(c, res, 50);
-  /*
+  
   std::stringstream sstm;
   sstm << os->name << index;
   std::cout << sstm.str() << ":" << s << std::endl;  
-  */
+  
   char *stopString;
   if(sizeof(T) == 4){
     v = strtof(s, &stopString);

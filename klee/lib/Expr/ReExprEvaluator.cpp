@@ -102,11 +102,13 @@ void ReExprEvaluator::evalNonFMAExp(const ref<Expr> mult0, const ref<Expr> mult1
     float mult0_v = (mult0CE->getAPFValue()).convertToFloat();
     float mult1_v = (mult1CE->getAPFValue()).convertToFloat();
     float addend_v = (addendCE->getAPFValue()).convertToFloat();
+  
     vector<float> ops;
     ops.push_back(mult0_v*mult1_v);
     ops.push_back(addend_v);
     Reorder<float> ro(FE_TONEAREST);
     float nonfma = ro.getPlusMin(ops);
+
     llvm::APFloat apNonfma(nonfma);
     ref<Expr> nonfmaExpr = ConstantExpr::alloc(apNonfma);
     set<int64_t> reorders;
@@ -182,7 +184,7 @@ void ReExprEvaluator::evalReorder(const ReorderExpr *e, vector<ReExprRes> &res){
   vector<ReExprRes> kids;
   vector<ReExprRes> tmp;
 
-  std::cout << "operands len" << len << std::endl;
+  //std::cout << "operands len" << len << std::endl;
 
   for(int i = 0; i < len; i ++){
     evaluate((e->operands)[i], tmp);
@@ -263,10 +265,10 @@ void ReExprEvaluator::getReorderExtreme(const ReorderExpr *e, vector<ReExprRes> 
     max = ro.getPlusMax(ops);
     min = ro.getPlusMin(ops);
 
-    std::cout << "extreme value: " << fmaMax << std::endl;
-    std::cout << "extreme value: " << fmaMin << std::endl;
-    std::cout << "extreme value: " << max << std::endl;
-    std::cout << "extreme value: " << min << std::endl;
+    //std::cout << "extreme value: " << fmaMax << std::endl;
+    //std::cout << "extreme value: " << fmaMin << std::endl;
+    //std::cout << "extreme value: " << max << std::endl;
+    //std::cout << "extreme value: " << min << std::endl;
 
     llvm::APFloat apFmaMax(fmaMax), apFmaMin(fmaMin),
       apMax(max), apMin(min);
@@ -321,19 +323,19 @@ void ReExprEvaluator::getReorderExtreme(const ReorderExpr *e, vector<ReExprRes> 
 }
 
 void ReExprEvaluator::evalFUeq(const FUeqExpr *e, vector<ReExprRes> &res){
-  /*Fix me:: handle e-> left is constant
+  //Fix me:: handle e-> left is constant
   vector<ReExprRes> kidRes;
   ref<ConstantExpr> minDist;
   ref<ConstantExpr> minValue;
-  if(ConstantExpr *CER = dyn_cast<ConstantExpr>(e->getKid(0))){
+  if(ConstantExpr *CER = dyn_cast<ConstantExpr>(e->getKid(1))){
     ref<Expr> tmp[2];
-    tmp[0] = e->getKid(0);
-    evaluate(e->getKid(1), kidRes);
+    tmp[1] = e->getKid(1);
+    evaluate(e->getKid(0), kidRes);
     for(int i = 0; i < kidRes.size(); i ++){
       if(ConstantExpr *CEL = dyn_cast<ConstantExpr>(kidRes[i].getResVal())){
-	//std::string test;
-	//CER->toString(test, 10, 1);
-	//std::cout << "extreme value: " << test << std::endl;
+	std::string test;
+	CER->toString(test, 10, 1);
+	std::cout << "extreme value: " << test << std::endl;
 
 	ref<ConstantExpr> value = CER->FSub(CEL);
 	ref<ConstantExpr> dist = CER->FAbs(CEL);
@@ -365,12 +367,12 @@ void ReExprEvaluator::evalFUeq(const FUeqExpr *e, vector<ReExprRes> &res){
 	assert(0 && "encounter non-constantExpr after evaluate");
       }
       ReExprRes re(kidRes[i]);
-      tmp[1] = kidRes[i].getResVal();
+      tmp[0] = kidRes[i].getResVal();
       re.setResVal(e->rebuild(tmp));
       res.push_back(re);
     }
   }
-  epsilon = minValue;*/
+  epsilon = minValue;
 } 
 
 void ReExprEvaluator::evalFOle(const FOleExpr *e, vector<ReExprRes> &res){
@@ -384,9 +386,9 @@ void ReExprEvaluator::evalFOle(const FOleExpr *e, vector<ReExprRes> &res){
     evaluate(e->getKid(1), kidRes);
     for(int i = 0; i < kidRes.size(); i ++){
       if(ConstantExpr *CEL = dyn_cast<ConstantExpr>(kidRes[i].getResVal())){
-	//std::string test;
-	//CEL->toString(test, 10, 1);
-	//std::cout << "extreme value: " << test << std::endl;
+	std::string test;
+	CEL->toString(test, 10, 1);
+	std::cout << "extreme value: " << test << std::endl;
 
 	ref<ConstantExpr> value = CER->FSub(CEL);
 	ref<ConstantExpr> dist = CER->FAbs(CEL);
