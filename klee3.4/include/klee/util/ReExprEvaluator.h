@@ -19,67 +19,6 @@
 
 namespace klee{
   class Array;
-
-  class ReExprRes{
-  private:
-    std::set<int64_t> reorders;
-    std::set<int64_t> reorderCompls;
-    ref<Expr> resVal;
-  public:
-    ReExprRes(){}
-    ReExprRes(const std::set<int64_t> &_reorders,
-	      const std::set<int64_t> &_reorderCompls,
-	      const ref<Expr> _resVal){
-      reorders = _reorders;
-      reorderCompls = _reorderCompls;
-      resVal = _resVal;
-    }
-    
-    ReExprRes(const ReExprRes &r){
-      reorders = r.reorders;
-      reorderCompls = r.reorderCompls;
-      resVal = r.resVal;
-    }
-    
-    bool isConflict(const ReExprRes &r){
-      std::set<int64_t> v;
-      std::set_intersection(reorders.begin(), reorders.end(),
-			    (r.reorderCompls).begin(), (r.reorderCompls).end(),
-			    std::inserter(v, v.end()));
-      if(v.size() != 0)
-	return true;
-      return false;			    
-    }
-
-    void merge(const ReExprRes &r1, const ReExprRes &r2){
-      std::set_union((r1.reorders).begin(), (r1.reorders).end(), 
-		      (r2.reorders).begin(), (r2.reorders).end(), 
-		     std::inserter(reorders, reorders.end()));
-
-      std::set_union((r1.reorderCompls).begin(), (r1.reorderCompls).end(),
-		     (r2.reorderCompls).begin(), (r2.reorderCompls).end(),
-		     std::inserter(reorderCompls, reorderCompls.end()));
-    }
-
-    bool isFMAExpIn(){
-      std::set<int64_t>::iterator it = reorders.find(0);
-      return it != reorders.end();
-    }
-
-    bool isNonFMAExpIn(){
-      std::set<int64_t>::iterator it = reorders.find(1);
-      return it != reorders.end();
-    }
-    
-    ref<Expr> getResVal(){
-      return resVal;
-    }
-
-    void setResVal(const ref<Expr>  _resVal){
-      resVal = _resVal;
-    }
-  }; 
-
   class ReExprEvaluator{
   public:
     typedef std::map<const Array*, std::vector<unsigned char> > bindings_ty;
@@ -90,31 +29,25 @@ namespace klee{
       MinEqualMax = 2
     };
   private:
-    void evalRead(const ReadExpr *e, std::vector<ReExprRes> &res);
-    void evalReorder(const ReorderExpr *e, std::vector<ReExprRes> &res);
-    void evalReorderRec(const ReorderExpr *e, std::vector<ReExprRes> &res, 
-			std::vector<ReExprRes> &kids, int i);
-    void evalReorderFMANONFMA(const ReorderExpr *e, std::vector<ReExprRes> &res);
-    void evalFMAExp(const ref<Expr> mult0, const ref<Expr> mult1, 
-		    const ref<Expr> addend, std::vector<ReExprRes> &res);
-    void evalNonFMAExp(const ref<Expr> mult0, const ref<Expr> mult1,
-		       const ref<Expr> addend, std::vector<ReExprRes> &res);
-    template <typename T>
+    void evalRead(const ReadExpr *e, std::vector<ref<Expr> > &res);
+    void evalReorder(const ReorderExpr *e, std::vector<ref<Expr> > &res);
+    void evalReorderRec(const ReorderExpr *e, std::vector<ref<Expr> > &res, 
+			std::vector<ref<Expr> > &kids, int i);
+    void evalReorderFMANONFMA(const ReorderExpr *e, std::vector<ref<Expr> > &res);
     void getReorderExtreme(const ReorderExpr *e, 
-			   std::vector<ReExprRes> &kids, 
-			   std::vector<ReExprRes> &res);
-    void evalFOlt(const FOltExpr *e, std::vector<ReExprRes> &res);
-    void evalFOle(const FOleExpr *e, std::vector<ReExprRes> &res);
-    void evalFUeq(const FUeqExpr *e, std::vector<ReExprRes> &res);
-    void getInitialValue(const Array &os, unsigned index, std::vector<ReExprRes> &res); 
-    void evalUpdate(const UpdateList &ul, unsigned index, std::vector<ReExprRes> &res);
+			   std::vector<ref<Expr> > &kids, 
+			   std::vector<ref<Expr> > &res);
+    void evalFComp(const ref<Expr> &e, std::vector<ref<Expr> > &res);
+    void getInitialValue(const Array &os, unsigned index, std::vector<ref<Expr> > &res); 
+    void evalUpdate(const UpdateList &ul, unsigned index, std::vector<ref<Expr> > &res);
     ref<Expr> getArrayValue(const Array *array, unsigned index) const;
+    void getResMinMax(std::vector<ref<Expr> > &res);
   private:
     ref<Expr> epsilon;
-    std::map<const ReorderExpr *, std::vector<ReExprRes> > reorderMap;
+    std::map<const ReorderExpr *, std::vector<ref<Expr> > > reorderMap;
     bool isMinEqMax;
   public:
-    void evaluate(const ref<Expr> &e, std::vector<ReExprRes> &res);
+    void evaluate(const ref<Expr> &e, std::vector<ref<Expr> > &res);
     EvalState isAssignmentStable(const ref<Expr> &e, ref<Expr> &epsilon);
     ReExprEvaluator(std::vector<const Array*> &objects,
 		    std::vector< std::vector<unsigned char> > &values){
@@ -133,11 +66,9 @@ namespace klee{
  
   inline void ReExprEvaluator::getInitialValue(const Array& os, 
 					       unsigned index, 
-					       std::vector<ReExprRes> &res){
-    ReExprRes re;
+					       std::vector<ref<Expr> > &res){
     ref<Expr> arrayV = getArrayValue(&os, index);
-    re.setResVal(arrayV);
-    res.push_back(re);
+    res.push_back(arrayV);
   }
 
   inline ref<Expr> ReExprEvaluator::getArrayValue(const Array *array, 

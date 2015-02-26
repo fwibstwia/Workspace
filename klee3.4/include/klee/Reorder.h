@@ -15,10 +15,12 @@
 #include <cmath>
 #include <immintrin.h>
 
+#include "llvm/ATD/APFloat.h"
+
 using namespace std;
+using namespace llvm;
 
 namespace klee {
-  template<typename T>
   class Reorder {
   public:
     enum Operation{
@@ -31,64 +33,64 @@ namespace klee {
 
     int getRoundMode(){return roundMode;}
 
-    T getPlusMax(const std::vector<T> &ops){
+    APFloat getPlusMax(const std::vector<APFloat> &ops){
       return getBound(1, Plus, ops);
     }
 
-    T getPlusMin(const std::vector<T> &ops){
+    APFloat getPlusMin(const std::vector<APFloat> &ops){
       return getBound(0, Plus, ops);
     }
 
-    T getMultMax(const std::vector<T> &ops){
+    APFloat getMultMax(const std::vector<APFloat> &ops){
       return getBound(1, Mult, ops);
     }
 
-    T getMultMin(const std::vector<T> &ops){
+    APFloat getMultMin(const std::vector<APFloat> &ops){
       return getBound(0, Mult, ops);
     }
 
-    T getFMAMax(const std::vector<T> &opsl, const std::vector<T> &opsr){
+    APFloat getFMAMax(const std::vector<APFloat> &opsl, const std::vector<APFloat> &opsr){
       return getFMABound(1, opsl, opsr);
     }
 
-    T getFMAMin(const std::vector<T> &opsl, const std::vector<T> &opsr){
+    APFloat getFMAMin(const std::vector<APFloat> &opsl, const std::vector<APFloat> &opsr){
       return getFMABound(0, opsl, opsr);
     }
 
-    T getFMAExp(const T mult0, const T mult1, const T addend);
+    APFloat getFMAExp(const APFloat &mult0, const APFloat &mult1, const APFloat &addend);
 
   private:
-    T getCost(T a, T b, Operation op);
-    T getValue(T a, T b, Operation op);
-    T getBound(int direction, Operation op, const std::vector<T> &ops);
-    T getFMABound(int direction, const std::vector<T> &opsl, const std::vector<T> &opsr);
+    APFloat getCost(APFloat a, APFloat b, Operation op);
+    APFloat getValue(const APFloat &a, const APFloat &b, Operation op);
+    APFloat getBound(int direction, Operation op, const std::vector<APFloat> &ops);
+    APFloat getFMABound(int direction, const std::vector<APFloat> &opsl, 
+			const std::vector<APFloat> &opsr);
 
   private:
     int roundMode;
   };
 
-  template <typename T>  
-  T Reorder<T>::getFMAExp(const T mult0, const T mult1, const T addend){
-     if(sizeof(T) == 4){
+  APFloat Reorder::getFMAExp(const APFloat &mult0, const APFloat &mult1, 
+				      const APFloat &addend){
+     if(mult0.getSemantics() == &APFloat::IEEEsingle){
 	__m128 a, b, c, r;
-	a[0] = mult0;
-	b[0] = mult1;
-	c[0] = addend;
+	a[0] = mult0.convertToFloat();
+	b[0] = mult1.convertToFloat();
+	c[0] = addend.convertToFloat();
 	r = _mm_fmadd_ps(a, b, c);
-	return r[0];
+	return APFloat(r[0]);
      }
      __m128d a, b, c, r;
-     a[0] = mult0;
-     b[0] = mult1;
-     c[0] = addend;
+     a[0] = mult0.convertToDouble();
+     b[0] = mult1.convertToDouble();
+     c[0] = addend.convertToDouble();
      r = _mm_fmadd_pd(a, b, c);
-     return r[0];
+     return APFloat(r[0]);
   }
 
-  template <typename T>  
-  T Reorder<T>::getBound(int direction, Operation op, const vector<T> &ops){
-    T c, t;
-    std::vector<std::vector<T> > values;
+  APFloat Reorder::getBound(int direction, Operation op, const vector<APFloat> &ops){
+    APFloat c, t;
+    std::vector<std::vector<APFloat> > values;
     std::vector<std::vector<int> > choices;
     int len = ops.size();
     int origRound = fegetround();
@@ -102,7 +104,7 @@ namespace klee {
       choices[i].resize(len);
     }
 
-    fesetround(roundMode);
+    //fesetround(roundMode);
     for(int i = 0; i < len; i ++){
       values[i][i] = ops[i];
     }
@@ -116,13 +118,13 @@ namespace klee {
 	for(int k = i + 1;  k < j; k++){
 	  t = getCost(values[i][k], values[k+1][j], op);
 	  if(direction == 1){
-	    if(t > c){
+	    if(t.compare(c) == APFloat::cmpGreaterThan){
 	      c = t;
 	      choices[i][j] = k;
 	      values[i][j] = getValue(values[i][k], values[k+1][j], op);
 	    }
 	  }else{
-	    if(t < c){
+	    if(t.compare(c) == APFloat::cmpLessThan){
 	      c = t;
 	      choices[i][j] = k;	    
 	      values[i][j] = getValue(values[i][k], values[k+1][j], op);
@@ -132,13 +134,12 @@ namespace klee {
       }    
     }
 
-    fesetround(origRound);
+    //fesetround(origRound);
     return values[0][len - 1];
   }
-
-  template <typename T>  
-  T Reorder<T>::getFMABound(int direction, const std::vector<T> &opsl, const std::vector<T> &opsr){
-    std::vector<std::vector<T> > values;
+ 
+  APFloat Reorder::getFMABound(int direction, const std::vector<APFloat> &opsl, const std::vector<APFloat> &opsr){
+    std::vector<std::vector<APFloat> > values;
     std::vector<std::vector<int> > choices;
     int len = opsl.size();
     int origRound = fegetround();
@@ -152,38 +153,38 @@ namespace klee {
       choices[i].resize(len);
     }
 
-    fesetround(roundMode);
+    //fesetround(roundMode);
 
     for(int i = 0; i < len - 1; i ++){
-      T t1 = opsl[i+1] * opsr[i+1];
-      T t2 = opsl[i] * opsr[i];
-      T r1, r2;
-      if(sizeof(T) == 4){
+      APFloat t1 = opsl[i+1] * opsr[i+1];
+      APFloat t2 = opsl[i] * opsr[i];
+      APFloat r1, r2;
+      if(opsl[i].getSemantics() == &APFloat::IEEEsingle){
 	__m128 a, b, c, r;
-	a[0] = opsl[i];
-	a[1] = opsl[i+1];
-	b[0] = opsr[i];
-	b[1] = opsr[i+1];
-	c[0] = t1;
-	c[1] = t2;
+	a[0] = opsl[i].convertToFloat();
+	a[1] = opsl[i+1].convertToFloat();
+	b[0] = opsr[i].convertToFloat();
+	b[1] = opsr[i+1].convertToFloat();
+	c[0] = t1.convertToFloat();
+	c[1] = t2.convertToFloat();
 	r = _mm_fmadd_ps(a, b, c);
-	r1 = r[0];
-	r2 = r[1];
+	r1 = APFloat(r[0]);
+	r2 = APFloat(r[1]);
       }else{
 	__m128d a, b, c, r;
-	a[0] = opsl[i];
-	a[1] = opsl[i+1];
-	b[0] = opsr[i];
-	b[1] = opsr[i+1];
-	c[0] = t1;
-	c[1] = t2;
+	a[0] = opsl[i].convertToDouble();
+	a[1] = opsl[i+1].convertToDouble();
+	b[0] = opsr[i].convertToDouble();
+	b[1] = opsr[i+1].convertToDouble();
+	c[0] = t1.convertToDouble();
+	c[1] = t2.convertToDouble();
 	r = _mm_fmadd_pd(a, b, c);
-	r1 = r[0];
-	r2 = r[1];
+	r1 = APFloat(r[0]);
+	r2 = APFloat(r[1]);
       }
 
       if(direction == 1){
-	if(r1 > r2){
+	if(r1.compare(r2) == APFloat::cmpGreaterThan){
 	  values[i][i+1] = r1;
 	  choices[i][i+1] = i;
 	}else{
@@ -191,7 +192,7 @@ namespace klee {
 	  choices[i][i+1] = i + 1;
 	}
       }else{
-	if(r1 < r2){
+	if(r1.compare(r2) == APFloat::cmpLessThan){
 	  values[i][i+1] = r1;
 	  choices[i][i+1] = i;
 	}else{
@@ -203,32 +204,32 @@ namespace klee {
     for(int l = 3; l <= len; l ++){
       for(int i = 0; i < len - l + 1; i ++){
 	int j = i + l - 1;
-	T r1, r2;
-	if(sizeof(T) == 4){
+	APFloat r1, r2;
+	if(opsl[i].getSemantics() == &APFloat::IEEEsingle){
 	  __m128 a, b, c, r;
-	  a[0] = opsl[i];
-	  a[1] = opsl[j];
-	  b[0] = opsr[i];
-	  b[1] = opsr[j];
-	  c[0] = values[i+1][j];
-	  c[1] = values[i][j-1];
+	  a[0] = opsl[i].convertToFloat();
+	  a[1] = opsl[j].convertToFloat();
+	  b[0] = opsr[i].convertToFloat();
+	  b[1] = opsr[j].convertToFloat();
+	  c[0] = values[i+1][j].convertToFloat();
+	  c[1] = values[i][j-1].convertToFloat();
 	  r = _mm_fmadd_ps(a, b, c);
-	  r1 = r[0];
-	  r2 = r[1];
+	  r1 = APFloat(r[0]);
+	  r2 = APFloat(r[1]);
 	}else{ // for the double type
 	  __m128d a, b, c, r;
-	  a[0] = opsl[i];
-	  a[1] = opsl[j];
-	  b[0] = opsr[i];
-	  b[1] = opsr[j];
-	  c[0] = values[i+1][j];
-	  c[1] = values[i][j-1];
+	  a[0] = opsl[i].convertToDouble();
+	  a[1] = opsl[j].convertToDouble();
+	  b[0] = opsr[i].convertToDouble();
+	  b[1] = opsr[j].convertToDouble();
+	  c[0] = values[i+1][j].convertToDouble();
+	  c[1] = values[i][j-1].convertToDouble();
 	  r = _mm_fmadd_pd(a, b, c);
-	  r1 = r[0];
-	  r2 = r[1];
+	  r1 = APFloat(r[0]);
+	  r2 = APFloat(r[1]);
 	}
 	if(direction == 1){
-	  if(r1 > r2){
+	  if(r1.compare(r2) == APFloat::cmpGreaterThan){
 	    values[i][j] = r1;
 	    choices[i][j] = i;
 	  }else{
@@ -236,7 +237,7 @@ namespace klee {
 	    choices[i][j] = j - 1;
 	  }
 	}else{
-	  if(r1 < r2){
+	  if(r1.compare(r2) == APFloat::cmpLessThan){
 	    values[i][j] = r1;
 	    choices[i][j] = i;
 	  }else{
@@ -248,12 +249,12 @@ namespace klee {
 	for(int k = i + 1; k < j - 1; k ++){
 	  T t = values[i][k] + values[k+1][j];
 	  if(direction == 1){
-	    if(t > values[i][j]){
+	    if(t.compare(values[i][j]) == APFloat::cmpGreaterThan){
 	      values[i][j] = t;
 	      choices[i][j] = k;
 	    }
 	  }else{
-	    if(t < values[i][j]){
+	    if(t.compare(values[i][j]) == APFloat::cmpLessThan){
 	      values[i][j] = t;
 	      choices[i][j] = k;
 	    }
@@ -261,36 +262,33 @@ namespace klee {
 	}
       }    
     }
-    fesetround(origRound);
+    //fesetround(origRound);
     return values[0][len - 1];
   } 
 
-  template <typename T>  
-  T Reorder<T>::getCost(T a, T b, Operation op){
-    T c;
+  APFloat Reorder::getCost(APFloat a, APFloat b, Operation op){
+    APFloat c;
     if(op == Plus){
       return a + b;
     }
-    if(a * b >= 0){
-      c = a * b;
-    } else{
-      if(roundMode == FE_TONEAREST || roundMode == FE_TOWARDZERO){
-	c = fabs(a) * fabs(b);
-      }else if(roundMode == FE_DOWNWARD){
+
+    if(roundMode == FE_TONEAREST || roundMode == FE_TOWARDZERO){
+      c = a.clearSign() * b.clearSign();
+    }
+      /*
+      else if(roundMode == FE_DOWNWARD){
 	fesetround(FE_UPWARD);
-	c = fabs(a) * fabs(b);
+	c = a.clearSign() * b.clearSign();
 	fesetround(FE_DOWNWARD);
       }else{
 	fesetround(FE_DOWNWARD);
 	c = fabs(a) * fabs(b);
 	fesetround(FE_UPWARD);
-      }
-    }
+	}*/   
     return c;
   }
 
-  template <typename T>  
-  T Reorder<T>::getValue(T a, T b, Operation op){
+  APFloat Reorder::getValue(const APFloat &a, const APFloat &b, Operation op){
     if(op == Plus){
       return a + b;
     }else{
