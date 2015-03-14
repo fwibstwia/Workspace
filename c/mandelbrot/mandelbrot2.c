@@ -26,13 +26,13 @@ void mandelbrot_fix_iter(float cx, float cy){
         float x = 0.0;
 	float y = 0.0;
 
-        for (iteration = 1;iteration < 5;iteration++)  {
+        for (iteration = 1;iteration < 50;iteration++)  {
 	   xx = x*x-y*y+cx;
            y = 2.0*x*y+cy;
            x = xx;    
-           //printf("%.19f\n", x*x + y*y); 
-              
+           printf("%.19f\n", x*x + y*y);             
         }
+        printf("iterations: %d\n", iteration);
         printf("%.19f\n", x*x + y*y); 
         if (x*x+y*y>1.0){
           printf("%d\n", 1); 
@@ -72,6 +72,7 @@ void mandelbrot_int(int windowPosX, int windowPosY){
 
 int main() {
   float cx, cy;
+  /*
   FILE* fh;
 
   //mandelbrot_int(269,152);
@@ -88,7 +89,7 @@ int main() {
      fscanf(fh, "%f %f",
 	       &cx, &cy);
      mandelbrot(cx, cy);
-  }
-  
+  }*/
+  mandelbrot_fix_iter(0.2, 0.01);
   return 0;
 } 

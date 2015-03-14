@@ -1,10 +1,10 @@
 #include <klee/klee.h>
-#define RCUT 1.5     /* Potential cut-off length */
+#define RCUT 0.5     /* Potential cut-off length */
 
 float SignR(float v,float x) {if (x > 0) return v; else return -v;}
 
 int ComputeAccel(float *r_j1, float *r_j2){
-  float RegionH = 11.8563108444213867188f;/* Half the box lengths */
+  float RegionH = 17.0997600555419921875f;/* Half the box lengths */
   float dr[3];
   float rr = 0;
   float rrCut = RCUT*RCUT;
@@ -19,7 +19,7 @@ int ComputeAccel(float *r_j1, float *r_j2){
     rr = dr[k]*dr[k] + rr;
     klee_tag_reorderable(&rr, 0, 3);
   }
-  if(rr <= rrCut){
+  if(rr < rrCut){
     return 0;
   }
  }

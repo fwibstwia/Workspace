@@ -92,6 +92,8 @@ namespace klee{
   private:
     void evalRead(const ReadExpr *e, std::vector<ReExprRes> &res);
     void evalReorder(const ReorderExpr *e, std::vector<ReExprRes> &res);
+    void evalReorderRec(const ReorderExpr *e, std::vector<ReExprRes> &res, 
+			std::vector<ReExprRes> &kids, int i);
     void evalReorderFMANONFMA(const ReorderExpr *e, std::vector<ReExprRes> &res);
     void evalFMAExp(const ref<Expr> mult0, const ref<Expr> mult1, 
 		    const ref<Expr> addend, std::vector<ReExprRes> &res);

@@ -1,8 +1,8 @@
 #include <stdio.h>
 #include <math.h>
 void cal(float sx, float sy, float sz){
-  float r = sx*sx + (sy*sy + sz*sz);
-  printf("%20.18f\n", r);
+  float r = nextafterf(0.0, 2.0);
+  printf("%.23f\n", r);
 }
 int main(){
   float sx = 0.005782f ;

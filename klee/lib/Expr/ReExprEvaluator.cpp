@@ -172,6 +172,35 @@ void ReExprEvaluator::evalFMAExp(const ref<Expr> mult0, const ref<Expr> mult1,
   }
 }
 
+void ReExprEvaluator::evalReorderRec(const ReorderExpr *e, vector<ReExprRes> &res, vector<ReExprRes> &kids, int i){
+  if(i == (e -> operands).size()){
+    if(ConstantExpr *CE = dyn_cast<ConstantExpr>(kids[0].getResVal())){    
+      if(CE -> getWidth() == Expr::Int32){
+	getReorderExtreme<float>(e, kids, res);
+      }else if(CE -> getWidth() == Expr::Int64){
+	getReorderExtreme<double>(e, kids, res);
+      }
+      reorderMap[e] = res;
+    }else{
+      assert(0 && "encounter non-constant in Reorder Rebuild");
+    }  
+  } else {
+    vector<ReExprRes> tmp;
+    evaluate((e->operands)[i], tmp);
+    i = i + 1;
+    kids.push_back(tmp[0]);
+    evalReorderRec(e, res, kids, i);
+    kids.pop_back();
+    if(tmp.size() == 2){
+      kids.push_back(tmp[1]);
+      evalReorderRec(e, res, kids, i);
+      kids.pop_back();
+    }
+    tmp.clear();
+  }
+
+}
+
 void ReExprEvaluator::evalReorder(const ReorderExpr *e, vector<ReExprRes> &res){
   //in this function we call the min/max method 
   //Fix me: need to add round mode support
@@ -179,30 +208,9 @@ void ReExprEvaluator::evalReorder(const ReorderExpr *e, vector<ReExprRes> &res){
     res = reorderMap.find(e)->second;
     return;
   }
-
-  int len = (e->operands).size();
   vector<ReExprRes> kids;
   vector<ReExprRes> tmp;
-
-  //std::cout << "operands len" << len << std::endl;
-
-  for(int i = 0; i < len; i ++){
-    evaluate((e->operands)[i], tmp);
-    kids.push_back(tmp[0]);
-    tmp.clear();
-  }
-
-  //detect the type of the operands
- if(ConstantExpr *CE = dyn_cast<ConstantExpr>(kids[0].getResVal())){    
-   if(CE -> getWidth() == Expr::Int32){
-     getReorderExtreme<float>(e, kids, res);
-   }else if(CE -> getWidth() == Expr::Int64){
-     getReorderExtreme<double>(e, kids, res);
-   }
-  reorderMap[e] = res;
- }else{
-   assert(0 && "encounter non-constant in Reorder Rebuild");
- }  
+  evalReorderRec(e, res, kids, 0);
 }
 
 template <typename T>
@@ -310,15 +318,25 @@ void ReExprEvaluator::getReorderExtreme(const ReorderExpr *e, vector<ReExprRes> 
   set<int64_t> reorderCompls;
 
   llvm::APFloat apMin(min), apMax(max);
-  ref<Expr> minExpr = ConstantExpr::alloc(apMin);
-  ref<Expr> maxExpr = ConstantExpr::alloc(apMax);
-  
+  ref<ConstantExpr> minExpr = ConstantExpr::alloc(apMin);
+  ref<ConstantExpr> maxExpr = ConstantExpr::alloc(apMax);
+  if(res.size() != 0){
+    ConstantExpr *reMin = dyn_cast<ConstantExpr>(res[0].getResVal());  
+    ConstantExpr *reMax = dyn_cast<ConstantExpr>(res[1].getResVal());
+
+    if((minExpr -> FOgt(reMin))-> isTrue()){
+      minExpr = reMin;
+    }
+    
+    if((reMax -> FOgt(maxExpr))-> isTrue()){
+      maxExpr = reMax;
+    }
+  }
+  res.clear();
   reorders.insert((int64_t)&minExpr);
   reorderCompls.insert((int64_t)&maxExpr);
   res.push_back(ReExprRes(reorders, reorderCompls, minExpr));
   res.push_back(ReExprRes(reorderCompls, reorders, maxExpr));  
-
-
   return;
 }
 

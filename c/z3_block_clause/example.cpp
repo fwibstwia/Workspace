@@ -1,5 +1,11 @@
 #include<vector>
 #include"z3++.h"
+#include <sstream>
+#include <cstdlib>
+#include <math.h>
+#include <iomanip>
+#include <string>
+#include <exception>      // std::exception
 using namespace z3;
 
 /**
@@ -812,6 +818,52 @@ void tst_visit() {
     visit(f);
 }
 
+float getModelVal(context &c, model &m, expr &r){
+ char *stopString;
+ z3::expr rl = m.get_const_interp(r.decl());
+ Z3_string sl = Z3_get_numeral_decimal_string(c, rl,50);
+ return strtof(sl, &stopString);
+}
+
+void test_approxPoly(){
+  context c;
+  expr x = c.real_const("x");
+  expr y = c.real_const("y");
+
+  expr x2y3_c = c.real_val("57220.4558");
+  expr x2y2_c = c.real_val("132179.2488");
+  expr x2y_c = c.real_val("89111.3145");
+  expr x2_c = c.real_val("13230.89058");
+  expr xy3_c = c.real_val("51307.67848");
+  expr xy2_c = c.real_val("185922.6236");
+  expr xy_c = c.real_val("223447.4574");
+  expr x_c = c.real_val("89246.349");
+  expr y3_c = c.real_val("7418.314546");
+  expr y2_c = c.real_val("23459.31982");
+  expr y_c = c.real_val("24817.0252");
+  expr c_c = c.real_val("8768.247439");
+
+  expr x_down = c.real_val("0.18");
+  expr x_up = c.real_val("0.20");
+  expr y_down = c.real_val("1.18");
+  expr y_up = c.real_val("1.21");
+
+  solver s(c);
+  s.add(x > x_down);
+  s.add(x < x_up);
+  s.add(y > y_down);
+  s.add(y < y_up);
+  s.add(x2y3_c*x*x*y*y*y - x2y2_c*x*x*y*y + x2y_c*x*x*y - x2_c*x*x + xy3_c*x*y*y*y -xy2_c*x*y*y + xy_c*x*y -x_c*x + y3_c*y*y*y - y2_c*y*y + y_c*y - c_c == 100);
+  std::cout << s.check() << std::endl;
+  model m(c, s.get_model());
+  float x_v = getModelVal(c, m, x);
+  float y_v = getModelVal(c, m, y);
+
+  std::cout << "var_v: " << std::setprecision(17) 
+       << x_v << " " 
+       << y_v << " ";
+}
+
 void test_params(){
  context c;
   expr x = c.real_const("x");
@@ -907,7 +959,7 @@ void test_raytracing_timeout(){
 int main() {
     try {
       //test_raytracing_timeout();
-      test_params();
+      test_approxPoly();
       /*
         demorgan(); std::cout << "\n";
         find_model_example1(); std::cout << "\n";

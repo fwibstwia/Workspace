@@ -1,16 +1,12 @@
 #include <stdio.h>
 #include <immintrin.h>
 
-void testFMAOrder(float a, float b, float c){
-  __m128 e, f, g;
-  e[0] = a;
-  f[0] = b;
-  g[0] = c;
-  __m128 r = _mm_fmadd_ps(e, f, g);
-  printf("%f", r[0]);
-  return; 
+float testFMAOrder(float a, float b, float c, float d){
+  float r= a+ b*c*d;
+  return r;
 }
 
 int main(){
-  testFMAOrder(1.2, 2.1, 3.1);
+  float r, a, b, c, d;
+  r = testFMAOrder(a, b, c, d);
 }
