@@ -765,16 +765,6 @@ void SpecialFunctionHandler::handleMakeSymbolicWithSort(ExecutionState &state,
 void SpecialFunctionHandler::handleTagReorderable(ExecutionState &state,
 						  KInstruction *target,
 						  std::vector<ref<Expr> > &arguments){
-  unsigned dir = 0; // the default direction is left
-  unsigned cat = 0; // the default category is RE_PLUS
-
-  if(ConstantExpr *CE = dyn_cast<ConstantExpr>(arguments[1])){
-    dir = CE->getZExtValue();
-  }
-
-  if(ConstantExpr *CE = dyn_cast<ConstantExpr>(arguments[2])){
-    cat = CE->getZExtValue();
-  }
 
   Executor::ExactResolutionList rl;
   executor.resolveExact(state, arguments[0], rl, "tag_reorderable");
@@ -784,7 +774,7 @@ void SpecialFunctionHandler::handleTagReorderable(ExecutionState &state,
     const ObjectState *os = it->first.second;
     ExecutionState *s = it->second;
     mo->reorderable = true;
-    executor.executeTagReorderable(*s, mo, os, dir, cat);
+    executor.executeTagReorderable(*s, mo, os);
   }
 }
 

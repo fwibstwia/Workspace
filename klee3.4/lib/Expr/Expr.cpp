@@ -246,7 +246,7 @@ ref<Expr> Expr::createFromKind(Kind k, std::vector<CreateArg> args) {
     case Reorder:
       assert(numArgs == 1 && args[0].isExpr() &&
              "invalid args array for given opcode");
-      return ReorderExpr::create(args[0].expr, 0, 0);
+      return ReorderExpr::create(args[0].expr);
       
     case Select:
       assert(numArgs == 3 && args[0].isExpr() &&

@@ -3413,12 +3413,10 @@ void Executor::executeMakeSymbolicWithSort(ExecutionState &state,
 
 void Executor::executeTagReorderable(ExecutionState &state, 
 				     const MemoryObject *mo,
-				     const ObjectState *os,
-				     int dir,
-				     int cat){
+				     const ObjectState *os){
   unsigned width = (os -> size / os -> arraySize)*8;   
   ref<Expr> result = os->readWhole(0,width);
-  ref<Expr> reValue = ReorderExpr::create(result, dir, cat);
+  ref<Expr> reValue = ReorderExpr::create(result);
   ObjectState *wos = state.addressSpace.getWriteable(mo, os);
   wos->writeWhole(0,reValue);
 }

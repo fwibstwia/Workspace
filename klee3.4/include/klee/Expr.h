@@ -102,14 +102,6 @@ public:
   static const Width Int64 = 64;
   static const Width Fl80 = 80;
   
-  enum ReorderCat{
-    RE_Plus = 0,
-    RE_Mult = 1,
-    RE_FMA = 2,
-    FMA_NONFMA = 3
-  };
-
-
   /*
   enum ExprType{
     Int,
@@ -634,13 +626,13 @@ public:
   static const unsigned numKids = 1;
   ref<Expr> src;
 public:
-  static ref<Expr> alloc(const ref<Expr> &src, int dir, int cat){
-    ref<Expr> r(new ReorderExpr(src, dir, cat));
+  static ref<Expr> alloc(const ref<Expr> &src){
+    ref<Expr> r(new ReorderExpr(src));
     r->computeHash();
     return r;
   }
   
-  static ref<Expr> create(ref<Expr> src, int dir, int cat);
+  static ref<Expr> create(ref<Expr> src);
   Width getWidth() const {return src->getWidth();}
   Kind getKind() const{return kind;}
   
@@ -651,9 +643,7 @@ public:
 
 public:
   std::vector<ref<Expr> > operands;
-  ReorderCat cat;
-  int dir;
-  ReorderExpr(const ref<Expr> &_src, int dir, int cat);
+  ReorderExpr(const ref<Expr> &_src);
 public:
   static bool classof(const Expr *E) {
     return E->getKind() == Expr::Reorder;
