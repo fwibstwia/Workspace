@@ -10,6 +10,7 @@
 #define KLEE_REEXPREVALUATOR_H
 
 #include <vector>
+#include <utility>
 #include <map>
 #include <set>
 #include <iostream>
@@ -30,16 +31,16 @@ namespace klee{
     };
   private:
     void evalRead(const ReadExpr *e, std::vector<ref<Expr> > &res);
+    void evalUpdate(const UpdateList &ul, unsigned index, std::vector<ref<Expr> > &res);
+    void evalMultRec(const std::vector<ref<Expr> > &ops, std::vector<ref<Expr> > &kids, 
+		     int i, std::vector<MultRes> &res);
+    void constructMult(ref<Expr> &src, std::vector<ref<Expr> > &ops);
+    void evalReOps(const ref<Expr> &e, std::vector<pair<ref<Expr>, ref<Expr> > > &minVec,
+		   std::vector<pair<ref<Expr>, ref<Expr> > > &maxVec);
     void evalReorder(const ReorderExpr *e, std::vector<ref<Expr> > &res);
-    void evalReorderRec(const ReorderExpr *e, std::vector<ref<Expr> > &res, 
-			std::vector<ref<Expr> > &kids, int i);
-    void evalReorderFMANONFMA(const ReorderExpr *e, std::vector<ref<Expr> > &res);
-    void getReorderExtreme(const ReorderExpr *e, 
-			   std::vector<ref<Expr> > &kids, 
-			   std::vector<ref<Expr> > &res);
+
     void evalFComp(const ref<Expr> &e, std::vector<ref<Expr> > &res);
     void getInitialValue(const Array &os, unsigned index, std::vector<ref<Expr> > &res); 
-    void evalUpdate(const UpdateList &ul, unsigned index, std::vector<ref<Expr> > &res);
     ref<Expr> getArrayValue(const Array *array, unsigned index) const;
     void getResMinMax(std::vector<ref<Expr> > &res);
   private:

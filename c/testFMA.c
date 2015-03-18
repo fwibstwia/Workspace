@@ -1,8 +1,9 @@
 #include <stdio.h>
 #include <immintrin.h>
 
+#pragma STDC FP_CONTRACT ON
 float testFMAOrder(float a, float b, float c, float d){
-  float r= a+ b*c*d;
+  float r= a- b*c*d;
   return r;
 }
 

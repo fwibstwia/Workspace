@@ -52,134 +52,99 @@ void ReExprEvaluator::evalUpdate(const UpdateList &ul,
   getInitialValue(*ul.root, index, res);
 }
 
-void ReExprEvaluator::evalFMANONFMA(const ReorderExpr *e, vector<ref<Expr> > &res){
 
-  if(reorderMap.find(e) != reorderMap.end()){
-    res = reorderMap.find(e)->second;
-    return;
-  }
-  
-  vector<ref<Expr> > multiplicand0;
-  vector<ref<Expr> > multiplicand1;
-  vector<ref<Expr> > addend;
-
-  evaluate((e->operands)[0], multiplicand0);
-  evaluate((e->operands)[1], multiplicand1);
-  evaluate((e->operands)[2], addend);
-
-  for(int i = 0; i < multiplicand0.size(); i ++){
-    for(int j = 0; j < multiplicand1.size(); j ++){
-      for(int k = 0; k < addend.size();  k ++){
-	//eval nonfma and fma
+void ReExprEvaluator::evalMultRec(const vector<ref<Expr> > &ops, vector<ref<Expr> > &kids, 
+				  int i, vector<MultRes> &res){
+  if(i == ops.size()){
+    vector<MultRes> localRes;
+    Reorder ro(FE_TONEAREST);
+    ro.getMultBounds(kids, localRes);
+    if(res.size() == 0){
+      res.push_back(localRes[0]);
+      res.push_back(localRes[1]);
+    } else {
+      ref<ConstantExpr> localMin = dyn_cast<ConstantExpr>(localRes[0].res);
+      ref<ConstantExpr> globalMin = dyn_cast<ConstantExpr>(res[0].res);
+      ref<ConstantExpr> localMax = dyn_cast<ConstantExpr>(localRes[1].res);
+      ref<ConstantExpr> globalMax = dyn_cast<ConstantExpr>(res[1].res);
+      
+      if((localMin->FOlt(globalMin))->isTrue()){
+	res[0] = localRes[0];
+      }
+      if((localMax->FOgt(globalMax))->isTrue()){
+	res[1] = localRes[1];
       }
     }
-  }
-  reorderMap[e] = res;
-}
-
-
-void ReExprEvaluator::evalReorderRec(const ReorderExpr *e, vector<ref<Expr> > &res, vector<ref<Expr> > &kids, int i){
-  if(i == (e -> operands).size()){
-    getReorderExtreme(e, kids, res);
-    reorderMap[e] = res;  
   } else {
     vector<ref<Expr> > tmp;
-    evaluate((e->operands)[i], tmp);
+    evaluate(ops[i], tmp);
     i = i + 1;
     kids.push_back(tmp[0]);
-    evalReorderRec(e, res, kids, i);
+    evalMultRec(ops, kids, i, res);
     kids.pop_back();
     if(tmp.size() == 2){
       kids.push_back(tmp[1]);
-      evalReorderRec(e, res, kids, i);
+      evalMultRec(ops, kids, i, res);
       kids.pop_back();
     }
     tmp.clear();
   }
 }
 
-void ReExprEvaluator::getResMinMax(vector<ref<Expr> > &res){
-  APFloat min, max;
-  if(ConstantExpr *CE = dyn_cast<ConstantExpr>(res[0])){
-    min = CE->getAPFValue();
-    max = CE->getAPFValue();
+void ReExprEvaluator::constructMult(ref<Expr> &src, vector<ref<Expr> > &ops){
+  if(src -> getKind() == Expr::FMult){
+    BinaryExpr *be = cast<BinaryExpr>(src);
+    constructMult(be->left);
+    constructMult(be->right);
+  }else{
+    ops.push_back(src);
   }
-  for(int i = 1; i< res.size(); i ++){
-    if(ConstantExpr *CE = dyn_cast<ConstantExpr>(res[i])){
-      if(min.compare(CE->getAPFValue()) == APFloat::cmpGreaterThan){
-	min = CE->getAPFValue();
-      }else if(max.compare(CE->getAPFValue()) == APFloat::cmpLessThan){
-	max = CE->getAPFValue();
-      }      
-    }
-  }
-  res.clear();
-  ref<ConstantExpr> ceMin = ConstantExpr::alloc(min);
-  ref<ConstantExpr> ceMax = ConstantExpr::alloc(max);
-  res.push_back(ceMin);
-  res.push_back(ceMax);
 }
 
+void ReExprEvaluator::evalReOps(const ref<Expr> &e, vector<pair<ref<Expr>, ref<Expr> > > &minVec,
+				vector<pair<ref<Expr>, ref<Expr> > > &maxVec){
+  if(e -> getKind() == Expr::FMult){ //detect a*b*c
+    vector<ref<Expr > > ops, kids;
+    vector<MultRes> res;
+    constructMult(e, ops);
+    evalMultRec(ops, kids, 0, res);
+    pair<ref<Expr>, ref<Expr> > minPair(res[0].op1, res[0].op2);
+    pair<ref<Expr>, ref<Expr> > maxPair(res[1].op1, res[1].op2); 
+    minVec.push_back(minPair);
+    maxVec.push_back(maxPair);
+  } else {
+    ref<Expr> cons1 = ConstantExpr::alloc(1, Expr::Int32);
+    vector<ref<Expr> > tmp;
+    evaluate(e, tmp);
+    pair<ref<Expr>, ref<Expr> > minPair(tmp[0], cons1);//a*1
+    pair<ref<Expr>, ref<Expr> > maxPair(tmp[1], cons1); 
+    minVec.push_back(minPair);
+    maxVec.push_back(maxPair);
+  }
+}
 
 void ReExprEvaluator::evalReorder(const ReorderExpr *e, vector<ref<Expr> > &res){
   if(reorderMap.find(e) != reorderMap.end()){
     res = reorderMap.find(e)->second;
     return;
   }
-  vector<ref<Expr> > kids;
-  vector<ref<Expr> > tmp;
-  evalReorderRec(e, res, kids, 0);
-  getResMinMax(res);
-}
 
-void ReExprEvaluator::getReorderExtreme(const ReorderExpr *e, vector<ref<Expr> > &kids,vector<ref<Expr> > &res){
-  APFloat max, min;
-  vector<APFloat> ops;
-  vector<APFloat> opl;
-  vector<APFloat> opr;
+  vector<pair<ref<Expr>, ref<Expr> > > minVec;
+  vector<pair<ref<Expr>, ref<Expr> > > maxVec;
+  
+  for(int i = 0; i < (e -> operands).size; i ++){
+    evalReOps((e -> operands)[i], minVec, maxVec);
+  }
+
   Reorder ro(FE_TONEAREST);
+  vector<ref<Expr> > minRes, maxRes;
+  ro.getDotBounds(minVec, minRes);
+  ro.getDotBounds(maxVec, maxRes);
 
-  if(e->cat == Expr::RE_FMA){
-    for(int i = 0; i < kids.size(); i = i + 2){
-      if(ConstantExpr *CE= dyn_cast<ConstantExpr>(kids[i])){
-	opl.push_back(CE->getAPFValue());
-      }
-      if(ConstantExpr *CE= dyn_cast<ConstantExpr>(kids[i+1])){
-	opr.push_back(CE->getAPFValue());
-      }
-    }
-  }else{
-    for(int i = 0; i < kids.size(); i ++){
-      if(ConstantExpr *CE = dyn_cast<ConstantExpr>(kids[i])){
-	ops.push_back(CE->getAPFValue());
-      }
-    }
-  }
+  res.push_back(minRes[0]);
+  res.push_back(maxRes[1]);
 
-  switch(e->cat){
-  case Expr::RE_FMA:{
-    max = ro.getFMAMax(opl, opr);
-    min = ro.getFMAMin(opl, opr);
-    break;
-  }
-  case Expr::RE_Plus:{
-    max = ro.getPlusMax(ops);
-    min = ro.getPlusMin(ops);
-    break;
-  }
-  case Expr::RE_Mult:{
-    max = ro.getMultMax(ops);
-    min = ro.getMultMin(ops);
-    break;
-  }
-  default:
-    assert(0 && "unsupported reorderable expression");
-  }
-
-  ref<ConstantExpr> ceMin = ConstantExpr::alloc(min);
-  ref<ConstantExpr> ceMax = ConstantExpr::alloc(max);
-  res.push_back(ceMin);
-  res.push_back(ceMax);
+  reorderMap[e] = res;  
   return;
 }
 
@@ -228,6 +193,28 @@ void ReExprEvaluator::evalFComp(const ref<Expr> &e, vector<ref<Expr> > &res){
   }
   epsilon = minValue;
 } 
+
+void ReExprEvaluator::getResMinMax(vector<ref<Expr> > &res){
+  APFloat min, max;
+  if(ConstantExpr *CE = dyn_cast<ConstantExpr>(res[0])){
+    min = CE->getAPFValue();
+    max = CE->getAPFValue();
+  }
+  for(int i = 1; i< res.size(); i ++){
+    if(ConstantExpr *CE = dyn_cast<ConstantExpr>(res[i])){
+      if(min.compare(CE->getAPFValue()) == APFloat::cmpGreaterThan){
+	min = CE->getAPFValue();
+      }else if(max.compare(CE->getAPFValue()) == APFloat::cmpLessThan){
+	max = CE->getAPFValue();
+      }      
+    }
+  }
+  res.clear();
+  ref<ConstantExpr> ceMin = ConstantExpr::alloc(min);
+  ref<ConstantExpr> ceMax = ConstantExpr::alloc(max);
+  res.push_back(ceMin);
+  res.push_back(ceMax);
+}
 
 void ReExprEvaluator::evaluate(const ref<Expr> &e, vector<ref<Expr> > &res){
   if(isa<ConstantExpr>(e)){

@@ -756,95 +756,23 @@ ref<ConstantExpr> ConstantExpr::FOlt(const ref<ConstantExpr> &RHS) {
 
 /***/
 
-ref<Expr> ReorderExpr::create(ref<Expr> src,int dir, int cat){
-  return ReorderExpr::alloc(src, dir, cat);
+ref<Expr> ReorderExpr::create(ref<Expr> src){
+  return ReorderExpr::alloc(src);
 }
 
 
-ReorderExpr::ReorderExpr(const ref<Expr> &_src, int _dir, int _cat):src(_src), 
-								    dir(_dir), 
-								    cat(static_cast<ReorderCat>(_cat)){
-  std::vector< ref<Expr> > ops;
-  switch(cat){
-  case RE_Plus:{
-    ref<Expr> i = src;
-    while(i->getKind() == FAdd){
-      BinaryExpr *be = cast<BinaryExpr>(i);
-      if(dir == 0){  // left direction
-	operands.push_back(be->right);
-	i = be->left;
-      } else {
-	operands.push_back(be->left);
-	i = be->right;
-      }
-    }
-    operands.push_back(i);
-    break;
+void ReorderExpr::construct(ref<Expr> &src){
+  if(src -> getKind() == FAdd){
+    BinaryExpr *be = cast<BinaryExpr>(src);
+    construct(be->left);
+    construct(be->right);
+  }else{
+    operands.push_back(src);
   }
-  case RE_FMA:{
-    ref<Expr> i = src;
-    while(i->getKind() == FAdd){
-      BinaryExpr *be = cast<BinaryExpr>(i);
-      ref<Expr> l = be -> left;
-      ref<Expr> r = be -> right;
-      if(dir == 0){  // left direction
-	BinaryExpr *t = cast<BinaryExpr>(r);
-	operands.push_back(t->left);
-	operands.push_back(t->right);
-	i = l;
-      } else {
-	BinaryExpr *t = cast<BinaryExpr>(l);
-	operands.push_back(t->left);
-	operands.push_back(t->right);
-	i = r;
-      }
-    }
+}
 
-    if(i->getKind() >= BinaryKindFirst && i -> getKind() <=BinaryKindLast){ 
-      BinaryExpr *t = cast<BinaryExpr>(i);
-      operands.push_back(t->left);
-      operands.push_back(t->right);
-    }
-    break;
-  }
-  case FMA_NONFMA:{
-    ref<Expr> i = src;
-    if(i->getKind() == FAdd){
-      BinaryExpr *be = cast<BinaryExpr>(i);
-      ref<Expr> l = be -> left;
-      ref<Expr> r = be -> right;
-      if(dir == 0){  // left operand is multiplication
-	BinaryExpr *t = cast<BinaryExpr>(l);
-	operands.push_back(t->left);
-	operands.push_back(t->right);
-	operands.push_back(r);
-      } else { // right operand is multiplication
-	BinaryExpr *t = cast<BinaryExpr>(r);
-	operands.push_back(t->left);
-	operands.push_back(t->right);
-	operands.push_back(l);
-      }
-    }
-    break;
-  }
-  case RE_Mult:{
-    ref<Expr> i = src;
-    while(i->getKind() == FMul){
-      BinaryExpr *be = cast<BinaryExpr>(i);
-      if(dir == 0){  // left direction
-	operands.push_back(be->right);
-	i = be->left;
-      } else {
-	operands.push_back(be->left);
-	i = be->right;
-      }
-    }
-    operands.push_back(i);
-    break;
-  }
-  default:
-    assert(0 && "Unsupported Reorderable expression");
-  }
+ReorderExpr::ReorderExpr(const ref<Expr> &_src):src(_src){
+  construct(src);
 }
 
 //we use binaryExpr to represent the min and max value for this reorderable expression

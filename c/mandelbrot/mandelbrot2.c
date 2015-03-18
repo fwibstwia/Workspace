@@ -26,7 +26,7 @@ void mandelbrot_fix_iter(float cx, float cy){
         float x = 0.0;
 	float y = 0.0;
 
-        for (iteration = 1;iteration < 50;iteration++)  {
+        for (iteration = 1;iteration < 17;iteration++)  {
 	   xx = x*x-y*y+cx;
            y = 2.0*x*y+cy;
            x = xx;    
@@ -90,6 +90,6 @@ int main() {
 	       &cx, &cy);
      mandelbrot(cx, cy);
   }*/
-  mandelbrot_fix_iter(0.2, 0.01);
+  mandelbrot_fix_iter(0.29174652099, 0.01);
   return 0;
 } 
