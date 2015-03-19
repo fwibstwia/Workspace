@@ -246,7 +246,7 @@ ref<Expr> Expr::createFromKind(Kind k, std::vector<CreateArg> args) {
     case Reorder:
       assert(numArgs == 1 && args[0].isExpr() &&
              "invalid args array for given opcode");
-      return ReorderExpr::create(args[0].expr, 0, 0);
+      return ReorderExpr::create(args[0].expr);
       
     case Select:
       assert(numArgs == 3 && args[0].isExpr() &&
@@ -425,7 +425,7 @@ ref<ConstantExpr> ConstantExpr::Concat(const ref<ConstantExpr> &RHS) {
 
 const llvm::APFloat ConstantExpr::getAPFValue() const{
 #if LLVM_VERSION_CODE >= LLVM_VERSION(3,3)
-    llvm::APFloat res(ConstantExpr::fpWidthToSemantics(width), value);
+    llvm::APFloat res(ConstantExpr::fpWidthToSemantics(getWidth()), value);
 #else
     llvm::APFloat res(value);
 #endif
@@ -585,12 +585,22 @@ ref<ConstantExpr> ConstantExpr::Eq(const ref<ConstantExpr> &RHS) {
 
 ref<ConstantExpr> ConstantExpr::FUeq(const ref<ConstantExpr> &RHS) {
  bool result;
+
+#if LLVM_VERSION_CODE >= LLVM_VERSION(3, 3)
+ llvm::APFloat Res(ConstantExpr::fpWidthToSemantics(getWidth()), getAPValue());
+ if(Res.compare(APFloat(ConstantExpr::fpWidthToSemantics(RHS->getWidth()), RHS->getAPValue())) ==  llvm::APFloat::cmpEqual){
+   result = true;
+ }else{
+   result = false;
+ }
+#else
  llvm::APFloat Res(getAPValue());
   if(Res.compare(APFloat(RHS->getAPValue())) == llvm::APFloat::cmpEqual){
      result = true;
   }else{
     result = false;
   }
+#endif
   return ConstantExpr::alloc(result, Expr::Bool);
 }
 
@@ -599,13 +609,22 @@ ref<ConstantExpr> ConstantExpr::Ne(const ref<ConstantExpr> &RHS) {
 }
 
 ref<ConstantExpr> ConstantExpr::FUne(const ref<ConstantExpr> &RHS) {
- bool result;
- llvm::APFloat Res(getAPValue());
+  bool result;
+#if LLVM_VERSION_CODE >= LLVM_VERSION(3, 3)
+  llvm::APFloat Res(ConstantExpr::fpWidthToSemantics(getWidth()), getAPValue());
+  if(Res.compare(APFloat(ConstantExpr::fpWidthToSemantics(RHS->getWidth()), RHS->getAPValue())) !=  llvm::APFloat::cmpEqual){
+    result = true;
+  }else{
+    result = false;
+  }
+#else
+  llvm::APFloat Res(getAPValue());
   if(Res.compare(APFloat(RHS->getAPValue())) != llvm::APFloat::cmpEqual){
      result = true;
   }else{
     result = false;
   }
+#endif
   return ConstantExpr::alloc(result, Expr::Bool);
 }
 
@@ -737,95 +756,23 @@ ref<ConstantExpr> ConstantExpr::FOlt(const ref<ConstantExpr> &RHS) {
 
 /***/
 
-ref<Expr> ReorderExpr::create(ref<Expr> src,int dir, int cat){
-  return ReorderExpr::alloc(src, dir, cat);
+ref<Expr> ReorderExpr::create(ref<Expr> src){
+  return ReorderExpr::alloc(src);
 }
 
 
-ReorderExpr::ReorderExpr(const ref<Expr> &_src, int _dir, int _cat):src(_src), 
-								    dir(_dir), 
-								    cat(static_cast<ReorderCat>(_cat)){
-  std::vector< ref<Expr> > ops;
-  switch(cat){
-  case RE_Plus:{
-    ref<Expr> i = src;
-    while(i->getKind() == FAdd){
-      BinaryExpr *be = cast<BinaryExpr>(i);
-      if(dir == 0){  // left direction
-	operands.push_back(be->right);
-	i = be->left;
-      } else {
-	operands.push_back(be->left);
-	i = be->right;
-      }
-    }
-    operands.push_back(i);
-    break;
+void ReorderExpr::construct(ref<Expr> &src){
+  if(src -> getKind() == FAdd){
+    BinaryExpr *be = cast<BinaryExpr>(src);
+    construct(be->left);
+    construct(be->right);
+  }else{
+    operands.push_back(src);
   }
-  case RE_FMA:{
-    ref<Expr> i = src;
-    while(i->getKind() == FAdd){
-      BinaryExpr *be = cast<BinaryExpr>(i);
-      ref<Expr> l = be -> left;
-      ref<Expr> r = be -> right;
-      if(dir == 0){  // left direction
-	BinaryExpr *t = cast<BinaryExpr>(r);
-	operands.push_back(t->left);
-	operands.push_back(t->right);
-	i = l;
-      } else {
-	BinaryExpr *t = cast<BinaryExpr>(l);
-	operands.push_back(t->left);
-	operands.push_back(t->right);
-	i = r;
-      }
-    }
+}
 
-    if(i->getKind() >= BinaryKindFirst && i -> getKind() <=BinaryKindLast){ 
-      BinaryExpr *t = cast<BinaryExpr>(i);
-      operands.push_back(t->left);
-      operands.push_back(t->right);
-    }
-    break;
-  }
-  case FMA_NONFMA:{
-    ref<Expr> i = src;
-    if(i->getKind() == FAdd){
-      BinaryExpr *be = cast<BinaryExpr>(i);
-      ref<Expr> l = be -> left;
-      ref<Expr> r = be -> right;
-      if(dir == 0){  // left operand is multiplication
-	BinaryExpr *t = cast<BinaryExpr>(l);
-	operands.push_back(t->left);
-	operands.push_back(t->right);
-	operands.push_back(r);
-      } else { // right operand is multiplication
-	BinaryExpr *t = cast<BinaryExpr>(r);
-	operands.push_back(t->left);
-	operands.push_back(t->right);
-	operands.push_back(l);
-      }
-    }
-    break;
-  }
-  case RE_Mult:{
-    ref<Expr> i = src;
-    while(i->getKind() == FMul){
-      BinaryExpr *be = cast<BinaryExpr>(i);
-      if(dir == 0){  // left direction
-	operands.push_back(be->right);
-	i = be->left;
-      } else {
-	operands.push_back(be->left);
-	i = be->right;
-      }
-    }
-    operands.push_back(i);
-    break;
-  }
-  default:
-    assert(0 && "Unsupported Reorderable expression");
-  }
+ReorderExpr::ReorderExpr(const ref<Expr> &_src):src(_src){
+  construct(src);
 }
 
 //we use binaryExpr to represent the min and max value for this reorderable expression

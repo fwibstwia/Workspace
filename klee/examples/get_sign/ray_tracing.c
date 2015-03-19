@@ -2,7 +2,7 @@
 
 float dot3(float *a, float *b){     //Dot Product 3-Vectors
   float r = a[0] * b[0] + a[1] * b[1] + a[2] * b[2];
-  klee_tag_reorderable(&r, 0, 2);
+  klee_tag_reorderable(&r);
   return r;
 }
 

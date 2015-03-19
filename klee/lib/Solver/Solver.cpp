@@ -1243,7 +1243,7 @@ bool Z3SolverImpl::computeValue(const Query& query, ref<Expr> &result){
       assert(hasSolution && "state has invalid constraint set");
       // Evaluate the expression with the computed assignment.
       ReExprEvaluator a(objects, values);
-      std::vector<ReExprRes> res;
+      std::vector<ref<Expr> > res;
       a.evaluate(query.expr, res);
       success = true;
   }

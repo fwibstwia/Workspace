@@ -8,7 +8,6 @@
 //===----------------------------------------------------------------------===//
 
 #include "klee/util/ReExprEvaluator.h"
-#include "klee/Reorder.h"
 #include "llvm/ADT/APFloat.h"
 
 #include <iostream>
@@ -91,11 +90,11 @@ void ReExprEvaluator::evalMultRec(const vector<ref<Expr> > &ops, vector<ref<Expr
   }
 }
 
-void ReExprEvaluator::constructMult(ref<Expr> &src, vector<ref<Expr> > &ops){
-  if(src -> getKind() == Expr::FMult){
+void ReExprEvaluator::constructMult(const ref<Expr> &src, vector<ref<Expr> > &ops){
+  if(src -> getKind() == Expr::FMul){
     BinaryExpr *be = cast<BinaryExpr>(src);
-    constructMult(be->left);
-    constructMult(be->right);
+    constructMult(be->left, ops);
+    constructMult(be->right, ops);
   }else{
     ops.push_back(src);
   }
@@ -103,7 +102,7 @@ void ReExprEvaluator::constructMult(ref<Expr> &src, vector<ref<Expr> > &ops){
 
 void ReExprEvaluator::evalReOps(const ref<Expr> &e, vector<pair<ref<Expr>, ref<Expr> > > &minVec,
 				vector<pair<ref<Expr>, ref<Expr> > > &maxVec){
-  if(e -> getKind() == Expr::FMult){ //detect a*b*c
+  if(e -> getKind() == Expr::FMul){ //detect a*b*c
     vector<ref<Expr > > ops, kids;
     vector<MultRes> res;
     constructMult(e, ops);
@@ -132,7 +131,7 @@ void ReExprEvaluator::evalReorder(const ReorderExpr *e, vector<ref<Expr> > &res)
   vector<pair<ref<Expr>, ref<Expr> > > minVec;
   vector<pair<ref<Expr>, ref<Expr> > > maxVec;
   
-  for(int i = 0; i < (e -> operands).size; i ++){
+  for(int i = 0; i < (e -> operands).size(); i ++){
     evalReOps((e -> operands)[i], minVec, maxVec);
   }
 
@@ -195,7 +194,7 @@ void ReExprEvaluator::evalFComp(const ref<Expr> &e, vector<ref<Expr> > &res){
 } 
 
 void ReExprEvaluator::getResMinMax(vector<ref<Expr> > &res){
-  APFloat min, max;
+  APFloat min(APFloat::IEEEsingle), max(APFloat::IEEEsingle);
   if(ConstantExpr *CE = dyn_cast<ConstantExpr>(res[0])){
     min = CE->getAPFValue();
     max = CE->getAPFValue();

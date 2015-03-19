@@ -641,6 +641,8 @@ public:
   
   virtual ref<Expr> rebuild(ref<Expr> kids[]) const;
 
+private:
+  void construct(ref<Expr> &src);
 public:
   std::vector<ref<Expr> > operands;
   ReorderExpr(const ref<Expr> &_src);

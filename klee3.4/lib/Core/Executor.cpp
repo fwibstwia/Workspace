@@ -744,11 +744,11 @@ Executor::fork(ExecutionState &current, ref<Expr> condition, bool isInternal) {
   //klee_message("smt log");
   std::string Str;
   llvm::raw_string_ostream info(Str);
-  ExprSMTLIBPrinter *printer = new ExprSMTLIBPrinter();
-  printer->setOutput(info);
-  Query query(current.constraints, condition);
-  printer->setQuery(query);
-  printer->generateOutput();
+  //ExprSMTLIBPrinter *printer = new ExprSMTLIBPrinter();
+  //printer->setOutput(info);
+  //Query query(current.constraints, condition);
+  //printer->setQuery(query);
+  //printer->generateOutput();
   //klee_message("%s", info.str().c_str());
   bool success = solver->evaluate(current, condition, res);
   solver->setTimeout(0);

@@ -18,41 +18,43 @@ using namespace llvm;
 using namespace klee;
 
 void Reorder::getMultBounds(const vector<ref<Expr> > &ops, vector<MultRes> &res){
-  vector<APFloat> opAF;
+  vector<float> opAF;
   for(int i = 0; i < ops.size(); i ++){
     ref<ConstantExpr> c = dyn_cast<ConstantExpr>(ops[i]);
-    opAF.push_back(c->getAPFValue());
+    opAF.push_back(c->getAPFValue().convertToFloat());
   }
 
-  res.push_back(getMultBound(0, Mult, opAF));
-  res.push_back(getMultBound(1, Mult, opAF));
+  res.push_back(getMultBound(0, opAF));
+  res.push_back(getMultBound(1, opAF));
 }
 
 void Reorder::getDotBounds(const vector<pair<ref<Expr>, ref<Expr> > > &ops, 
 			   vector<ref<Expr> > &res){
-  vector<APFloat> opsl;
-  vector<APFloat> opsr;
+  vector<float> opsl;
+  vector<float> opsr;
 
   for(int i = 0; i < ops.size(); i ++){
     ref<ConstantExpr> l = dyn_cast<ConstantExpr>(ops[i].first);
     ref<ConstantExpr> r = dyn_cast<ConstantExpr>(ops[i].second);
-    opsl.push_back(l->getAPFValue());
-    opsr.push_back(r->getAPFValue());
+    opsl.push_back(l->getAPFValue().convertToFloat());
+    opsr.push_back(r->getAPFValue().convertToFloat());
   }
 
-  APFloat min = getDotBound(0, opsl, opsr, res);
-  APFloat max = getDotBound(1, opsl, opsr, res);
+  float min = getDotBound(0, opsl, opsr);
+  float max = getDotBound(1, opsl, opsr);
+  APFloat apMin(min);
+  APFloat apMax(max);
 
-  ref<ConstantExpr> ceMin = ConstantExpr::alloc(min);
-  ref<ConstantExpr> ceMax = ConstantExpr::alloc(max);
+  ref<ConstantExpr> ceMin = ConstantExpr::alloc(apMin);
+  ref<ConstantExpr> ceMax = ConstantExpr::alloc(apMax);
   res.push_back(ceMin);
   res.push_back(ceMax);
 }
 
 
-MultRes Reorder::getMultBound(int direction, const vector<APFloat> &ops){
-    APFloat c, t;
-    std::vector<std::vector<APFloat> > values;
+MultRes Reorder::getMultBound(int direction, const vector<float> &ops){
+    float c, t;
+    std::vector<std::vector<float> > values;
     std::vector<std::vector<int> > choices;
     int len = ops.size();
     int origRound = fegetround();
@@ -66,7 +68,7 @@ MultRes Reorder::getMultBound(int direction, const vector<APFloat> &ops){
       choices[i].resize(len);
     }
 
-    //fesetround(roundMode);
+    fesetround(roundMode);
     for(int i = 0; i < len; i ++){
       values[i][i] = ops[i];
     }
@@ -75,182 +77,165 @@ MultRes Reorder::getMultBound(int direction, const vector<APFloat> &ops){
       for(int i = 0; i < len - l + 1; i ++){
 	int j = i + l - 1;
 	choices[i][j] = i;
-	c = getCost(values[i][i], values[i+1][j], op);
-	values[i][j] = getValue(values[i][i], values[i+1][j], op);	
+	c = getCost(values[i][i], values[i+1][j]);
+	values[i][j] = values[i][i] * values[i+1][j];	
 	for(int k = i + 1;  k < j; k++){
-	  t = getCost(values[i][k], values[k+1][j], op);
+	  t = getCost(values[i][k], values[k+1][j]);
 	  if(direction == 1){
-	    if(t.compare(c) == APFloat::cmpGreaterThan){
+	    if(t > c){
 	      c = t;
 	      choices[i][j] = k;
-	      values[i][j] = getValue(values[i][k], values[k+1][j], op);
+	      values[i][j] = values[i][k] * values[k+1][j];
 	    }
 	  }else{
-	    if(t.compare(c) == APFloat::cmpLessThan){
+	    if(t < c){
 	      c = t;
 	      choices[i][j] = k;	    
-	      values[i][j] = getValue(values[i][k], values[k+1][j], op);
+	      values[i][j] = values[i][k] * values[k+1][j];
 	    }
 	  }
 	}     
       }    
     }
-    //fesetround(origRound);
 
-    ref<ConstantExpr> ce = ConstantExpr::alloc(values[0][len-1]);
-    ref<ConstantExpr> op1 = ConstantExpr::alloc(values[0][choices[0][len-1] ]);
-    ref<ConstantExpr> op2 = ConstantExpr::alloc(values[choices[0][len - 1] + 1][len - 1]);
+    fesetround(origRound);
+
+    APFloat ceAP(values[0][len-1]);
+    APFloat op1AP(values[0][choices[0][len-1] ]);
+    APFloat op2AP(values[choices[0][len - 1] + 1][len - 1]);
+    ref<ConstantExpr> ce = ConstantExpr::alloc(ceAP);
+    ref<ConstantExpr> op1 = ConstantExpr::alloc(op1AP);
+    ref<ConstantExpr> op2 = ConstantExpr::alloc(op2AP);
     MultRes mr;
     mr.res = ce;
     mr.op1 = op1;
     mr.op2 = op2;
     return mr;
-  }
+}
  
-APFloat Reorder::getDotBound(int direction, const vector<APFloat> &opsl, 
-			     const vector<APFloat> &opsr){
-    std::vector<std::vector<APFloat> > values;
-    std::vector<std::vector<int> > choices;
-    int len = opsl.size();
-    int origRound = fegetround();
+float Reorder::getDotBound(int direction, const vector<float> &opsl, 
+			     const vector<float> &opsr){
+ std::vector<std::vector<float> > values;
+ std::vector<std::vector<int> > choices;
+ int len = opsl.size();
+ int origRound = fegetround();
 
-    values.resize(len);
-    for(int i = 0; i < len; i ++){
-      values[i].resize(len);
-    }
-    choices.resize(len);
-    for(int i = 0; i < len; i ++){
-      choices[i].resize(len);
-    }
+ values.resize(len);
+ for(int i = 0; i < len; i ++){
+   values[i].resize(len);
+ }
+ choices.resize(len);
+ for(int i = 0; i < len; i ++){
+   choices[i].resize(len);
+ }
 
-    //fesetround(roundMode);
+ fesetround(roundMode);
 
-    for(int i = 0; i < len - 1; i ++){
-      APFloat t1 = opsl[i+1] * opsr[i+1];
-      APFloat t2 = opsl[i] * opsr[i];
-      APFloat r1, r2;
-      if(opsl[i].getSemantics() == &APFloat::IEEEsingle){
-	__m128 a, b, c, r;
-	a[0] = opsl[i].convertToFloat();
-	a[1] = opsl[i+1].convertToFloat();
-	b[0] = opsr[i].convertToFloat();
-	b[1] = opsr[i+1].convertToFloat();
-	c[0] = t1.convertToFloat();
-	c[1] = t2.convertToFloat();
-	r = _mm_fmadd_ps(a, b, c);
-	r1 = APFloat(r[0]);
-	r2 = APFloat(r[1]);
-      }else{
-	__m128d a, b, c, r;
-	a[0] = opsl[i].convertToDouble();
-	a[1] = opsl[i+1].convertToDouble();
-	b[0] = opsr[i].convertToDouble();
-	b[1] = opsr[i+1].convertToDouble();
-	c[0] = t1.convertToDouble();
-	c[1] = t2.convertToDouble();
-	r = _mm_fmadd_pd(a, b, c);
-	r1 = APFloat(r[0]);
-	r2 = APFloat(r[1]);
-      }
+ for(int i = 0; i < len - 1; i ++){
+   float t1 = opsl[i+1] * opsr[i+1];
+   float t2 = opsl[i] * opsr[i];
+   float r1, r2;
+ 
+   __m128 a, b, c, r;
+   a[0] = opsl[i];
+   a[1] = opsl[i+1];
+   b[0] = opsr[i];
+   b[1] = opsr[i+1];
+   c[0] = t1;
+   c[1] = t2;
+   r = _mm_fmadd_ps(a, b, c);
+   r1 = r[0];
+   r2 = r[1];
+   
 
-      if(direction == 1){
-	if(r1.compare(r2) == APFloat::cmpGreaterThan){
-	  values[i][i+1] = r1;
-	  choices[i][i+1] = i;
-	}else{
-	  values[i][i+1] = r2;
-	  choices[i][i+1] = i + 1;
-	}
-      }else{
-	if(r1.compare(r2) == APFloat::cmpLessThan){
-	  values[i][i+1] = r1;
-	  choices[i][i+1] = i;
-	}else{
-	  values[i][i+1] = r2;
-	  choices[i][i+1] = i + 1;
-	}
-      }
-    }
-    for(int l = 3; l <= len; l ++){
-      for(int i = 0; i < len - l + 1; i ++){
-	int j = i + l - 1;
-	APFloat r1, r2;
-	if(opsl[i].getSemantics() == &APFloat::IEEEsingle){
-	  __m128 a, b, c, r;
-	  a[0] = opsl[i].convertToFloat();
-	  a[1] = opsl[j].convertToFloat();
-	  b[0] = opsr[i].convertToFloat();
-	  b[1] = opsr[j].convertToFloat();
-	  c[0] = values[i+1][j].convertToFloat();
-	  c[1] = values[i][j-1].convertToFloat();
-	  r = _mm_fmadd_ps(a, b, c);
-	  r1 = APFloat(r[0]);
-	  r2 = APFloat(r[1]);
-	}else{ // for the double type
-	  __m128d a, b, c, r;
-	  a[0] = opsl[i].convertToDouble();
-	  a[1] = opsl[j].convertToDouble();
-	  b[0] = opsr[i].convertToDouble();
-	  b[1] = opsr[j].convertToDouble();
-	  c[0] = values[i+1][j].convertToDouble();
-	  c[1] = values[i][j-1].convertToDouble();
-	  r = _mm_fmadd_pd(a, b, c);
-	  r1 = APFloat(r[0]);
-	  r2 = APFloat(r[1]);
-	}
-	if(direction == 1){
-	  if(r1.compare(r2) == APFloat::cmpGreaterThan){
-	    values[i][j] = r1;
-	    choices[i][j] = i;
+   if(direction == 1){
+     if(r1 > r2){
+       values[i][i+1] = r1;
+       choices[i][i+1] = i;
+     }else{
+       values[i][i+1] = r2;
+       choices[i][i+1] = i + 1;
+     }
+   }else{
+     if(r1 < r2){
+       values[i][i+1] = r1;
+       choices[i][i+1] = i;
+     }else{
+       values[i][i+1] = r2;
+       choices[i][i+1] = i + 1;
+     }
+   }
+ }
+ for(int l = 3; l <= len; l ++){
+   for(int i = 0; i < len - l + 1; i ++){
+     int j = i + l - 1;
+     float r1, r2;
+
+     __m128 a, b, c, r;
+     a[0] = opsl[i];
+     a[1] = opsl[j];
+     b[0] = opsr[i];
+     b[1] = opsr[j];
+     c[0] = values[i+1][j];
+     c[1] = values[i][j-1];
+     r = _mm_fmadd_ps(a, b, c);
+     r1 = r[0];
+     r2 = r[1];
+     
+     if(direction == 1){
+       if(r1 > r2){
+	 values[i][j] = r1;
+	 choices[i][j] = i;
+       }else{
+	 values[i][j] = r2;
+	 choices[i][j] = j - 1;
+       }
+     }else{
+       if(r1 < r2){
+	 values[i][j] = r1;
+	 choices[i][j] = i;
 	  }else{
-	    values[i][j] = r2;
-	    choices[i][j] = j - 1;
-	  }
-	}else{
-	  if(r1.compare(r2) == APFloat::cmpLessThan){
-	    values[i][j] = r1;
-	    choices[i][j] = i;
-	  }else{
-	    values[i][j] = r2;
-	    choices[i][j] = j - 1;
-	  }
-	}
+	 values[i][j] = r2;
+	 choices[i][j] = j - 1;
+       }
+     }
 
-	for(int k = i + 1; k < j - 1; k ++){
-	  T t = values[i][k] + values[k+1][j];
-	  if(direction == 1){
-	    if(t.compare(values[i][j]) == APFloat::cmpGreaterThan){
-	      values[i][j] = t;
-	      choices[i][j] = k;
-	    }
-	  }else{
-	    if(t.compare(values[i][j]) == APFloat::cmpLessThan){
-	      values[i][j] = t;
-	      choices[i][j] = k;
-	    }
-	  }
-	}
-      }    
-    }
-    //fesetround(origRound);
-    return values[0][len - 1];
-  } 
+     for(int k = i + 1; k < j - 1; k ++){
+       float t = values[i][k] + values[k+1][j];
+       if(direction == 1){
+	 if(t > values[i][j]){
+	   values[i][j] = t;
+	   choices[i][j] = k;
+	 }
+       }else{
+	 if(t < values[i][j]){
+	   values[i][j] = t;
+	   choices[i][j] = k;
+	 }
+       }
+     }
+   }    
+ }
+ fesetround(origRound);
+ return values[0][len - 1];   
+} 
 
-  APFloat Reorder::getCost(APFloat a, APFloat b){
-    APFloat c;
+float Reorder::getCost(float a, float b){
+  float c;
+  if(a * b >= 0){
+    c = a * b;
+  } else{
     if(roundMode == FE_TONEAREST || roundMode == FE_TOWARDZERO){
-      c = a.clearSign() * b.clearSign();
+      c = fabs(a) * fabs(b);
+    }else if(roundMode == FE_DOWNWARD){
+      fesetround(FE_UPWARD);
+      c = fabs(a) * fabs(b);
+      fesetround(FE_DOWNWARD);
+    }else{
+      fesetround(FE_DOWNWARD);
+      c = fabs(a) * fabs(b);
+      fesetround(FE_UPWARD);
     }
-      /*
-      else if(roundMode == FE_DOWNWARD){
-	fesetround(FE_UPWARD);
-	c = a.clearSign() * b.clearSign();
-	fesetround(FE_DOWNWARD);
-      }else{
-	fesetround(FE_DOWNWARD);
-	c = fabs(a) * fabs(b);
-	fesetround(FE_UPWARD);
-	}*/   
-    return c;
   }
+  return c;    
 }

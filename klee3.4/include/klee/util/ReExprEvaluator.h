@@ -17,9 +17,9 @@
 #include <iomanip> 
 
 #include "klee/Expr.h"
+#include "klee/Reorder.h"
 
 namespace klee{
-  class Array;
   class ReExprEvaluator{
   public:
     typedef std::map<const Array*, std::vector<unsigned char> > bindings_ty;
@@ -34,9 +34,9 @@ namespace klee{
     void evalUpdate(const UpdateList &ul, unsigned index, std::vector<ref<Expr> > &res);
     void evalMultRec(const std::vector<ref<Expr> > &ops, std::vector<ref<Expr> > &kids, 
 		     int i, std::vector<MultRes> &res);
-    void constructMult(ref<Expr> &src, std::vector<ref<Expr> > &ops);
-    void evalReOps(const ref<Expr> &e, std::vector<pair<ref<Expr>, ref<Expr> > > &minVec,
-		   std::vector<pair<ref<Expr>, ref<Expr> > > &maxVec);
+    void constructMult(const ref<Expr> &src, std::vector<ref<Expr> > &ops);
+    void evalReOps(const ref<Expr> &e, std::vector<std::pair<ref<Expr>, ref<Expr> > > &minVec,
+		   std::vector<std::pair<ref<Expr>, ref<Expr> > > &maxVec);
     void evalReorder(const ReorderExpr *e, std::vector<ref<Expr> > &res);
 
     void evalFComp(const ref<Expr> &e, std::vector<ref<Expr> > &res);
@@ -91,6 +91,7 @@ namespace klee{
       return ConstantExpr::alloc(0, array->getRange());
     }
   }
+  
 }
 
 #endif

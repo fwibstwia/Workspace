@@ -16,21 +16,20 @@
 #include <cmath>
 #include <immintrin.h>
 
-#include "llvm/ATD/APFloat.h"
+#include "klee/Expr.h"
 
 using namespace std;
 using namespace llvm;
 
 namespace klee {
-  class Reorder {
+  class MultRes{
   public:
-    class MultRes{
-    public:
-      ref<Expr> res;
-      ref<Expr> op1;
-      ref<Expr> op2;
-    }
-    
+    ref<Expr> res;
+    ref<Expr> op1;
+    ref<Expr> op2;
+  };
+
+  class Reorder {    
   public:
     Reorder(int _roundMode):roundMode(_roundMode){}
 
@@ -38,15 +37,16 @@ namespace klee {
 
     void getMultBounds(const vector<ref<Expr> > &ops, std::vector<MultRes> &res);
     
-    void getDotBounds(const vector<pair<ref<Expr>, ref<Expr> > > ops,
+    void getDotBounds(const vector<pair<ref<Expr>, ref<Expr> > > &ops,
 		      std::vector<ref<Expr> > &res);
   private:
-    MultRes getMultBound(int direction, const std::vector<APFloat> &ops);
-    APFloat getFMABound(int direction, const std::vector<APFloat> &opsl, 
-			const std::vector<APFloat> &opsr);
-    APFloat getCost(APFloat a, APFloat b);
+    MultRes getMultBound(int direction, const std::vector<float> &ops);
+    float getDotBound(int direction, const std::vector<float> &opsl, 
+			const std::vector<float> &opsr);
+    float getCost(float a, float b);
 
   private:
     int roundMode;
   };
+}
 #endif

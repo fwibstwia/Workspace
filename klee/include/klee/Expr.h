@@ -102,14 +102,6 @@ public:
   static const Width Int64 = 64;
   static const Width Fl80 = 80;
   
-  enum ReorderCat{
-    RE_Plus = 0,
-    RE_Mult = 1,
-    RE_FMA = 2,
-    FMA_NONFMA = 3
-  };
-
-
   /*
   enum ExprType{
     Int,
@@ -391,20 +383,21 @@ class ConstantExpr : public Expr {
 public:
   static const Kind kind = Constant;
   static const unsigned numKids = 0;
+
 private:
   llvm::APInt value;
   ConstantExpr(const llvm::APInt &v) : value(v), isFloat(false){}
   ConstantExpr(const llvm::APInt &v, bool _isFloat) : value(v), isFloat(_isFloat){}
-  static const llvm::fltSemantics * fpWidthToSemantics(unsigned width) {
+  static const llvm::fltSemantics& fpWidthToSemantics(unsigned width) {
     switch(width) {
     case Expr::Int32:
-      return &llvm::APFloat::IEEEsingle;
+      return llvm::APFloat::IEEEsingle;
     case Expr::Int64:
-      return &llvm::APFloat::IEEEdouble;
+      return llvm::APFloat::IEEEdouble;
     case Expr::Fl80:
-      return &llvm::APFloat::x87DoubleExtended;
+      return llvm::APFloat::x87DoubleExtended;
     default:
-      return 0;
+      return llvm::APFloat::Bogus;
     }
   }
 public:
@@ -452,6 +445,7 @@ public:
   /// \param radix specifies the base (e.g. 2,10,16). The default is base 10
   void toString(std::string &Res, unsigned radix=10, unsigned logic=0) const;
 
+ 
   int compareContents(const Expr &b) const { 
     const ConstantExpr &cb = static_cast<const ConstantExpr&>(b);
     if (getWidth() != cb.getWidth()) 
@@ -573,6 +567,7 @@ public:
   ref<ConstantExpr> Not();
 };
 
+  
 // Utility classes
 
 class NonConstantExpr : public Expr {
@@ -631,13 +626,13 @@ public:
   static const unsigned numKids = 1;
   ref<Expr> src;
 public:
-  static ref<Expr> alloc(const ref<Expr> &src, int dir, int cat){
-    ref<Expr> r(new ReorderExpr(src, dir, cat));
+  static ref<Expr> alloc(const ref<Expr> &src){
+    ref<Expr> r(new ReorderExpr(src));
     r->computeHash();
     return r;
   }
   
-  static ref<Expr> create(ref<Expr> src, int dir, int cat);
+  static ref<Expr> create(ref<Expr> src);
   Width getWidth() const {return src->getWidth();}
   Kind getKind() const{return kind;}
   
@@ -646,11 +641,11 @@ public:
   
   virtual ref<Expr> rebuild(ref<Expr> kids[]) const;
 
+private:
+  void construct(ref<Expr> &src);
 public:
   std::vector<ref<Expr> > operands;
-  ReorderCat cat;
-  int dir;
-  ReorderExpr(const ref<Expr> &_src, int dir, int cat);
+  ReorderExpr(const ref<Expr> &_src);
 public:
   static bool classof(const Expr *E) {
     return E->getKind() == Expr::Reorder;
@@ -730,6 +725,7 @@ public:
   const std::string name;
   // FIXME: Not 64-bit clean.
   unsigned size;  
+
   /// constantValues - The constant initial values for this array, or empty for
   /// a symbolic array. If non-empty, this size of this array is equivalent to
   /// the array size.
@@ -773,6 +769,7 @@ public:
   
   unsigned computeHash();
   unsigned hash() const { return hashValue; }
+   
 private:
   unsigned hashValue;
 };
@@ -1207,6 +1204,7 @@ FLOAT_ARITHMETIC_EXPR_CLASS(FSub)
 FLOAT_ARITHMETIC_EXPR_CLASS(FMul)
 
 // Comparison Exprs
+
 #define COMPARISON_EXPR_CLASS(_class_kind)                           \
 class _class_kind ## Expr : public CmpExpr {                         \
 public:                                                              \
