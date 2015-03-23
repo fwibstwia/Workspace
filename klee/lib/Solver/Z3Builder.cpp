@@ -34,6 +34,7 @@ void Z3Builder::getInitialRead(const Array *os, const unsigned index,
 
   Z3_string s = Z3_get_numeral_decimal_string(c, res, 50);
   
+  
   std::stringstream sstm;
   sstm << os->name << index;
   std::cout << sstm.str() << ":" << s << std::endl;  

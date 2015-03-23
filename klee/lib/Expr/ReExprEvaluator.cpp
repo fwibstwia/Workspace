@@ -106,19 +106,28 @@ void ReExprEvaluator::evalReOps(const ref<Expr> &e, vector<pair<ref<Expr>, ref<E
     vector<ref<Expr > > ops, kids;
     vector<MultRes> res;
     constructMult(e, ops);
+
     evalMultRec(ops, kids, 0, res);
     pair<ref<Expr>, ref<Expr> > minPair(res[0].op1, res[0].op2);
     pair<ref<Expr>, ref<Expr> > maxPair(res[1].op1, res[1].op2); 
     minVec.push_back(minPair);
     maxVec.push_back(maxPair);
   } else {
-    ref<Expr> cons1 = ConstantExpr::alloc(1, Expr::Int32);
+    APFloat cons(1.0f);
+    ref<Expr> cons1 = ConstantExpr::alloc(cons);
     vector<ref<Expr> > tmp;
     evaluate(e, tmp);
-    pair<ref<Expr>, ref<Expr> > minPair(tmp[0], cons1);//a*1
-    pair<ref<Expr>, ref<Expr> > maxPair(tmp[1], cons1); 
-    minVec.push_back(minPair);
-    maxVec.push_back(maxPair);
+    if(tmp.size() == 1){
+      pair<ref<Expr>, ref<Expr> > minPair(tmp[0], cons1);//a*1
+      minVec.push_back(minPair);
+      maxVec.push_back(minPair);
+    }else{
+      pair<ref<Expr>, ref<Expr> > minPair(tmp[0], cons1);//a*1
+      pair<ref<Expr>, ref<Expr> > maxPair(tmp[1], cons1); 
+      minVec.push_back(minPair);
+      maxVec.push_back(maxPair);
+    }
+
   }
 }
 
@@ -131,7 +140,9 @@ void ReExprEvaluator::evalReorder(const ReorderExpr *e, vector<ref<Expr> > &res)
   vector<pair<ref<Expr>, ref<Expr> > > minVec;
   vector<pair<ref<Expr>, ref<Expr> > > maxVec;
   
+
   for(int i = 0; i < (e -> operands).size(); i ++){
+    
     evalReOps((e -> operands)[i], minVec, maxVec);
   }
 
