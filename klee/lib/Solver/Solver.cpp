@@ -82,7 +82,6 @@ SolverImpl::~SolverImpl() {
 
 bool SolverImpl::computeValidity(const Query& query, Solver::Validity &result) {
   bool isTrue, isFalse;
-
   /*
   if (!computeTruth(query, isTrue))
     return false;
@@ -92,7 +91,7 @@ bool SolverImpl::computeValidity(const Query& query, Solver::Validity &result) {
     if (!computeTruth(query.negateExpr(), isFalse))
       return false;
     result = isFalse ? Solver::False : Solver::Unknown;
-    }*/
+  }*/
   result = Solver::Unknown; //temporary solution
   return true;
 }
@@ -153,15 +152,11 @@ bool Solver::evaluate(const Query& query, Validity &result) {
 
   if (isVolatileConditional(query.expr)){
     bool stableResult;
-    int i = 0;
     sp = SearchPoint;
     //while(i < 1){
-      bool result = checkStable(query, stableResult);
-      if(result){
-	i ++;
-      }
-      //sp += 0.01f;
-      //}
+    bool result = checkStable(query, stableResult);
+    //sp += 0.01f;
+    //}
     result = Solver::Unknown;
     return true;
   }
@@ -1158,7 +1153,7 @@ public:
 			    std::vector< std::vector<unsigned char> > &values,
 			    bool &hasSolution);
     
-  SolverImpl::SolverRunStatus runAndGetCex(ref<Expr> query_expr,
+  SolverImpl::SolverRunStatus runAndGetCex(const Query &query,
                                            const std::vector<const Array*> &objects,
 					   std::vector< std::vector<unsigned char> > &values,
                                            bool &hasSolution);
@@ -1260,11 +1255,6 @@ bool Z3SolverImpl::computeInitialValues(const Query& query,
 
   TimerStatIncrementer t(stats::queryTime);
   assert(builder);
-  if (!useForkedZ3) {
-    for (ConstraintManager::const_iterator it = query.constraints.begin(), ie = query.constraints.end(); it != ie; ++it) {
-      s.add(builder->construct(*it));  
-    }  
-  }  
   ++stats::queries;
   ++stats::queryCounterexamples;  
  
@@ -1274,7 +1264,7 @@ bool Z3SolverImpl::computeInitialValues(const Query& query,
       success = ((SOLVER_RUN_STATUS_SUCCESS_SOLVABLE == runStatusCode) || (SOLVER_RUN_STATUS_SUCCESS_UNSOLVABLE == runStatusCode));
   }
   else {
-    runStatusCode = runAndGetCex(query.expr, objects, values, hasSolution);
+    runStatusCode = runAndGetCex(query, objects, values, hasSolution);
     success = true;
   } 
     
@@ -1293,7 +1283,7 @@ bool Z3SolverImpl::computeInitialValues(const Query& query,
   return(success);
 }
 
-SolverImpl::SolverRunStatus Z3SolverImpl::runAndGetCex(ref<Expr> query_expr,
+SolverImpl::SolverRunStatus Z3SolverImpl::runAndGetCex(const Query &query,
 						       const std::vector<const Array*> &objects,
 						       std::vector< std::vector<unsigned char> > &values,
 						       bool &hasSolution)
@@ -1301,8 +1291,12 @@ SolverImpl::SolverRunStatus Z3SolverImpl::runAndGetCex(ref<Expr> query_expr,
   // assume the negation of the query  
   //s->add(builder->construct(Expr::createIsZero(query_expr)));
 
+  ref<Expr> query_expr = query.expr;
   if(values.size() == 0){ // we need to reconstruct the query, because we change the epsilon
     s.reset(); // clear existing constraints
+    for (ConstraintManager::const_iterator it = query.constraints.begin(), ie = query.constraints.end(); it != ie; ++it) {
+      s.add(builder->construct(*it));  
+    } 
     s.add(builder->construct(query_expr));
    
     if(objects[0] -> range == Expr::Int32){

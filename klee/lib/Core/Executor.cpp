@@ -749,7 +749,7 @@ Executor::fork(ExecutionState &current, ref<Expr> condition, bool isInternal) {
   Query query(current.constraints, condition);
   printer->setQuery(query);
   printer->generateOutput();
-  //klee_message("%s", info.str().c_str());
+  klee_message("%s", info.str().c_str());
   bool success = solver->evaluate(current, condition, res);
   solver->setTimeout(0);
   if (!success) {
