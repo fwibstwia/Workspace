@@ -197,6 +197,7 @@ Proof.
     Case "left". reflexivity.
     Case "right". reflexivity.  Qed.
 
+Check and_example.
 (** ** "Eliminating" conjunctions *)
 (** Conversely, the [destruct] tactic can be used to take a
     conjunction hypothesis in the context, calculate what evidence
@@ -238,7 +239,13 @@ Theorem and_assoc : forall P Q R : Prop,
 Proof.
   intros P Q R H.
   destruct H as [HP [HQ HR]].
-(* FILL IN HERE *) Admitted.
+  split.
+  split.
+  apply HP.
+apply HQ.
+apply HR.
+Qed.
+
 (** [] *)
 
 
@@ -377,7 +384,19 @@ Proof.
 Theorem or_distributes_over_and_2 : forall P Q R : Prop,
   (P \/ Q) /\ (P \/ R) -> P \/ (Q /\ R).
 Proof.
-  (* FILL IN HERE *) Admitted.
+intros.
+destruct H.
+destruct H.
+left.
+apply H.
+destruct H0.
+left.
+apply H0.
+right.
+split.
+apply H.
+apply H0.
+Qed.
 (** [] *)
 
 (** **** Exercise: 1 star, optional (or_distributes_over_and)  *)
@@ -422,19 +441,46 @@ Proof.
 Theorem andb_false : forall b c,
   andb b c = false -> b = false \/ c = false.
 Proof. 
-  (* FILL IN HERE *) Admitted.
-
+intros.
+destruct b.
+right.
+destruct c.
+inversion H.
+reflexivity.
+left.
+reflexivity.
+Qed.
 (** **** Exercise: 2 stars, optional (orb_false)  *)
 Theorem orb_prop : forall b c,
   orb b c = true -> b = true \/ c = true.
 Proof.
-  (* FILL IN HERE *) Admitted.
+intros.
+destruct b.
+left.
+reflexivity.
+right.
+destruct c.
+reflexivity.
+inversion H.
+Qed.
+
 
 (** **** Exercise: 2 stars, optional (orb_false_elim)  *)
 Theorem orb_false_elim : forall b c,
   orb b c = false -> b = false /\ c = false.
 Proof. 
-  (* FILL IN HERE *) Admitted.
+intros.
+split.
+destruct b.
+simpl in H.
+inversion H.
+reflexivity.
+destruct b.
+inversion H.
+destruct c.
+inversion H.
+reflexivity.
+Qed.
 (** [] *)
 
 
@@ -503,6 +549,7 @@ Proof.
 (** Define [True] as another inductively defined proposition.  (The
     intution is that [True] should be a proposition for which it is
     trivial to give evidence.) *)
+(*Inductive True : Prop := true: False -> Prop -> True.*)
 
 (* FILL IN HERE *)
 (** [] *)
@@ -570,7 +617,15 @@ Proof.
 Theorem contrapositive : forall P Q : Prop,
   (P -> Q) -> (~Q -> ~P).
 Proof.
-  (* FILL IN HERE *) Admitted.
+  intros.
+unfold not.
+unfold not in H0.
+intro.
+apply H in H1.
+apply H0 in H1.
+inversion H1.
+Qed.
+
 (** [] *)
 
 (** **** Exercise: 1 star (not_both_true_and_false)  *)
@@ -622,6 +677,101 @@ Definition de_morgan_not_and_not := forall P Q:Prop,
 Definition implies_to_or := forall P Q:Prop, 
   (P->Q) -> (~P\/Q). 
 
+Theorem peqc : peirce -> classic.
+Proof.
+unfold peirce.
+intro.
+unfold classic.
+intros.
+unfold not in H0.
+apply H with (Q:=False).
+intros.
+apply H0 in H1.
+inversion H1.
+Qed.
+
+Theorem deqi : de_morgan_not_and_not -> implies_to_or.
+Proof.
+unfold de_morgan_not_and_not.
+intro.
+unfold implies_to_or.
+intros.
+apply H.
+unfold not.
+intros.
+destruct H1.
+apply H2.
+apply H0.
+destruct H1.
+intro.
+apply H0 in H1.
+apply H2 in H1.
+apply H1.
+Qed.
+
+Theorem eeqd: implies_to_or -> excluded_middle.
+Proof.
+unfold excluded_middle.
+unfold implies_to_or.
+intros.
+assert (~P\/P->P\/~P).
+intro.
+destruct H0.
+right.
+apply H0.
+left.
+apply H0.
+apply H0.
+apply H.
+intro.
+apply H1.
+Qed.
+
+Theorem ceqd:classic -> de_morgan_not_and_not.
+Proof.
+unfold classic.
+unfold de_morgan_not_and_not.
+intros.
+apply H.
+unfold not.
+intro.
+unfold not in H0.
+apply H0.
+split.
+intro.
+apply H1.
+left.
+apply H2.
+intro.
+apply H1.
+right.
+apply H2.
+Qed.
+
+Theorem eeqp : excluded_middle -> peirce.
+Proof.
+unfold excluded_middle.
+unfold peirce.
+intros.
+assert ((P->Q)\/~(P->Q)).
+apply H.
+destruct H1.
+apply H0 in H1.
+apply H1.
+assert(P\/~P).
+apply H.
+destruct H2.
+apply H2.
+apply H0.
+intro.
+assert(P/\~P).
+split.
+apply H3.
+apply H2.
+apply not_both_true_and_false in H4.
+inversion H4.
+Qed.
+
 (* FILL IN HERE *)
 (** [] *)
 
@@ -633,7 +783,17 @@ we would have both [~ (P \/ ~P)] and [~ ~ (P \/ ~P)], a contradiction. *)
 
 Theorem excluded_middle_irrefutable:  forall (P:Prop), ~ ~ (P \/ ~ P).  
 Proof.
-  (* FILL IN HERE *) Admitted.
+  intros.
+  unfold not.
+intros.
+apply H.
+right.
+intro.
+apply H.
+left.
+apply H0.
+Qed.  
+
 
 
 (* ########################################################## *)

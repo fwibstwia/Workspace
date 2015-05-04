@@ -110,7 +110,14 @@ Qed.
 Theorem dist_not_exists : forall (X:Type) (P : X -> Prop),
   (forall x, P x) -> ~ (exists x, ~ P x).
 Proof. 
-  (* FILL IN HERE *) Admitted.
+intros.
+unfold not.
+intro.
+inversion H0 as [x Hx].
+apply Hx in H.
+apply H.
+Qed.
+
 (** [] *)
 
 (** **** Exercise: 3 stars, optional (not_exists_dist)  *)
@@ -122,7 +129,20 @@ Theorem not_exists_dist :
   forall (X:Type) (P : X -> Prop),
     ~ (exists x, ~ P x) -> (forall x, P x).
 Proof.
-  (* FILL IN HERE *) Admitted.
+intros.
+unfold excluded_middle in H.
+unfold not in H0.
+assert ((P x) \/ ~ (P x)).
+apply H.
+unfold not in H1.
+inversion H1.
+apply H2.
+apply ex_intro with (X:=X) (witness:=x) in H2. 
+apply H0 in H2.
+inversion H2.
+Qed.
+
+
 (** [] *)
 
 (** **** Exercise: 2 stars (dist_exists_or)  *)
@@ -132,7 +152,28 @@ Proof.
 Theorem dist_exists_or : forall (X:Type) (P Q : X -> Prop),
   (exists x, P x \/ Q x) <-> (exists x, P x) \/ (exists x, Q x).
 Proof.
-   (* FILL IN HERE *) Admitted.
+intros.
+split.
+intros.
+inversion H.
+inversion H0.
+left.
+exists witness.
+apply H1.
+right.
+exists witness.
+apply H1.
+intro.
+inversion H.
+inversion H0.
+exists witness.
+left.
+apply H1.
+inversion H0.
+exists witness.
+right.
+apply H1.
+Qed.
 (** [] *)
 
 (* ###################################################### *)
@@ -146,7 +187,10 @@ Proof.
     straightforward to write lemmas (e.g. [beq_nat_true] and
     [beq_nat_false]) that connect the two forms, using these lemmas
     quickly gets tedious. *)
-
+Check eq.
+Check beq_nat.
+Check beq_nat_true.
+Check beq_nat_false.
 (** *** *)
 (** It turns out that we can get the benefits of both forms at once by
     using a construct called [sumbool]. *)
@@ -192,6 +236,7 @@ Proof.
       left. apply f_equal.  apply eq.
       right. intros Heq. inversion Heq as [Heq']. apply neq. apply Heq'.
 Defined. 
+
   
 (** Read as a theorem, this says that equality on [nat]s is decidable:
     that is, given two [nat] values, we can always produce either
@@ -235,8 +280,12 @@ Proof.
 Theorem override_shadow' : forall (X:Type) x1 x2 k1 k2 (f : nat->X),
   (override' (override' f k1 x2) k1 x1) k2 = (override' f k1 x1) k2.
 Proof.
-  (* FILL IN HERE *) Admitted.
-(** [] *)
+intros.
+unfold override'.
+destruct (eq_nat_dec k1 k2).
+reflexivity.
+reflexivity.
+Qed.
 
 
 
@@ -251,8 +300,9 @@ Proof.
     asserts that [P] is true for every element of the list [l]. *)
 
 Inductive all (X : Type) (P : X -> Prop) : list X -> Prop :=
-  (* FILL IN HERE *)
-.
+|all_nil: all X P nil
+|all_cc: forall x l, P x -> all X P l -> all X P (cons x l). 
+
 
 (** Recall the function [forallb], from the exercise
     [forall_exists_challenge] in chapter [Poly]: *)
@@ -263,6 +313,21 @@ Fixpoint forallb {X : Type} (test : X -> bool) (l : list X) : bool :=
     | x :: l' => andb (test x) (forallb test l')
   end.
 
+Theorem forall_all: forall (X : Type) (test : X -> bool) (l : list X), 
+                      forallb test l = true -> all X (fun x => test x = true) l. 
+Proof.
+intros.
+induction l.
+apply all_nil.
+simpl in H.
+apply all_cc.
+SearchAbout andb.
+apply andb_true_elim1 in H.
+apply H.
+apply IHl.
+apply andb_true_elim2 in H.
+apply H.
+Qed.
 (** Using the property [all], write down a specification for [forallb],
     and prove that it satisfies the specification. Try to make your 
     specification as precise as possible.
@@ -298,7 +363,12 @@ Fixpoint forallb {X : Type} (test : X -> bool) (l : list X) : bool :=
     for one list to be a merge of two others.  Do this with an
     inductive relation, not a [Fixpoint].)  *)
 
-(* FILL IN HERE *)
+Inductive all (X : Type) (P : X -> Prop) : list X -> Prop :=
+|all_nil: all X P nil
+|all_cc: forall x l, P x -> all X P l -> all X P (cons x l). 
+
+Inductive 
+
 (** [] *)
 
 (** **** Exercise: 5 stars, advanced, optional (filter_challenge_2)  *)

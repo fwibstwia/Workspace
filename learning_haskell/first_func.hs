@@ -31,3 +31,11 @@ max' :: (Ord a) => a -> a -> a
 max' a b
   |a <= b = b
   |otherwise = a
+
+maximum' :: (Ord a) => [a] -> a
+maximum' [] = error "maximum of empty list"
+maximum' [x] = x
+maximum' (h:xs) 
+  |h > maxTail = h
+  |otherwise = maxTail
+  where maxTail = maximum' xs
