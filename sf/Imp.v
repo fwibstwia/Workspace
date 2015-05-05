@@ -202,7 +202,7 @@ Proof.
   Case "ANum". reflexivity.
   Case "APlus". destruct a1.
     SCase "a1 = ANum n". destruct n.
-      SSCase "n = 0".  simpl. apply IHa2.
+       SSCase "n = 0".  simpl. apply IHa2.
       SSCase "n <> 0". simpl. rewrite IHa2. reflexivity.
     SCase "a1 = APlus a1_1 a1_2".
       simpl. simpl in IHa1. rewrite IHa1.
