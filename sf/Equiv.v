@@ -190,9 +190,15 @@ Theorem skip_right: forall c,
     (c;; SKIP) 
     c.
 Proof. 
-  (* FILL IN HERE *) Admitted.
-(** [] *)
-
+intros c st st'.
+split; intros H.
+inversion H. subst.
+inversion H5.subst.
+assumption.
+apply E_Seq with st'.
+assumption.
+apply E_Skip.
+Qed.
 (** Similarly, here is a simple transformations that simplifies [IFB]
     commands: *)
 
@@ -281,7 +287,19 @@ Theorem IFB_false: forall b c1 c2,
     (IFB b THEN c1 ELSE c2 FI) 
     c2.
 Proof.
-  (* FILL IN HERE *) Admitted.
+intros.
+split;intros.
+inversion H0.subst.
+unfold bequiv in H. simpl in H.
+rewrite H in H6.
+inversion H6.
+subst.assumption.
+apply E_IfFalse.
+unfold bequiv in H.simpl in H.
+rewrite H.
+reflexivity.
+assumption.
+Qed.
 (** [] *)
 
 (** **** Exercise: 3 stars (swap_if_branches)  *)
@@ -293,7 +311,33 @@ Theorem swap_if_branches: forall b e1 e2,
     (IFB b THEN e1 ELSE e2 FI)
     (IFB BNot b THEN e2 ELSE e1 FI).
 Proof.
-  (* FILL IN HERE *) Admitted.
+intros.
+split; intros.
+inversion H.subst.
+apply E_IfFalse.
+simpl.
+rewrite H5.
+reflexivity.
+assumption.
+subst.
+apply E_IfTrue.
+simpl.
+rewrite H5.
+reflexivity.
+assumption.
+inversion H.subst.
+apply E_IfFalse.
+simpl in H5.
+SearchAbout negb.
+apply negb_true_iff.
+assumption.
+assumption.
+subst.
+apply E_IfTrue.
+apply negb_false_iff.
+assumption.
+assumption.
+Qed.
 (** [] *)
 
 (** *** *)
@@ -393,7 +437,15 @@ Theorem WHILE_true: forall b c,
        (WHILE b DO c END)
        (WHILE BTrue DO SKIP END).
 Proof. 
-  (* FILL IN HERE *) Admitted.
+intros.
+split;intros.
+apply WHILE_true_nonterm with b c st st' in H.
+apply H in H0.
+inversion H0.
+apply loop_never_stops in H0.
+inversion H0.
+Qed.
+
 (** [] *)
 
 Theorem loop_unrolling: forall b c,
@@ -424,7 +476,23 @@ Proof.
 Theorem seq_assoc : forall c1 c2 c3,
   cequiv ((c1;;c2);;c3) (c1;;(c2;;c3)).
 Proof.
-  (* FILL IN HERE *) Admitted.
+intros.
+split;intros.
+inversion H.subst.
+inversion H2.subst.
+apply E_Seq with st'1.
+assumption.
+apply E_Seq with st'0.
+assumption.
+assumption.
+inversion H.subst.
+inversion H5.subst.
+apply E_Seq with st'1.
+apply E_Seq with st'0.
+assumption.
+assumption.
+assumption.
+Qed.
 (** [] *)
 
 (** ** The Functional Equivalence Axiom *)
@@ -521,7 +589,32 @@ Theorem assign_aequiv : forall X e,
   aequiv (AId X) e -> 
   cequiv SKIP (X ::= e).
 Proof.
-  (* FILL IN HERE *) Admitted.
+intros.
+split;intros.
+inversion H0.
+subst.
+assert (st' = (update st' X (aeval st' e))).
+apply functional_extensionality.
+intro.
+rewrite update_same.
+reflexivity.
+apply H.
+rewrite H1 at 2.
+constructor.
+reflexivity.
+inversion H0.
+subst.
+rewrite <- H.
+simpl.
+assert (st = (update st X (st X))).
+apply functional_extensionality.
+intro.
+rewrite update_same.
+reflexivity.
+reflexivity.
+rewrite <- H1.
+constructor.
+Qed.
 (** [] *)
 
 (* ####################################################### *)
