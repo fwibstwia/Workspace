@@ -424,6 +424,21 @@ Proof.
        {{ 0 <= X /\ X <= 5 }}
    ...into formal statements [assn_sub_ex1, assn_sub_ex2] 
    and use [hoare_asgn] to prove them. *)
+Example assn_sub_ex1:
+{{ (fun st => st X <= 5) [X |-> APlus (AId X) (ANum 1)] }}
+(X ::= APlus (AId X) (ANum 1))
+{{ (fun st => st X <= 5)}}.
+Proof.
+apply hoare_asgn.
+Qed.
+
+Example assn_sub_ex2:
+{{ (fun st =>  and (0 <= st X) (st X <= 5) = True) [ X |-> ANum 3] }}
+(X ::= ANum 3)
+{{ (fun st => and (0 <= st X) (st X <= 5) = True) }}.
+Proof.
+apply hoare_asgn.
+Qed.
 
 (* FILL IN HERE *)
 (** [] *)
