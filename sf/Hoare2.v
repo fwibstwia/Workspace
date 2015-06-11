@@ -219,15 +219,15 @@ These decorations were constructed as follows:
 (** Fill in valid decorations for the following program:
    {{ True }}
   IFB X <= Y THEN
-      {{                         }} ->>
-      {{                         }}
+      {{ Trye /\ (X <= Y) }} ->>
+      {{ Z = (X + Z) - X    }}
     Z ::= Y - X
-      {{                         }}
+      {{ Y = X + Z                }}
   ELSE
-      {{                         }} ->>
-      {{                         }}
+      {{ True /\ ~(X <= Y)  }} ->>
+      {{ X + Z = X + Z                        }}
     Y ::= X + Z
-      {{                         }}
+      {{ Y = X + Z     }}
   FI
     {{ Y = X + Z }}
 *)
@@ -621,7 +621,55 @@ Theorem parity_correct : forall m,
   END
     {{ fun st => st X = parity m }}.
 Proof.
-  (* FILL IN HERE *) Admitted.
+  intro.
+  apply hoare_consequence_post with 
+     (fun st : state => parity (st X) = parity m /\ ~(bassn (BLe (ANum 2) (AId X)) st)).
+  eapply hoare_consequence_pre.
+  apply hoare_while.
+  eapply hoare_consequence_pre.
+  apply hoare_asgn.
+  intro.
+  intro.
+  unfold assn_sub.
+  rewrite update_eq.
+  simpl.
+  inversion H.
+  assert (parity (st X - 2) = parity (st X)).
+  apply parity_ge_2.  
+  unfold bassn in H1.
+  clear H.
+  clear H0.
+  simpl in H1.
+  destruct (st X).
+  inversion H1.
+  destruct n.
+  inversion H1.
+  omega.
+  rewrite H2.
+  assumption.
+  intro.
+  intro.
+  rewrite H.
+  reflexivity.
+  intro.  
+  intro.  
+  inversion H.  
+  assert(parity (st X) = (st X)).  
+  apply parity_lt_2.
+  intro.  
+  apply H1.
+  unfold bassn.  
+  simpl.
+  destruct (st X).
+  inversion H2.
+  destruct n.
+  inversion H2.
+  inversion H4.
+  reflexivity.
+  rewrite <- H2.
+  assumption.
+Qed.
+
 (** [] *)
 
 (* ####################################################### *)
@@ -976,7 +1024,29 @@ Theorem is_wp_example :
   is_wp (fun st => st Y <= 4)
     (X ::= APlus (AId Y) (ANum 1)) (fun st => st X <= 5).
 Proof.
-  (* FILL IN HERE *) Admitted.
+unfold is_wp.
+split.
+eapply hoare_consequence_pre.
+apply hoare_asgn.
+unfold assn_sub.
+intro.
+intro.
+rewrite update_eq.
+simpl.
+omega.
+intro.
+intro.
+intro.
+intro.
+unfold hoare_triple in H.
+assert ((X ::= APlus (AId Y) (ANum 1)) / st || (update st X ((st Y) + 1))).
+apply E_Ass.
+reflexivity.
+apply H in H1.
+rewrite update_eq in H1.
+omega.
+assumption.
+Qed.
 (** [] *)
 
 (** **** Exercise: 2 stars, advanced (hoare_asgn_weakest)  *)
@@ -986,7 +1056,27 @@ Proof.
 Theorem hoare_asgn_weakest : forall Q X a,
   is_wp (Q [X |-> a]) (X ::= a) Q.
 Proof.
-(* FILL IN HERE *) Admitted.
+unfold is_wp.
+split.
+eapply hoare_consequence_pre.
+apply hoare_asgn.
+intro.
+intro.
+assumption.
+intro.
+intro.
+intro.
+intro.
+unfold hoare_triple in H.
+assert ((X ::= a) / st || (update st X (aeval st a))).
+constructor.
+reflexivity.
+apply H in H1.
+unfold assn_sub.
+assumption.
+assumption.
+Qed.
+
 (** [] *)
 
 (** **** Exercise: 2 stars, advanced, optional (hoare_havoc_weakest)  *)

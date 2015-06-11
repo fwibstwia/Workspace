@@ -39,3 +39,17 @@ maximum' (h:xs)
   |h > maxTail = h
   |otherwise = maxTail
   where maxTail = maximum' xs
+
+largestDivisible :: (Integral a) => a
+largestDivisible = head (filter p [100000,99999..])
+                   where p x = x `mod` 3829 == 0
+
+collatz_chain :: (Integral a) => a -> [a]
+collatz_chain 1 = [1]
+collatz_chain n 
+  | even n = n:collatz_chain (n `div` 2)
+  | odd n = n:collatz_chain (n*3 + 1)
+
+myLast :: [a] -> a
+myLast = foldl1 (\acc x -> x)
+

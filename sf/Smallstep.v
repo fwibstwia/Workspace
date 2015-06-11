@@ -209,7 +209,11 @@ Example test_step_2 :
           (C 2) 
           (C (0 + 3))).
 Proof. 
-  (* FILL IN HERE *) Admitted.
+apply ST_Plus2.
+apply ST_Plus2.
+apply ST_PlusConstConst.
+Qed.
+
 (** [] *)
 
 
@@ -443,7 +447,16 @@ Tactic Notation "step_cases" tactic(first) ident(c) :=
 Theorem step_deterministic :
   deterministic step.
 Proof.
-  (* FILL IN HERE *) Admitted.
+  unfold deterministic.
+  intros.
+  generalize dependent y2.
+  induction H.
+  intros.
+  induction y2.
+  inversion H0; subst.
+  reflexivity.
+  inversion H0; subst.
+
 (** [] *)
 
 (* ########################################################### *)
