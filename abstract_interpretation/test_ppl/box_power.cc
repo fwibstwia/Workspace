@@ -50,9 +50,9 @@ public:
 };
 
 /*
-A \in [0,1] 
+A \in [0,1]
    B \in [0,4]
-   A + B <= 2 
+   A + B <= 2
 if(z > 0){
   A = A + 5;
 }else{
@@ -90,7 +90,7 @@ void test_power_interval(){
   free_term.join_assign(5);
   FP_Linear_Form l(A);
   l += free_term;
-  b1.affine_form_image(A, l); 
+  b1.affine_form_image(A, l);
   ps_b.add_disjunct(b1);
   TBox b2(b);
   ps_b.add_disjunct(b2);
@@ -128,10 +128,10 @@ void test_power_oct(){
   free_term1.join_assign(5);
   FP_Linear_Form l1(A);
   l1 += free_term1;
-  oc1.affine_form_image(A, l1); 
+  oc1.affine_form_image(A, l1);
   ps_o.add_disjunct(oc1);
   TOctagonal_Shape oc2(oc);
-  ps_o.add_disjunct(oc2);  
+  ps_o.add_disjunct(oc2);
 
   ps_o.add_constraint(A + B >= 3);
   ps_o.add_constraint(A + B <= 4);
@@ -146,144 +146,110 @@ void test_power_oct(){
 
   bool ok = ps_o.is_empty();
   cout << "*** is_empty *** " << ok << endl;
-
 }
 
-int main(){
-  //-----------------Floating-Point arithmetics ---------//  
+void test_fp_power_oct(){
   Variable A(0);
   Variable B(1);
-  TOctagonal_Shape oc3(2);
-  oc3.add_constraint(A + B <= 5);
+  //Initial input constraint
+  Constraint_System cs;
+  cs.insert(A >= 0);
+  cs.insert(A <= 1);
+  cs.insert(B >= 0);
+  cs.insert(B <= 4);
 
+  TOctagonal_Shape oc(2);
+  oc.add_constraints(cs);
+
+  //oracle store
+  FP_Interval tmp;
   Test_Oracle oracle(FP_Interval_Abstract_Store(2));
-  FP_Interval tmp(static_cast<FP_Interval::boundary_type>(0));
-  tmp.join_assign(1);
-
-  Approximable_Reference<C_Expr> var0(FP_Type, 
-                     FP_Interval(static_cast<FP_Interval::boundary_type>(0)), 0);
+  tmp.lower() =  FP_Interval::boundary_type(0);
+  tmp.upper() =  FP_Interval::boundary_type(1);
   oracle.int_store.set_interval(A, tmp);
+  Approximable_Reference<C_Expr> var0(FP_Type, tmp, 0);
 
   tmp.lower() =  FP_Interval::boundary_type(0);
   tmp.upper() =  FP_Interval::boundary_type(4);
-  Approximable_Reference<C_Expr> var1(FP_Type, 
-                  FP_Interval(static_cast<FP_Interval::boundary_type>(0)), 1);
   oracle.int_store.set_interval(B, tmp);
-  
+  Approximable_Reference<C_Expr> var1(FP_Type,
+                      tmp, 1);
 
+  //linear form constaint A + B <= 2
   Binary_Operator<C_Expr> sum(FP_Type, Binary_Operator<C_Expr>::ADD,
                               &var0, &var1);
   FP_Linear_Form result;
   linearize(sum, oracle, FP_Linear_Form_Abstract_Store(), result);
+  tmp.lower() = FP_Interval::boundary_type(2);
+  tmp.upper() = FP_Interval::boundary_type(2);
+  FP_Linear_Form lc(tmp);
+  oc.refine_with_linear_form_inequality(result, lc);
 
-  oc3.affine_form_image(A, result); 
-  //Floating_Point_Constant<C_Expr> num("2", 2);
-  //FP_Linear_Form c = FP_Linear_Form(num);
-  //FP_Interval c(2);
-  //FP_Linear_Form lc(c);
- 
-  //oc3.refine_with_linear_form_inequality(result, lc);
-
-  cout << "*** fp_arith.constraints ***" << oc3.constraints() << endl;
-  //-----------------Floating-point Power domain -------//
-  
-
-
-
-
-
-
-
-
-
-
-
-  //----------------------------------------------------
-  /*
-  Variable x(0);
-  Variable y(1);
-
-  FP_Interval_Abstract_Store i_store(2);
-  FP_Linear_Form_Abstract_Store l_store;
-  
-  FP_Interval tmp(static_cast<FP_Interval::boundary_type>(0));
-  tmp.join_assign(static_cast<FP_Interval::boundary_type>(1));
-  i_store.set_interval(x, tmp);
-
-  tmp.lower() = 0;
-  tmp.upper() = 4;
-  i_store.set_interval(y, tmp);
- 
-  cout << "*** i_store.constraints ***" << i_store.constraints() << endl;
-
-  Binary_Operator<C_Expr> div(FP_Type, Binary_Operator<C_Expr>::DIV, &num, &den);
-
-
-  //Concrete_Expression<C_Expr> ce;
-
-  
-  
-
-  
-
-  /*x
-  Constraint_System cs;
-  cs.insert(x >= 0);
-  cs.insert(x <= 3);
-  cs.insert(y >= 0);
-  cs.insert(y <= 4);
-  //cs.insert(x + y <= 3);
-  // --- Powerset Box Constraints
-  TBox box(2);
-  box.propagate_constraints(cs);
-  Linear_Expression le = x + y;
-  
-  box.affine_image(x, le);
-  //box.refine_with_constraint(x == x + y);
-
-  cout << "*** box.constraints ***" << box.constraints() << endl;
-
-  Pointset_Powerset<TBox> ps_b(2, EMPTY);
-
-  TBox box1(box);
-  Linear_Expression le = x + y;
-  Linear_Expression lx = x;
-  lx = le;
-
-  box1.refine_with_constraint(lx <= 2);
-  ps_b.add_disjunct(box1);
-  
-  TBox box2(box);
-  box2.add_constraint(x <= 1);
-  ps_b.add_disjunct(box2);
-
-  ps_b.refine_with_constraint (x <= 0);
-  //ps_b.refine_with_constraint(x + y >= 3);
-  //ps_b.refine_with_constraint(x + y <= 4);
-
-
-  bool ok = ps_b.is_empty();
-
-  Pointset_Powerset<TBox>::const_iterator c_i = ps_b.begin();
-  TBox b_phi = c_i->pointset();
-  cout << "*** box.constraints ***" << b_phi.constraints() << endl;
-  c_i ++;
-  b_phi = c_i->pointset();
-  cout << "*** box.constraints ***" << b_phi.constraints() << endl;
-
-  // --- Powerset Octogon Constraints
-  TOctagonal_Shape oct(2);
-  oct.add_constraints(cs);
- 
-  oct.add_constraint(x == x + 1);
-
+  //generate two fp octagons
   Pointset_Powerset<TOctagonal_Shape> ps_o(2, EMPTY);
+  TOctagonal_Shape oc1(oc);
+  TOctagonal_Shape oc2(oc);
 
-  ok = oct.is_empty();
+  //oc1 A = A + 5;
+  Floating_Point_Constant<C_Expr> fp_c("5", 2);
+  Binary_Operator<C_Expr> sum1(FP_Type, Binary_Operator<C_Expr>::ADD,
+                              &var0, &fp_c);
+  FP_Linear_Form result1;
+  linearize(sum1, oracle, FP_Linear_Form_Abstract_Store(), result1);
+  oc1.affine_form_image(A, result1);
 
-  cout << "*** oct.propagate_constraints(cs) ***" << oct.constraints() << endl;
-  */
+  //add disjuncts
+  ps_o.add_disjunct(oc1);
+  ps_o.add_disjunct(oc2);
+  TOctagonal_Shape oc3(oc1);
+  oc3.upper_bound_assign(oc2);
 
-  return 0;
+  //check constraints: A + B >= 3; A + B <= 4
+  tmp.lower() = FP_Interval::boundary_type(3);
+  tmp.upper() = FP_Interval::boundary_type(3);
+  FP_Linear_Form lc1(tmp);
+  oc1.refine_with_linear_form_inequality(lc1, result);
+  oc2.refine_with_linear_form_inequality(lc1, result);
+  oc3.refine_with_linear_form_inequality(lc1, result);
+
+  tmp.lower() = FP_Interval::boundary_type(4);
+  tmp.upper() = FP_Interval::boundary_type(4);
+  FP_Linear_Form lc2(tmp);
+  oc1.refine_with_linear_form_inequality(result, lc2);
+  oc2.refine_with_linear_form_inequality(result, lc2);
+  oc3.refine_with_linear_form_inequality(lc1, result);
+
+  bool ok;
+  ok = oc1.is_empty();
+  cout << "*** oc1 is_empty *** " << ok << endl;
+  ok = oc2.is_empty();
+  cout << "*** oc2 is_empty *** " << ok << endl;
+  ok = oc3.is_empty();
+  cout << "*** oc1 join oc2 is_empty *** " << ok << endl;
+  /*
+  Pointset_Powerset<TOctagonal_Shape>::const_iterator i;
+
+  for(i = ps_o.begin(); i != ps_o.end(); i ++){
+       TOctagonal_Shape osi = i->pointset();
+       tmp.lower() = FP_Interval::boundary_type(3);
+       tmp.upper() = FP_Interval::boundary_type(3);
+       FP_Linear_Form lc1(tmp);
+       osi.refine_with_linear_form_inequality(lc1, result);
+
+
+       tmp.lower() = FP_Interval::boundary_type(4);
+       tmp.upper() = FP_Interval::boundary_type(4);
+       FP_Linear_Form lc2(tmp);
+       osi.refine_with_linear_form_inequality(result, lc2);
+
+       cout << "*** dist_oct1.constraints ***" << osi.constraints() << endl;
+       bool ok = osi.is_empty();
+       cout << "*** is_empty *** " << ok << endl;
+       }*/
+
 }
 
+int main(){
+  test_fp_power_oct();
+  return 0;
+}
