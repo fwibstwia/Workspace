@@ -62,3 +62,6 @@ local.properties
 dist/
 
 /haskell/c2smt
+/temp/out.png
+/clang-llvm/
+/fpa-heterogeneous/
