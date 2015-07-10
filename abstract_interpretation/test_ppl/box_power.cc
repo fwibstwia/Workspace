@@ -147,6 +147,90 @@ void test_power_oct(){
   bool ok = ps_o.is_empty();
   cout << "*** is_empty *** " << ok << endl;
 }
+/*
+  a \in [0,2]
+  b \in [0,2]
+  c \in [0,2]
+  a + b >= 2
+  a - b >= 1
+  float f = 0;
+  if(z > 0)
+    f = a + b + c;
+  else 
+    f = 0;
+  if(f > 1)
+*/
+
+void test_fd_power_oct_stable(){
+  Variable A(0);
+  Variable B(1);
+  Variable C(2);
+  Variable F(3);
+
+  Constraint_System cs;
+  cs.insert(A >= 0);
+  cs.insert(A <= 2);
+  cs.insert(B >= 0);
+  cs.insert(B <= 2);
+  cs.insert(C >= 0);
+  cs.insert(C <= 2);
+  //cs.insert(F == 0);
+  cs.insert(A + B >= 2);
+  cs.insert(A - B >= 1);
+
+  TOctagonal_Shape oc(4);
+  oc.add_constraints(cs);
+
+  Test_Oracle oracle(FP_Interval_Abstract_Store(4));
+  oc.refine_fp_interval_abstract_store(oracle.int_store);
+
+  FP_Interval tmp1 = oracle.int_store.get_interval(A);
+  FP_Interval tmp2 = oracle.int_store.get_interval(B); 
+  FP_Interval tmp3 = oracle.int_store.get_interval(C); 
+
+  double tmp1_lower = tmp1.lower();
+  double tmp1_upper = tmp1.upper();
+
+  double tmp2_lower = tmp2.lower();
+  double tmp2_upper = tmp2.upper();
+
+  double tmp3_lower = tmp3.lower();
+  double tmp3_upper = tmp3.upper();
+  
+  cout << "*** A lower *** " << tmp1_lower << endl;
+  cout << "*** A lower *** " << tmp1.upper() << endl;
+  cout << "*** B lower *** " << tmp2.lower() << endl;
+  cout << "*** B lower *** " << tmp2.upper() << endl;
+  cout << "*** C lower *** " << tmp3.lower() << endl;
+  cout << "*** C lower *** " << tmp3.upper() << endl;
+
+  FP_Linear_Form lf(F);
+  FP_Interval vtmp;
+  
+  Pointset_Powerset<TOctagonal_Shape> ps_o(4, EMPTY);
+  TOctagonal_Shape oc1(oc);
+  vtmp.lower() = 1.5;
+  vtmp.upper() = 1.5;
+  FP_Linear_Form lc_l(vtmp);
+  oc1.refine_with_linear_form_inequality(lc_l, lf);
+  vtmp.lower() = 5;
+  vtmp.upper() = 5;
+  FP_Linear_Form lc_u(vtmp);
+  oc1.refine_with_linear_form_inequality(lf, lc_u);
+  
+  TOctagonal_Shape oc2(oc);
+  oc2.add_constraint(F == 0);
+
+  ps_o.add_disjunct(oc1);
+  ps_o.add_disjunct(oc2);
+
+  ps_o.add_constraint(F == 1);
+
+  bool ok;
+  ok = ps_o.is_empty();
+  cout << "*** ps_o is_empty *** " << ok << endl;
+
+}
 
 void test_fp_power_oct(){
   Variable A(0);
@@ -250,6 +334,6 @@ void test_fp_power_oct(){
 }
 
 int main(){
-  test_fp_power_oct();
+  test_fd_power_oct_stable();
   return 0;
 }

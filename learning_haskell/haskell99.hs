@@ -48,3 +48,17 @@ decodeModified :: (Eq a) => [MSEncode a] -> [a]
 decodeModified = concatMap deCode where
                  deCode (Single x1) = [x1]
                  deCode (Multiple i x1) = replicate i x1
+insertAt :: a -> [a] -> Int -> [a]
+insertAt x xs n = (take (n - 1) xs) ++ (x:(drop (n-1) xs)) 
+
+isPrime :: Int -> Bool
+isPrime n = all id $ map (\x -> (not $ n `mod` x == 0)) [2..n-1] 
+
+myGCD :: Int -> Int -> Int
+myGCD m n
+  |n == 0 = m
+  |m < n = myGCD n m
+  |otherwise = myGCD n (m `mod` n)
+
+table :: (Bool -> Bool -> Bool) -> [(Bool, Bool, Bool)]
+table f = [(x, y, f x y) |x <- [True, False], y <- [True, False]]
