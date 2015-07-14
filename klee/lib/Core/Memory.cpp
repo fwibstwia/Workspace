@@ -34,6 +34,7 @@
 
 #include <cassert>
 #include <sstream>
+#include <iostream>
 
 using namespace llvm;
 using namespace klee;
@@ -687,12 +688,9 @@ ref<Expr> ObjectState::readWhole(unsigned offset, Expr::Width width) const {
 
   // Otherwise, follow the slow general case.
   unsigned index = offset/(width/8);
-  const llvm::Type *ty;
-  if((object->allocType)->isArrayTy()){
-    ty = (object->allocType)->getContainedType(0);
-  }else{
-    ty = object->allocType;
-  }
+
+  const llvm::Type *ty = object->getAtomicType();  
+
   if (isByteConcrete(index)) {
       switch(width){
       case 8:
@@ -783,6 +781,11 @@ void ObjectState::writeWhole(unsigned offset, ref<Expr> value) {
 	((uint64_t*)concreteStore)[offset] =  (uint64_t)CE->getZExtValue(64);
 	break;
       }
+      //--------------
+      std::string ai;
+      object->getAllocInfo(ai);
+      std::cout << ai << " "  << " " << offset << std::endl;
+      //--------------
       setKnownSymbolic(index, 0);
       markByteConcrete(index);
       markByteUnflushed(index);

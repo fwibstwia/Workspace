@@ -417,9 +417,11 @@ void Executor::initializeGlobalObject(ExecutionState &state, ObjectState *os,
   } else if (const ConstantArray *ca = dyn_cast<ConstantArray>(c)) {
     unsigned elementSize =
       targetData->getTypeStoreSize(ca->getType()->getElementType());
-    for (unsigned i=0, e=ca->getNumOperands(); i != e; ++i)
+    for (unsigned i=0, e=ca->getNumOperands(); i != e; ++i){
+
       initializeGlobalObject(state, os, ca->getOperand(i), 
 			     offset + i*elementSize);
+    }
   } else if (const ConstantStruct *cs = dyn_cast<ConstantStruct>(c)) {
     const StructLayout *sl =
       targetData->getStructLayout(cast<StructType>(cs->getType()));
@@ -444,7 +446,8 @@ void Executor::initializeGlobalObject(ExecutionState &state, ObjectState *os,
     if (StoreBits > C->getWidth())
       C = C->ZExt(StoreBits);
 
-    os->write(offset, C);
+    os->writeWhole(offset, C); //***os->write(offset, C);
+    
   }
 }
 
@@ -559,6 +562,7 @@ void Executor::initializeGlobals(ExecutionState &state) {
       }
       MemoryObject *mo = memory->allocate(size, false, true, i, i->getType());
       ObjectState *os = bindObjectInState(state, mo, false);
+
       globalObjects.insert(std::make_pair(i, mo));
       globalAddresses.insert(std::make_pair(i, mo->getBaseExpr()));
 
@@ -581,7 +585,8 @@ void Executor::initializeGlobals(ExecutionState &state) {
     } else {
       LLVM_TYPE_Q Type *ty = i->getType()->getElementType();
       uint64_t size = kmodule->targetData->getTypeStoreSize(ty);
-      MemoryObject *mo = memory->allocate(size, false, true, &*i, i->getType());
+      MemoryObject *mo = memory->allocate(size, false, true, &*i, ty);//i->getType());
+
       if (!mo)
         llvm::report_fatal_error("out of memory");
       ObjectState *os = bindObjectInState(state, mo, false);
@@ -3125,9 +3130,9 @@ void Executor::executeMemoryOperation(ExecutionState &state,
     if (isWrite && !isa<ConstantExpr>(value))
       value = state.constraints.simplifyExpr(value);
   }
-
-  // fast path: single in-bounds resolution
   ObjectPair op;
+  // fast path: single in-bounds resolution
+  
   bool success;
   solver->setTimeout(coreSolverTimeout);
   if (!state.addressSpace.resolveOne(state, solver, address, op, success)) {

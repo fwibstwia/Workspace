@@ -179,6 +179,16 @@ public:
     return false;
   }
 
+  const llvm::Type* getAtomicType() const{
+    const llvm::Type *r = allocType;
+    while (r->isArrayTy()){
+      if (const llvm::SequentialType *seType = dyn_cast<llvm::SequentialType>(r)) {
+	r = seType -> getElementType();
+      }
+    }
+    return r;
+  }
+
   unsigned getArraySize() const {
     if(allocType && allocType->isArrayTy()){
       const llvm::ArrayType *at = dyn_cast<llvm::ArrayType>(allocType);
