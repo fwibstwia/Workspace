@@ -47,18 +47,18 @@ namespace {
 
 /***/
 
-ObjectHolder::ObjectHolder(const ObjectHolder &b) : os(b.os) { 
-  if (os) ++os->refCount; 
+ObjectHolder::ObjectHolder(const ObjectHolder &b) : os(b.os) {
+  if (os) ++os->refCount;
 }
 
-ObjectHolder::ObjectHolder(ObjectState *_os) : os(_os) { 
-  if (os) ++os->refCount; 
+ObjectHolder::ObjectHolder(ObjectState *_os) : os(_os) {
+  if (os) ++os->refCount;
 }
 
-ObjectHolder::~ObjectHolder() { 
-  if (os && --os->refCount==0) delete os; 
+ObjectHolder::~ObjectHolder() {
+  if (os && --os->refCount==0) delete os;
 }
-  
+
 ObjectHolder &ObjectHolder::operator=(const ObjectHolder &b) {
   if (b.os) ++b.os->refCount;
   if (os && --os->refCount==0) delete os;
@@ -93,7 +93,7 @@ void MemoryObject::getAllocInfo(std::string &result) const {
   } else {
     info << " (no allocation info)";
   }
-  
+
   info.flush();
 }
 
@@ -118,14 +118,14 @@ ObjectState::ObjectState(const MemoryObject *mo)
       static unsigned id = 0;
       const Array *array = new Array("tmp_arr" + llvm::utostr(++id), size);
       updates = UpdateList(array, 0);
-    }  
+    }
   }else{
     if (!UseConstantArrays) {
       // FIXME: Leaked.
       static unsigned id = 0;
       const Array *array = new Array("tmp_arr" + llvm::utostr(++id), size, 0, 0, Expr::InvalidWidth);
       updates = UpdateList(array, 0);
-    }  
+    }
   }
   memset(concreteStore, 0, size);
 }
@@ -148,7 +148,7 @@ ObjectState::ObjectState(const MemoryObject *mo, const Array *array)
   memset(concreteStore, 0, size);
 }
 
-ObjectState::ObjectState(const ObjectState &os) 
+ObjectState::ObjectState(const ObjectState &os)
   : copyOnWriteOwner(0),
     refCount(0),
     object(os.object),
@@ -196,7 +196,7 @@ const UpdateList &ObjectState::getUpdates() const {
   // Constant arrays are created lazily.
   if (!updates.root) {
     // Collect the list of writes, with the oldest writes first.
-    
+
     // FIXME: We should be able to do this more efficiently, we just need to be
     // careful to get the interaction with the cache right. In particular we
     // should avoid creating UpdateNode instances we never use.
@@ -274,7 +274,7 @@ void ObjectState::initializeToZero() {
   memset(concreteStore, 0, size);
 }
 
-void ObjectState::initializeToRandom() {  
+void ObjectState::initializeToRandom() {
   makeConcrete();
   for (unsigned i=0; i<size; i++) {
     // randomly selected by 256 sided die
@@ -297,10 +297,10 @@ void ObjectState::fastRangeCheckOffset(ref<Expr> offset,
   *size_r = arraySize;
 }
 
-void ObjectState::flushRangeForRead(unsigned rangeBase, 
+void ObjectState::flushRangeForRead(unsigned rangeBase,
                                     unsigned rangeSize) const {
   if (!flushMask) flushMask = new BitArray(arraySize, true);
- 
+
   for (unsigned offset=rangeBase; offset<rangeBase+rangeSize; offset++) {
     if (!isByteFlushed(offset)) {
       if (isByteConcrete(offset)) {
@@ -332,10 +332,10 @@ void ObjectState::flushRangeForRead(unsigned rangeBase,
 
       flushMask->unset(offset);
     }
-  } 
+  }
 }
 
-void ObjectState::flushRangeForWrite(unsigned rangeBase, 
+void ObjectState::flushRangeForWrite(unsigned rangeBase,
                                      unsigned rangeSize) {
   if (!flushMask) flushMask = new BitArray(arraySize, true);
 
@@ -379,7 +379,7 @@ void ObjectState::flushRangeForWrite(unsigned rangeBase,
         setKnownSymbolic(offset, 0);
       }
     }
-  } 
+  }
 }
 
 bool ObjectState::isByteConcrete(unsigned offset) const {
@@ -418,7 +418,7 @@ void ObjectState::markByteFlushed(unsigned offset) {
   }
 }
 
-void ObjectState::setKnownSymbolic(unsigned offset, 
+void ObjectState::setKnownSymbolic(unsigned offset,
                                    Expr *value /* can be null */) {
   if (knownSymbolics) {
     knownSymbolics[offset] = value;
@@ -439,10 +439,10 @@ ref<Expr> ObjectState::read8(unsigned offset) const {
     return knownSymbolics[offset];
   } else {
     assert(isByteFlushed(offset) && "unflushed byte without cache value");
-    
-    return ReadExpr::create(getUpdates(), 
+
+    return ReadExpr::create(getUpdates(),
                             ConstantExpr::create(offset, Expr::Int32));
-  }    
+  }
 }
 
 ref<Expr> ObjectState::read8(ref<Expr> offset) const {
@@ -454,11 +454,11 @@ ref<Expr> ObjectState::read8(ref<Expr> offset) const {
   if (size>4096) {
     std::string allocInfo;
     object->getAllocInfo(allocInfo);
-    klee_warning_once(0, "flushing %d bytes on read, may be slow and/or crash: %s", 
+    klee_warning_once(0, "flushing %d bytes on read, may be slow and/or crash: %s",
                       size,
                       allocInfo.c_str());
   }
-  
+
   return ReadExpr::create(getUpdates(), ZExtExpr::create(offset, Expr::Int32));
 }
 
@@ -477,7 +477,7 @@ void ObjectState::write8(unsigned offset, ref<Expr> value) {
     write8(offset, (uint8_t) CE->getZExtValue(8));
   } else {
     setKnownSymbolic(offset, value.get());
-      
+
     markByteSymbolic(offset);
     markByteUnflushed(offset);
   }
@@ -492,11 +492,11 @@ void ObjectState::write8(ref<Expr> offset, ref<Expr> value) {
   if (size>4096) {
     std::string allocInfo;
     object->getAllocInfo(allocInfo);
-    klee_warning_once(0, "flushing %d bytes on read, may be slow and/or crash: %s", 
+    klee_warning_once(0, "flushing %d bytes on read, may be slow and/or crash: %s",
                       size,
                       allocInfo.c_str());
   }
-  
+
   updates.extend(ZExtExpr::create(offset, Expr::Int32), value);
 }
 
@@ -519,8 +519,8 @@ ref<Expr> ObjectState::read(ref<Expr> offset, Expr::Width width) const {
   ref<Expr> Res(0);
   for (unsigned i = 0; i != NumBytes; ++i) {
     unsigned idx = Context::get().isLittleEndian() ? i : (NumBytes - i - 1);
-    ref<Expr> Byte = read8(AddExpr::create(offset, 
-                                           ConstantExpr::create(idx, 
+    ref<Expr> Byte = read8(AddExpr::create(offset,
+                                           ConstantExpr::create(idx,
                                                                 Expr::Int32)));
     Res = i ? ConcatExpr::create(Byte, Res) : Byte;
   }
@@ -674,7 +674,7 @@ ref<Expr> ObjectState::readWhole(ref<Expr> offset, Expr::Width width) const {
   if (size>4096) {
     std::string allocInfo;
     object->getAllocInfo(allocInfo);
-    klee_warning_once(0, "flushing %d bytes on read, may be slow and/or crash: %s", 
+    klee_warning_once(0, "flushing %d bytes on read, may be slow and/or crash: %s",
                       size,
                       allocInfo.c_str());
   }
@@ -689,40 +689,40 @@ ref<Expr> ObjectState::readWhole(unsigned offset, Expr::Width width) const {
   // Otherwise, follow the slow general case.
   unsigned index = offset/(width/8);
 
-  const llvm::Type *ty = object->getAtomicType();  
+  const llvm::Type *ty = object->getAtomicType();
 
   if (isByteConcrete(index)) {
       switch(width){
       case 8:
-	return ConstantExpr::create(concreteStore[offset], Expr::Int8);
+	return ConstantExpr::create(concreteStore[index], Expr::Int8);
       case 16:
-	return ConstantExpr::create( ((uint16_t*) concreteStore)[offset], Expr::Int16);
+	return ConstantExpr::create( ((uint16_t*) concreteStore)[index], Expr::Int16);
       case 32:
 	if(ty->isFloatTy()){
-	  ref<ConstantExpr> CE = ConstantExpr::create(((uint32_t*) concreteStore)[offset], Expr::Int32);
+	  ref<ConstantExpr> CE = ConstantExpr::create(((uint32_t*) concreteStore)[index], Expr::Int32);
 	  CE->isFloat = true;
 	  return CE;
 	}else{
-	  return ConstantExpr::create(((uint32_t*) concreteStore)[offset], Expr::Int32);
+	  return ConstantExpr::create(((uint32_t*) concreteStore)[index], Expr::Int32);
 	}
 
       case 64:
 	if(ty->isDoubleTy()){
-	  ref<ConstantExpr> CE = ConstantExpr::create(((uint64_t*) concreteStore)[offset], Expr::Int64);
+	  ref<ConstantExpr> CE = ConstantExpr::create(((uint64_t*) concreteStore)[index], Expr::Int64);
 	  CE->isFloat = true;
 	  return CE;
 	}else{
-	  return ConstantExpr::create(((uint64_t*) concreteStore)[offset], Expr::Int64);
+	  return ConstantExpr::create(((uint64_t*) concreteStore)[index], Expr::Int64);
 	}
       }
   } else if (isByteKnownSymbolic(index)) {
     return knownSymbolics[index];
   } else {
     assert(isByteFlushed(index) && "unflushed byte without cache value");
-    
-    return ReadExpr::create(getUpdates(), 
+
+    return ReadExpr::create(getUpdates(),
                             ConstantExpr::create(index, Expr::Int32));
-  }    
+  }
 }
 
 void ObjectState::writeWhole(ref<Expr> offset, ref<Expr> value) {
@@ -752,7 +752,7 @@ void ObjectState::writeWhole(ref<Expr> offset, ref<Expr> value) {
   if (size>4096) {
     std::string allocInfo;
     object->getAllocInfo(allocInfo);
-    klee_warning_once(0, "flushing %d bytes on read, may be slow and/or crash: %s", 
+    klee_warning_once(0, "flushing %d bytes on read, may be slow and/or crash: %s",
                       size,
                       allocInfo.c_str());
   }
@@ -771,17 +771,16 @@ void ObjectState::writeWhole(unsigned offset, ref<Expr> value) {
       case  Expr::Int8:
 	concreteStore[index] = (uint8_t)CE->getZExtValue(8);
 	break;
-      case Expr::Int16: 
+      case Expr::Int16:
 	 ((uint16_t*)concreteStore)[index] = (uint16_t)CE->getZExtValue(16);
 	break;
-      case Expr::Int32: 
+      case Expr::Int32:
         ((uint32_t*)concreteStore)[index] = (uint32_t)CE->getZExtValue(32);
 	break;
-      case Expr::Int64: 
+      case Expr::Int64:
 	((uint64_t*)concreteStore)[index] =  (uint64_t)CE->getZExtValue(64);
 	break;
       }
-
       setKnownSymbolic(index, 0);
       markByteConcrete(index);
       markByteUnflushed(index);
@@ -796,8 +795,7 @@ void ObjectState::writeWhole(unsigned offset, ref<Expr> value) {
   //    return;
   //  }
 
-  setKnownSymbolic(index, value.get());    
+  setKnownSymbolic(index, value.get());
   markByteSymbolic(index);
   markByteUnflushed(index);
-} 
-
+}

@@ -561,7 +561,7 @@ void Executor::initializeGlobals(ExecutionState &state) {
                      << i->getName()
                      << " (use will result in out of bounds access)\n";
       }
-      MemoryObject *mo = memory->allocate(size, false, true, i, i->getType());
+      MemoryObject *mo = memory->allocate(size, false, true, i, ty);
       ObjectState *os = bindObjectInState(state, mo, false);
 
       globalObjects.insert(std::make_pair(i, mo));
@@ -586,8 +586,7 @@ void Executor::initializeGlobals(ExecutionState &state) {
     } else {
       LLVM_TYPE_Q Type *ty = i->getType()->getElementType();
       uint64_t size = kmodule->targetData->getTypeStoreSize(ty);
-      MemoryObject *mo = memory->allocate(size, false, true, &*i, ty);//i->getType());
-
+      MemoryObject *mo = memory->allocate(size, false, true, &*i, ty);
       if (!mo)
         llvm::report_fatal_error("out of memory");
       ObjectState *os = bindObjectInState(state, mo, false);
@@ -1952,28 +1951,11 @@ void Executor::executeInstruction(ExecutionState &state, KInstruction *ki) {
     AllocaInst *ai = cast<AllocaInst>(i);
     unsigned elementSize =
       kmodule->targetData->getTypeStoreSize(ai->getAllocatedType());
-
-    //-----------------------------------------
-    std::cout << "elementSize is " << elementSize << std::endl;
-    std::string result;
-    llvm::raw_string_ostream info(result);
-    const llvm::Type *ty = ai->getAllocatedType();
-    ty->print(info);
-    std::cout << info.str() << std::endl;
-    //-----------------------------------------
-
     ref<Expr> size = Expr::createPointer(elementSize);
     ref<Expr> count;
     if (ai->isArrayAllocation()) {
       count = eval(ki, 0, state).value;
       count = Expr::createZExtToPointerWidth(count);
-
-      //--------------------------------------------
-      ConstantExpr *CE = dyn_cast<ConstantExpr>(count);
-      int sizeV = CE->getZExtValue();
-      std::cout << "size is " << sizeV << std::endl;
-      //--------------------------------------------
-
       size = MulExpr::create(size, count);
     }
     bool isLocal = i->getOpcode()==Instruction::Alloca;
@@ -2069,14 +2051,6 @@ void Executor::executeInstruction(ExecutionState &state, KInstruction *ki) {
       //intend to add type information to mo;
       MemoryObject *mo = const_cast<MemoryObject*>(op.first);
       mo -> allocType = ty;
-      //---------------------
-      std::string ai;
-      mo->getAllocInfo(ai);
-      std::string result;
-      llvm::raw_string_ostream info(result);
-      ty->print(info);
-      std::cout << ai << " " << info.str() << " "<< std::endl;
-      //---------------------
     }
 
     bindLocal(ki, state, result);

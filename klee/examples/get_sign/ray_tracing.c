@@ -46,8 +46,7 @@ int main ()
         //cout << ray[0]<<";"<<ray[1]<<";"<<ray[2]<<"\n";
         float ray[3];
         klee_make_symbolic_with_sort(&ray, sizeof(ray), "ray", 8, 32);
-        raySphere(0, ray, gOrigin);
-        //raytrace(ray,gOrigin);
+        raytrace(ray,gOrigin);
         return 0;
 }
 
@@ -80,7 +79,8 @@ void raySphere(int idx, float *r, float *o) //Ray-Sphere Intersection: r=Ray Dir
   float D = B*B - 4*A*C;                     // Precompute Discriminant
   //cout<<D <<"\n";
   if (D > 0.0) {
-      sw=1;
+  //         cout<<"entered if (D > 0.0) \n";
+           sw=1;
   }
    //if(sw==0)
      // cout<< "did not enter (D> 0.0) \n";
@@ -93,7 +93,7 @@ float *normalize3(float *v){        //Normalize 3-Vector
 }
 
 float *sub3(float *a, float *b){   //Subtract 3-Vectors
-  float *result;
+ 	float *result;
   result=(float*) malloc (12);
   for(int i=0;i<3;i++)
     result[i]=a[i] - b[i];
