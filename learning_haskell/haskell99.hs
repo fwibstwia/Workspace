@@ -2,6 +2,7 @@
 -- |
 import Control.Monad
 import Control.Applicative
+import Data.List
 
 myButLast :: [a] -> a
 myButLast  = head . tail . reverse
@@ -49,10 +50,10 @@ decodeModified = concatMap deCode where
                  deCode (Single x1) = [x1]
                  deCode (Multiple i x1) = replicate i x1
 insertAt :: a -> [a] -> Int -> [a]
-insertAt x xs n = (take (n - 1) xs) ++ (x:(drop (n-1) xs)) 
+insertAt x xs n = (take (n - 1) xs) ++ (x:(drop (n-1) xs))
 
 isPrime :: Int -> Bool
-isPrime n = all id $ map (\x -> (not $ n `mod` x == 0)) [2..n-1] 
+isPrime n = all id $ map (\x -> (not $ n `mod` x == 0)) [2..n-1]
 
 myGCD :: Int -> Int -> Int
 myGCD m n
@@ -62,3 +63,22 @@ myGCD m n
 
 table :: (Bool -> Bool -> Bool) -> [(Bool, Bool, Bool)]
 table f = [(x, y, f x y) |x <- [True, False], y <- [True, False]]
+
+huffman :: [(Char, Integer)] -> [(Char, String)]
+huffman xs  =  sortBy sortfC $ (fst . head . huffmanHelp . transHuff) xs where
+        sortfC (c1, _) (c2, _) = compare c1 c2
+
+transHuff :: [(Char, Integer)] -> [([(Char, String)], Integer)]
+transHuff = map (\(x, n) -> ([(x, "")], n))
+
+huffmanHelp :: [([(Char, String)], Integer)] -> [([(Char, String)], Integer)]
+huffmanHelp [x] = [x]
+huffmanHelp xs =  huffmanHelp . mergeHuff . (sortBy sortfI) $ xs  where
+               sortfI (_, m) (_, n) = compare m n
+
+mergeHuff :: [([(Char, String)], Integer)] -> [([(Char, String)], Integer)]
+mergeHuff xs = (mergeHelp (xs!!0) (xs!!1)):drop 2 xs where
+          mergeHelp (x, n) (y,m) = ((appendHuff x '0') ++ (appendHuff y '1'), n + m)
+
+appendHuff :: [(Char, String)] -> Char -> [(Char, String)]
+appendHuff xs code = map (\(c, s) -> (c, code:s)) xs
