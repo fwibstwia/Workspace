@@ -769,23 +769,19 @@ void ObjectState::writeWhole(unsigned offset, ref<Expr> value) {
       default: assert(0 && "Invalid write size!"); break;
       case  Expr::Bool:
       case  Expr::Int8:
-	concreteStore[offset] = (uint8_t)CE->getZExtValue(8);
+	concreteStore[index] = (uint8_t)CE->getZExtValue(8);
 	break;
       case Expr::Int16: 
-	 ((uint16_t*)concreteStore)[offset] = (uint16_t)CE->getZExtValue(16);
+	 ((uint16_t*)concreteStore)[index] = (uint16_t)CE->getZExtValue(16);
 	break;
       case Expr::Int32: 
-        ((uint32_t*)concreteStore)[offset] = (uint32_t)CE->getZExtValue(32);
+        ((uint32_t*)concreteStore)[index] = (uint32_t)CE->getZExtValue(32);
 	break;
       case Expr::Int64: 
-	((uint64_t*)concreteStore)[offset] =  (uint64_t)CE->getZExtValue(64);
+	((uint64_t*)concreteStore)[index] =  (uint64_t)CE->getZExtValue(64);
 	break;
       }
-      //--------------
-      std::string ai;
-      object->getAllocInfo(ai);
-      std::cout << ai << " "  << " " << offset << std::endl;
-      //--------------
+
       setKnownSymbolic(index, 0);
       markByteConcrete(index);
       markByteUnflushed(index);

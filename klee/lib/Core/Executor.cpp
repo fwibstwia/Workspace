@@ -447,6 +447,7 @@ void Executor::initializeGlobalObject(ExecutionState &state, ObjectState *os,
       C = C->ZExt(StoreBits);
 
     os->writeWhole(offset, C); //***os->write(offset, C);
+    //os->write(offset, C);
     
   }
 }

@@ -16,6 +16,8 @@
 #include "Common.h"
 #include "klee/TimerStatIncrementer.h"
 
+#include <iostream>
+
 using namespace klee;
 
 ///

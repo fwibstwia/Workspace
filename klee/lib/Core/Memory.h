@@ -190,11 +190,8 @@ public:
   }
 
   unsigned getArraySize() const {
-    if(allocType && allocType->isArrayTy()){
-      const llvm::ArrayType *at = dyn_cast<llvm::ArrayType>(allocType);
-      return at->getNumElements();
-    }
-    return 1;
+    //************************temp solution
+    return size/4;
   }
 
 };
