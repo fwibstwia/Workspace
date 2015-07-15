@@ -18,6 +18,7 @@
 
 #include <vector>
 #include <string>
+#include <iostream>
 
 namespace llvm {
   class Value;
@@ -41,8 +42,8 @@ private:
 public:
   unsigned id;
   uint64_t address;
-  
-  
+
+
   /// total size in bytes
   unsigned size;
   mutable std::string name;
@@ -77,9 +78,9 @@ public:
 public:
   // XXX this is just a temp hack, should be removed
   explicit
-  MemoryObject(uint64_t _address) 
+  MemoryObject(uint64_t _address)
     : refCount(0),
-      id(counter++), 
+      id(counter++),
       address(_address),
       size(0),
       isFixed(true),
@@ -89,11 +90,11 @@ public:
       reorderable(false){
   }
 
-  MemoryObject(uint64_t _address, unsigned _size, 
+  MemoryObject(uint64_t _address, unsigned _size,
                bool _isLocal, bool _isGlobal, bool _isFixed,
                const llvm::Value *_allocSite, const llvm::Type *_allocType,
                MemoryManager *_parent, bool _reorderable)
-    : refCount(0), 
+    : refCount(0),
       id(counter++),
       address(_address),
       size(_size),
@@ -103,17 +104,17 @@ public:
       isFixed(_isFixed),
       fake_object(false),
       isUserSpecified(false),
-      parent(_parent), 
+      parent(_parent),
       allocSite(_allocSite),
       allocType(_allocType),
     reorderable(_reorderable){
   }
 
-  MemoryObject(uint64_t _address, unsigned _size, 
+  MemoryObject(uint64_t _address, unsigned _size,
                bool _isLocal, bool _isGlobal, bool _isFixed,
                const llvm::Value *_allocSite, const llvm::Type *_allocType,
                MemoryManager *_parent)
-    : refCount(0), 
+    : refCount(0),
       id(counter++),
       address(_address),
       size(_size),
@@ -123,7 +124,7 @@ public:
       isFixed(_isFixed),
       fake_object(false),
       isUserSpecified(false),
-      parent(_parent), 
+      parent(_parent),
       allocSite(_allocSite),
       allocType(_allocType),
     reorderable(false){
@@ -138,10 +139,10 @@ public:
     this->name = name;
   }
 
-  ref<ConstantExpr> getBaseExpr() const { 
+  ref<ConstantExpr> getBaseExpr() const {
     return ConstantExpr::create(address, Context::get().getPointerWidth());
   }
-  ref<ConstantExpr> getSizeExpr() const { 
+  ref<ConstantExpr> getSizeExpr() const {
     return ConstantExpr::create(size, Context::get().getPointerWidth());
   }
   ref<Expr> getOffsetExpr(ref<Expr> pointer) const {
@@ -156,7 +157,7 @@ public:
 
   ref<Expr> getBoundsCheckOffset(ref<Expr> offset) const {
     if (size==0) {
-      return EqExpr::create(offset, 
+      return EqExpr::create(offset,
                             ConstantExpr::alloc(0, Context::get().getPointerWidth()));
     } else {
       return UltExpr::create(offset, getSizeExpr());
@@ -164,8 +165,8 @@ public:
   }
   ref<Expr> getBoundsCheckOffset(ref<Expr> offset, unsigned bytes) const {
     if (bytes<=size) {
-      return UltExpr::create(offset, 
-                             ConstantExpr::alloc(size - bytes + 1, 
+      return UltExpr::create(offset,
+                             ConstantExpr::alloc(size - bytes + 1,
                                                  Context::get().getPointerWidth()));
     } else {
       return ConstantExpr::alloc(0, Expr::Bool);
@@ -174,14 +175,15 @@ public:
 
   bool isArrayType() const {
     if(allocType){
-      return allocType->isArrayTy();
+      return allocType->isArrayTy() || allocType -> isPointerTy();
     }
     return false;
   }
 
   const llvm::Type* getAtomicType() const{
     const llvm::Type *r = allocType;
-    while (r->isArrayTy()){
+
+    while (r->isArrayTy() || r->isPointerTy()){
       if (const llvm::SequentialType *seType = dyn_cast<llvm::SequentialType>(r)) {
 	r = seType -> getElementType();
       }
@@ -245,9 +247,9 @@ public:
   // make contents all concrete and random
   void initializeToRandom();
 
-  ref<Expr> read(ref<Expr> offset, Expr::Width width) const; 
+  ref<Expr> read(ref<Expr> offset, Expr::Width width) const;
   ref<Expr> read(unsigned offset, Expr::Width width) const;
-  ref<Expr> readWhole(ref<Expr> offset, Expr::Width width) const; 
+  ref<Expr> readWhole(ref<Expr> offset, Expr::Width width) const;
   ref<Expr> readWhole(unsigned offset, Expr::Width width) const;
   ref<Expr> read8(unsigned offset) const;
 
@@ -272,7 +274,7 @@ private:
   void write8(unsigned offset, ref<Expr> value);
   void write8(ref<Expr> offset, ref<Expr> value);
 
-  void fastRangeCheckOffset(ref<Expr> offset, unsigned *base_r, 
+  void fastRangeCheckOffset(ref<Expr> offset, unsigned *base_r,
                             unsigned *size_r) const;
   void flushRangeForRead(unsigned rangeBase, unsigned rangeSize) const;
   void flushRangeForWrite(unsigned rangeBase, unsigned rangeSize);
@@ -289,7 +291,7 @@ private:
 
   void print();
 };
-  
+
 } // End klee namespace
 
 #endif
