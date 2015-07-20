@@ -1,7 +1,6 @@
 -- |
-import Text.ParserCombinators.Parsec
-
 module Main where
+import Text.Parsec
 c = putStrLn "C!"
 
 combine before after =

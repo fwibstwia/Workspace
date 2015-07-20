@@ -82,3 +82,20 @@ mergeHuff xs = (mergeHelp (xs!!0) (xs!!1)):drop 2 xs where
 
 appendHuff :: [(Char, String)] -> Char -> [(Char, String)]
 appendHuff xs code = map (\(c, s) -> (c, code:s)) xs
+
+data Tree a = Empty | Branch a (Tree a) (Tree a)
+              deriving (Show, Eq)
+
+cbalTree :: Integer -> [Tree Char]
+cbalTree 0 = [Empty]
+cbalTree 1 = [Branch 'x' Empty Empty]
+cbalTree n = concat [[Branch 'x' l r, Branch 'x' r l] | l <- cbalTree (floor $ fromIntegral (n - 1) / 2), r <- cbalTree (ceiling $ fromIntegral (n - 1) / 2   )]
+
+symmetric2 :: Tree Char -> Tree Char -> Bool
+symmetric2 Empty Empty = True
+symmetric2 (Branch _ l1 r1) (Branch _ l2 r2) = (symmetric2 l1 l2) && (symmetric2 r1 r2)
+symmetric2 _ _ = False
+
+symmetric :: Tree Char -> Bool
+symmetric Empty = True
+symmetric (Branch _ l r) = symmetric2 l r
