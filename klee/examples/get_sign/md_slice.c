@@ -14,68 +14,68 @@
 void InitParams();
 void InitConf();
 void ComputeAccel();
-void EvalProps();
-void ApplyBoundaryCond();
-void HalfKick(int stepcount,int sel);
-void SingleStep(int stepcount);
+/* Input parameters (read from an input file in this order) *******************/
 
 int InitUcell[3];   /* Number of unit cells */
 float Density;     /* Number density of atoms (in reduced unit) */
-float InitTemp;    /* Starting temperature (in reduced unit) */
 float DeltaT;      /* Size of a time step (in reduced unit) */
-int StepLimit;      /* Number of time steps to be simulated */
+
+
+/* Constants ******************************************************************/
 
 float Region[3];  /* MD box lengths */
 float RegionH[3]; /* Half the box lengths */
 float DeltaTH;    /* Half the time step */
-float Duc;    /* Potential cut-off parameters */
+
+
+/* Variables ******************************************************************/
 
 int nAtom;            /* Number of atoms */
 float r[NMAX][3];    /* r[i][0|1|2] is the x|y|z coordinate of atom i */
 float rv[NMAX][3];   /* Atomic velocities */
 float ra[NMAX][3];   /* Acceleration on atoms */
-int stepCount;        /* Current time step */
 
-float e[3];
+/******************************************************************************/
+
+float SignR(float v,float x) {
+  if (x > 0) return v;
+  else return -v;
+}
 
 
-float SignR(float v,float x) {if (x > 0) return v; else return -v;}
 int main() {
-  klee_make_symbolic_with_sort(&e, sizeof(e), "element", 8, 32);
+  klee_make_symbolic_with_sort(&Region, sizeof(Region), "Region", 8, 32);
   InitParams();
   InitConf();
   ComputeAccel();
-
-  /*
-    for (stepCount=1; stepCount<=StepLimit; stepCount++) {
-    SingleStep(stepCount);
-    }*/
   return 0;
-
 }
+
+/*----------------------------------------------------------------------------*/
 void InitParams() {
+  /*------------------------------------------------------------------------------
+    Initializes parameters.
+    ------------------------------------------------------------------------------*/
   int k;
-  float rr,ri2,ri6,r1;
+  /* Reads control parameters */
+  /*scanf("%d%d%d",&InitUcell[0],&InitUcell[1],&InitUcell[2]);
+    scanf("%le",&Density);
+    scanf("%le",&InitTemp);
+    scanf("%le",&DeltaT);
+    scanf("%d",&StepLimit);
+    scanf("%d",&StepAvg);*/
 
   InitUcell[0]=10;
   InitUcell[1]=10;
   InitUcell[2]=10;
 
-  Density=0.5;//((float)rand()/(float)RAND_MAX);
+  //Density=((float)rand()/(float)RAND_MAX);
 
-  InitTemp=1.0;
-  DeltaT=0.005;
-  StepLimit=10;
   /* Computes basic parameters */
-  DeltaTH = 0.5*DeltaT;
   for (k=0; k<3; k++) {
-    Region[k] = InitUcell[k]; ///pow(Density/4.0,1.0/3.0);
+    //Region[k] = InitUcell[k]/pow(Density/4.0,1.0/3.0);
     RegionH[k] = 0.5*Region[k];
   }
-
-  /* Constants for potential truncation */
-  rr = RCUT*RCUT; ri2 = 1.0/rr; ri6 = ri2*ri2*ri2; r1=rr;//sqrt(rr);
-  //Duc = -48.0*ri6*(ri6 - 0.5)/r1;
 }
 
 /*----------------------------------------------------------------------------*/
@@ -84,13 +84,11 @@ void InitConf() {
     r are initialized to face-centered cubic (fcc) lattice positions.
     rv are initialized with a random velocity corresponding to Temperature.
     ------------------------------------------------------------------------------*/
-  float c[3],gap[3],vSum[3],vMag;
-  int j,n,k,nX,nY,nZ;
-  float seed;
-  /* FCC atoms in the original unit cell */
+  float c[3],gap[3];
+  int j,k,nX,nY,nZ;
+
   float origAtom[4][3] = {{0.0, 0.0, 0.0}, {0.0, 0.5, 0.5},
                           {0.5, 0.0, 0.5}, {0.5, 0.5, 0.0}};
-
 
   /* Sets up a face-centered cubic (fcc) lattice */
   for (k=0; k<3; k++) gap[k] = Region[k]/InitUcell[k];
@@ -106,47 +104,34 @@ void InitConf() {
             r[nAtom][k] = c[k] + gap[k]*origAtom[j][k];
           }
           ++nAtom;
-
         }
       }
     }
   }
-
-
-  /* Generates random velocities */
-  seed = 13597.0;
-  vMag = 2;//sqrt(3*InitTemp);
-  for(k=0; k<3; k++) vSum[k] = 0.0;
-  for(n=0; n<nAtom; n++) {
-    //RandVec3(e,&seed);
-    for (k=0; k<3; k++) {
-      rv[n][k] = vMag*e[k];
-      vSum[k] = vSum[k] + rv[n][k];
-    }
-  }
-  /* Makes the total momentum zero */
-  for (k=0; k<3; k++) vSum[k] = vSum[k]/nAtom;
-  for (n=0; n<nAtom; n++) for(k=0; k<3; k++) {
-      rv[n][k] = rv[n][k] - vSum[k];
-    }
 }
 
-
-
 void ComputeAccel(){
-  float dr[3],f,fcVal,rrCut,rr,ri2,ri6,r1;
-  int j1,j2,n,k;
-
+  float dr[3],rrCut,rr;
+  int j1,j2,k;
+  float signal;
   rrCut = RCUT*RCUT;
-  for (n=0; n<nAtom; n++) for (k=0; k<3; k++) ra[n][k] = 0.0;
 
-  dr[0] = r[0][0] - r[0][0];
+  /* Doubly-nested loop over atomic pairs */
+  for (j1=0; j1<nAtom-1; j1++) {
+    for (j2=j1+1; j2<nAtom; j2++) {
+      /* Computes the squared atomic distance */
+      for (rr=0.0, k=0; k<3; k++) {
+        dr[k] = r[j1][k] - r[j2][k];
         /* Chooses the nearest image */
 
-  dr[1] = dr[1] - SignR(RegionH[0],dr[1]-RegionH[0])
-          - SignR(RegionH[0],dr[1]+RegionH[0]);
-  rr = rr + dr[1]*dr[1];
-  if(rr < rrCut){
-      rr = rrCut;
+        dr[k] = dr[k] - SignR(RegionH[k],dr[k]-RegionH[k])
+          - SignR(RegionH[k],dr[k]+RegionH[k]);
+        rr = rr + dr[k]*dr[k];
+      }
+
+      if(rr < rrCut){
+          signal = 1.0;
+      }
+    }
   }
 }

@@ -1,5 +1,6 @@
 #include <ppl.hh>
 #include <iostream>
+#include <cmath>
 #include "C_Expr_defs.hh"
 
 using namespace std;
@@ -69,6 +70,95 @@ if(A + B >= 3 && A + B <= 4){
 
 Concrete_Expression_Type FP_Type =
   Concrete_Expression_Type::floating_point(ANALYZED_FP_FORMAT);
+
+
+void test_ray_trace(){
+  Variable A(0);
+  Variable B(1);
+  Variable C(2);
+  Variable D(3);
+  Variable E(4);
+
+  TOctagonal_Shape oc(4);
+
+  Test_Oracle oracle(FP_Interval_Abstract_Store(4));
+  oc.refine_fp_interval_abstract_store(oracle.int_store);
+
+  FP_Interval A_itv = oracle.int_store.get_interval(A);
+  FP_Interval B_itv = oracle.int_store.get_interval(B);
+  FP_Interval C_itv = oracle.int_store.get_interval(C);
+  Approximable_Reference<C_Expr> varA(FP_Type, A_itv, 0);
+  Approximable_Reference<C_Expr> varB(FP_Type, B_itv, 1);
+  Approximable_Reference<C_Expr> varC(FP_Type, C_itv, 2);
+
+  //linear form B*B
+  Binary_Operator<C_Expr> mulBB(FP_Type, Binary_Operator<C_Expr>::MUL,
+                              &varB, &varB);
+  FP_Linear_Form rBB;
+  linearize(mulBB, oracle, FP_Linear_Form_Abstract_Store(), rBB);
+
+
+  //linear form A*C
+  Binary_Operator<C_Expr> mulAC(FP_Type, Binary_Operator<C_Expr>::MUL,
+                              &varA, &varC);
+  FP_Linear_Form rAC;
+  linearize(mulAC, oracle, FP_Linear_Form_Abstract_Store(), rAC);
+
+  FP_Interval ctmp;
+  ctmp.lower() = FP_Interval::boundary_type(4);
+  ctmp.upper() = FP_Interval::boundary_type(4);
+  rAC = ctmp*rAC;
+
+  FP_Linear_Form rD(rBB - rAC);
+  oc.affine_form_image(D, rD);
+  oc.refine_fp_interval_abstract_store(oracle.int_store);
+
+  //sqrt(D)
+  FP_Interval D_itv = oracle.int_store.get_interval(D);
+  D_itv.lower() = sqrt(D_itv.lower());
+  D_itv.upper() = sqrt(D_itv.upper());
+  FP_Linear_Form E_c(D_itv);
+  FP_Linear_Form E_p(-B);
+  E_p = E_p + E_c;
+
+  FP_Linear_Form E_n(-B);
+  E_n = E_n - E_c;
+
+  Pointset_Powerset<TOctagonal_Shape> ps_o(4, EMPTY);
+  TOctagonal_Shape oc1(oc);
+  TOctagonal_Shape oc2(oc);
+
+  oc1.affine_form_image(E, E_p);
+  oc1.refine_fp_interval_abstract_store(oracle.int_store);
+  //linear form E/A
+  A_itv = oracle.int_store.get_interval(A);
+  FP_Interval E_itv = oracle.int_store.get_interval(E);
+
+  Approximable_Reference<C_Expr> varA(FP_Type, A_itv, 0);
+  Approximable_Reference<C_Expr> varB(FP_Type, B_itv, 1);
+  Binary_Operator<C_Expr> mulAC(FP_Type, Binary_Operator<C_Expr>::MUL,
+                              &varA, &varC);
+  FP_Linear_Form rAC;
+  linearize(mulAC, oracle, FP_Linear_Form_Abstract_Store(), rAC);
+
+  oc2.affine_form_image(E, E_n);
+  //rlDist_n = rlDist_n - D_itv;
+
+  //FP_Linear_Form rlD_A(A);
+  //rlD_A = rlD_A*2;
+
+  //tmp.lower() = FP_Interval::boundary_type(2);
+  //tmp.upper() = FP_Interval::boundary_type(2);
+  //FP_Linear_Form lc(tmp);
+  //oc.refine_with_linear_form_inequality(result, lc);
+
+
+  //FP_Linear_Form l(B*B - 4*A*C);
+
+
+}
+
+
 
 void test_power_interval(){
 
@@ -156,7 +246,7 @@ void test_power_oct(){
   float f = 0;
   if(z > 0)
     f = a + b + c;
-  else 
+  else
     f = 0;
   if(f > 1)
 */
@@ -185,8 +275,8 @@ void test_fd_power_oct_stable(){
   oc.refine_fp_interval_abstract_store(oracle.int_store);
 
   FP_Interval tmp1 = oracle.int_store.get_interval(A);
-  FP_Interval tmp2 = oracle.int_store.get_interval(B); 
-  FP_Interval tmp3 = oracle.int_store.get_interval(C); 
+  FP_Interval tmp2 = oracle.int_store.get_interval(B);
+  FP_Interval tmp3 = oracle.int_store.get_interval(C);
 
   double tmp1_lower = tmp1.lower();
   double tmp1_upper = tmp1.upper();
@@ -196,7 +286,7 @@ void test_fd_power_oct_stable(){
 
   double tmp3_lower = tmp3.lower();
   double tmp3_upper = tmp3.upper();
-  
+
   cout << "*** A lower *** " << tmp1_lower << endl;
   cout << "*** A lower *** " << tmp1.upper() << endl;
   cout << "*** B lower *** " << tmp2.lower() << endl;
@@ -206,7 +296,7 @@ void test_fd_power_oct_stable(){
 
   FP_Linear_Form lf(F);
   FP_Interval vtmp;
-  
+
   Pointset_Powerset<TOctagonal_Shape> ps_o(4, EMPTY);
   TOctagonal_Shape oc1(oc);
   vtmp.lower() = 1.5;
@@ -217,7 +307,7 @@ void test_fd_power_oct_stable(){
   vtmp.upper() = 5;
   FP_Linear_Form lc_u(vtmp);
   oc1.refine_with_linear_form_inequality(lf, lc_u);
-  
+
   TOctagonal_Shape oc2(oc);
   oc2.add_constraint(F == 0);
 
@@ -334,6 +424,6 @@ void test_fp_power_oct(){
 }
 
 int main(){
-  test_fd_power_oct_stable();
+  test_ray_trace();
   return 0;
 }
