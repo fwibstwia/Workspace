@@ -1,14 +1,10 @@
-#include <stdlib.h>
-#include <klee/klee.h>
-
-/*
 #include <stdio.h>
 #include <math.h>
 #include <algorithm> 
-#include<iostream>
-
+# include<iostream>
+#include <stdlib.h>
 #include <time.h>
-using namespace std;*/
+using namespace std;
 
 float *sub3(float *a, float *b);
 float *normalize3(float *v);
@@ -31,36 +27,23 @@ float gPoint[3] = {0.0, 0.0, 0.0};
 
 int main ()
 {
-        //float rand_ray [3];
-	//int s_minus;
-	//srand ((unsigned int)time(NULL));
-	//for(int i=0; i<3; i++){	
-	// 	s_minus= rand() % 2;
-        //      cout<< s_minus<<"\n";
-	//	if(s_minus==0)
-	//	 rand_ray[i]=((float)rand()/(float)RAND_MAX);
-	//	if(s_minus==1)
-	//	 rand_ray[i]=-((float)rand()/(float)RAND_MAX);
-	//}
-	//float *ray=normalize3(rand_ray);
-        //cout << ray[0]<<";"<<ray[1]<<";"<<ray[2]<<"\n";
-        float ray[3];
-        klee_make_symbolic_with_sort(&ray, sizeof(ray), "ray", 8, 32);
+        float rand_ray [3];
+	int s_minus;
+	srand ((unsigned int)time(NULL));
+	for(int i=0; i<3; i++){	
+	 	s_minus= rand() % 2;
+              cout<< s_minus<<"\n";
+		if(s_minus==0)
+		 rand_ray[i]=((float)rand()/(float)RAND_MAX);
+		if(s_minus==1)
+		 rand_ray[i]=-((float)rand()/(float)RAND_MAX);
+	}
+	float *ray=normalize3(rand_ray);
+        cout << ray[0]<<";"<<ray[1]<<";"<<ray[2]<<"\n";
         raytrace(ray,gOrigin);
         return 0;
 }
 
-void raytrace(float *ray, float *origin)
-{
-
-    for (int t = 0; t < nrTypes; t++)
-    for (int i = 0; i < nrObjects[t]; i++)
-      rayObject(t,i,ray,origin);
-}
-
-void rayObject(int type, int idx, float *r, float *o){
-  if (type == 0) raySphere(idx,r,o);
-}
 
 void raySphere(int idx, float *r, float *o) //Ray-Sphere Intersection: r=Ray Direction, o=Ray Origin
 { 
@@ -75,16 +58,30 @@ void raySphere(int idx, float *r, float *o) //Ray-Sphere Intersection: r=Ray Dir
   //Intersection of Sphere and Line     =       Quadratic Function of Distance
   float A = dot3(r,r);                       // Remember This From High School? :
   float B = -2.0 * dot3(s,r);                //    A x^2 +     B x +               C  = 0
-  float C = dot3(s,s) - radius*radius;          // (r'r)x^2 - (2s'r)x + (s's - radius^2) = 0
+  float C = dot3(s,s) - pow(radius,2);          // (r'r)x^2 - (2s'r)x + (s's - radius^2) = 0
   float D = B*B - 4*A*C;                     // Precompute Discriminant
-  //cout<<D <<"\n";
+  cout<<D <<"\n";
   if (D > 0.0) {
-  //         cout<<"entered if (D > 0.0) \n";
+           cout<<"entered if (D > 0.0) \n";
            sw=1;
-  }
-   //if(sw==0)
-     // cout<< "did not enter (D> 0.0) \n";
+	}
+   if(sw==0)
+      cout<< "did not enter (D> 0.0) \n";
 }
+
+
+void rayObject(int type, int idx, float *r, float *o){
+  if (type == 0) raySphere(idx,r,o);
+}
+
+void raytrace(float *ray, float *origin)
+{
+
+    for (int t = 0; t < nrTypes; t++)
+    for (int i = 0; i < nrObjects[t]; i++)
+      rayObject(t,i,ray,origin);
+}
+
 
 float *normalize3(float *v){        //Normalize 3-Vector
   float L = sqrt(dot3(v,v));
@@ -94,7 +91,7 @@ float *normalize3(float *v){        //Normalize 3-Vector
 
 float *sub3(float *a, float *b){   //Subtract 3-Vectors
  	float *result;
-  result=(float*) malloc (12);
+	result=(float*) malloc (3);
   for(int i=0;i<3;i++)
     result[i]=a[i] - b[i];
   return result;
@@ -111,7 +108,6 @@ float *mul3c(float* a, float c){    //Multiply 3-Vector with Scalar
 
 float dot3(float *a,float  *b){     //Dot Product 3-Vectors
   float result= a[0] * b[0] + a[1] * b[1] + a[2] * b[2];
-  klee_tag_reorderable(&result);
   return result;
 }
 
