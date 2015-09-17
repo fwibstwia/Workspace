@@ -5,7 +5,8 @@ Release+Asserts/
 Debug/
 Debug+Asserts/
 Output/
-
+.hg/
+build/
 cscope.*
 *~
 
