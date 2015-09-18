@@ -1,3 +1,7 @@
+(* TODO: handle Assignment *)
+(* TODO: handle terminal condition *)
+(* TODO: handle powerset combine *)
+(* TODO: handle the if condition *)
 open Cil
 open Pretty
 open Tututil
@@ -18,24 +22,88 @@ module O = Ciltutoptions
 let debug = ref false
 
 
-type oekind = Top | Odd | Even | Bottom
+(* type oekind = Top | Odd | Even | Bottom *)
 
-type ekind = linear_expression
+type lekind = linear_expression
 
-type varmap = int * (varinfo * oekind)
+type varmap = int * (varinfo * lekind)
 
 let id_of_vm   (vm : varmap) : int     = fst vm
 let vi_of_vm   (vm : varmap) : varinfo = vm |> snd |> fst
-let kind_of_vm (vm : varmap) : oekind  = vm |> snd |> snd
+let kind_of_vm (vm : varmap) : lekind  = vm |> snd |> snd
 
+let print_string_if_very_noisy = function str ->
+  let less_noisy = "LESS_NOISY"
+  in let very_noisy = try Sys.getenv "PPL_VERY_NOISY_TESTS"
+    with Not_found -> less_noisy
+  in
+    if (very_noisy != less_noisy)
+    then print_string str;
+;;
 
-let string_of_oekind (k : oekind) : string =
-  match k with
-  | Top    -> "Top"
-  | Odd    -> "Odd"
-  | Even   -> "Even"
-  | Bottom -> "Bottom"
+let print_string_if_noisy = function str ->
+  let quiet = "QUIET"
+  in let noisy = try Sys.getenv "PPL_NOISY_TESTS"
+    with Not_found -> quiet
+  in
+    if (noisy != quiet)
+    then print_string str
+    else print_string_if_very_noisy str;
+;;
 
+let print_int_if_very_noisy = function num ->
+  let less_noisy = "LESS_NOISY"
+  in let very_noisy = try Sys.getenv "PPL_VERY_NOISY_TESTS"
+    with Not_found -> less_noisy
+  in
+    if (very_noisy != less_noisy)
+    then print_int num;
+;;
+
+let print_int_if_noisy = function num ->
+  let quiet = "QUIET"
+  in let noisy = try Sys.getenv "PPL_NOISY_TESTS"
+    with Not_found -> quiet
+  in
+    if (noisy != quiet)
+    then print_int num
+    else print_int_if_very_noisy num;
+;;
+
+let rec print_linear_expression = function
+    Variable v ->
+      print_string_if_noisy "V(";
+      print_int_if_noisy v;
+      print_string_if_noisy ")";
+  | Coefficient c ->
+      print_int_if_noisy(Z.to_int c)
+  | Unary_Minus e ->
+      print_string_if_noisy "-(";
+      print_linear_expression e;
+      print_string_if_noisy ")";
+  | Unary_Plus e ->
+      print_linear_expression e
+  | Plus (e1, e2) ->
+      print_string_if_noisy "(";
+      print_linear_expression e1;
+      print_string_if_noisy " + ";
+      print_linear_expression e2;
+      print_string_if_noisy ")";
+  | Minus (e1, e2) ->
+      print_string_if_noisy "(";
+      print_linear_expression e1;
+      print_string_if_noisy " - ";
+      print_linear_expression e2;
+      print_string_if_noisy ")";
+  | Times (c, e) ->
+      print_int_if_noisy(Z.to_int c);
+      print_string_if_noisy "*(";
+      print_linear_expression e;
+      print_string_if_noisy ")";
+;;
+
+let string_of_oekind (k : lekind) : string =
+    print_linear_expression k
 
 let string_of_varmap (vm : varmap) : string =
   let vi = vi_of_vm vm in
@@ -76,6 +144,14 @@ let oekind_includes (is_this : oekind) (in_this : oekind) : bool =
   | _, _ -> false
 
 
+
+
+let power_poly_equal
+
+let power_poly_combine (pp1: Pointset_Powerset_C_Polyhedron) (pp2: Pointset_Powerset_C_Polyhedron) :
+      Pointset_Powerset_C_Polyhedron option =
+
+
 let oekind_combine (k1 : oekind) (k2 : oekind) : oekind =
   match k1, k2 with
   | Top, _ | _, Top | Odd, Even | Even, Odd -> Top
@@ -83,146 +159,112 @@ let oekind_combine (k1 : oekind) (k2 : oekind) : oekind =
   | Even, _ | _, Even -> Even
   | Bottom, Bottom -> Bottom
 
-
 let varmap_combine (vm1 : varmap) (vm2 : varmap) : varmap option =
   match vm1, vm2 with
   | (id1, _), (id2, _) when id1 <> id2 -> None
   | (id1, (vi1, k1)), (_,(_,k2)) -> Some(id1,(vi1,oekind_combine k1 k2))
 
 
-let varmap_list_combine_one (vml : varmap list) (vm : varmap) : varmap list =
-  let id = id_of_vm vm in
-  if L.mem_assoc id vml then
-    let vm' = (id, L.assoc id vml) in
-    let vm'' = forceOption (varmap_combine vm vm') in
-    vm'' :: (L.remove_assoc (id_of_vm vm) vml)
-  else vm :: vml
+(* let varmap_list_replace (vml : varmap list) (vm : varmap) : varmap list = *)
+  (* vm :: (L.remove_assoc (id_of_vm vm) vml) *)
 
 
-let varmap_list_combine (vml1 : varmap list) (vml2 : varmap list) : varmap list =
-  L.fold_left varmap_list_combine_one vml1 vml2
-
-
-let varmap_list_replace (vml : varmap list) (vm : varmap) : varmap list =
-  vm :: (L.remove_assoc (id_of_vm vm) vml)
-
-
-let kind_of_int64 (i : Int64.t) : oekind =
-  let firstbit = Int64.logand i Int64.one in
-  if firstbit = Int64.one then Odd else Even
-
-
-let rec oekind_of_exp (vml : varmap list) (e : exp) : oekind =
+let rec construct_linear_of_exp (e : exp) : linear_expression list =
   match e with
-  | Const(CInt64(i, _, _)) -> kind_of_int64 i
-  | Lval(Var vi, NoOffset) -> vml |> L.assoc vi.vid |> snd
-  | SizeOf _ | SizeOfE _ | SizeOfStr _ | AlignOf _ | AlignOfE _ ->
-    e |> constFold true |> oekind_of_exp vml
-  | UnOp(uo, e, t) -> oekind_of_unop vml uo e
-  | BinOp(bo, e1, e2, t) -> oekind_of_binop vml bo e1 e2
-  | CastE(t, e) -> oekind_of_exp vml e
-  | _ -> Top
+  | Const(CInt64(i, _, _)) -> [Coefficient i]
+  (* | Lval(Var vi, NoOffset) -> vml |> L.assoc vi.vid |> snd *)
+  (* | SizeOf _ | SizeOfE _ | SizeOfStr _ | AlignOf _ | AlignOfE _ -> *)
+    (* e |> constFold true |> oekind_of_exp vml *)
+  (* | UnOp(uo, e, t) -> oekind_of_unop vml uo e *)
+  | BinOp(bo, e1, e2, t) -> construct_linear_of_binop bo e1 e2
+  (* | CastE(t, e) -> oekind_of_exp vml e *)
+  | _ -> [Coefficient 0]        (* TODO: handle other cases *)
 
 
-and oekind_of_unop (vml : varmap list) (u : unop) (e : exp) : oekind =
-  match u with
-  | Neg  -> oekind_of_exp vml e
-  | BNot -> e |> oekind_of_exp vml |> oekind_neg
-  | LNot -> Top
+(* Construct unary op *)
+(* and construct_linear_of_unop (vml : linear_expression list) (u : unop) (e : exp) : linear_expression list = *)
 
+let construct_linear_combine (op) (l1 : linear_expression list) (l2 : linear_expression list) : linear_expression list =
+  L.fold_left (construct_linear_combine_one op l1) l2
 
-and oekind_of_binop (vml : varmap list) (b : binop) (e1 : exp) (e2 : exp) : oekind =
-  let k1, k2 = oekind_of_exp vml e1, oekind_of_exp vml e2 in
+let construct_linear_combine_one (op) (l : linear_expression list) (le : linear_expression) : linear_expression list =
+  L.map (op le) l
+
+and construct_linear_of_binop (b : binop) (e1 : exp) (e2 : exp) : linear_expression list =
+  let l1, l2 = construct_linear_of_exp e1, construct_linear_of_exp e2 in
   match b with
   | PlusA -> begin
-    match k1, k2 with
-    | Even, Even -> Even
-    | Odd, Odd -> Even
-    | Even, Odd -> Odd
-    | Odd, Even -> Odd
-    | _, _ -> Top
-  end
+    construct_linear_combine Plus l1 l2
+    end
 
   | MinusA -> begin
-    match k1, k2 with
-    | Even, Even -> Even
-    | Odd, Odd -> Even
-    | Even, Odd -> Odd
-    | Odd, Even -> Odd
-    | _, _ -> Top
-  end
-  | Mult -> begin
-    match k1, k2 with
-    | Even, _ | _ , Even -> Even
-    | Odd, Odd -> Odd
-    | _, _ -> Top
-  end
+    construct_linear_combine Minus l1 l2
+    end
+  (* | Mult -> begin *)
+    (* end *)
 
+  (* TODO: Handle more binary operations *)
+   | _ -> l1
 
-  | _ -> Top
-
-
-
-let varmap_list_kill (vml : varmap list) : varmap list =
-  L.map (fun (vid, (vi, k)) ->
-    if vi.vaddrof then (vid, (vi, Top)) else (vid, (vi, k)))
-  vml
-
-
-let varmap_list_handle_inst (i : instr) (vml : varmap list) : varmap list =
+let power_poly_handle_inst (i : instr) (pp : Pointset_Powerset_C_Polyhedron) : Pointset_Powerset_C_Polyhedron =
   match i with
   | Set((Var vi, NoOffset), e, loc) when not(vi.vglob) && (isIntegralType vi.vtype) ->
-    let k = oekind_of_exp vml e in
-    varmap_list_replace vml (vi.vid,(vi,k))
+     let le_list = construct_linear_of_exp e in
+     L.map (fun e ->
+            ppl_Pointset_Powerset_C_Polyhedron_add_constraint(Equal (Variable vi.vid, e))) le_list
+     (* linearize expression *)
+
   | Set((Mem _, _), _, _)
-  | Call _ -> varmap_list_kill vml
-  | _ -> vml
+  (* | Call _ -> varmap_list_kill vml *)
+  | _ -> pp
 
 
-module OddEvenDF = struct
+module PowerPolyDF = struct
 
-  let name = "OddEven"
+  let name = "Polyhedra"
   let debug = debug
-  type t = varmap list
-  let copy vml = vml
+  type t = Pointset_Powerset_C_Polyhedron
+  let copy powerPoly = powerPoly
   let stmtStartData = IH.create 64
-  let pretty = varmap_list_pretty
-  let computeFirstPredecessor stm vml = vml
+  let pretty = power_poly_pretty
+  let computeFirstPredecessor stm powerPoly = powerPoly
 
 
   let combinePredecessors (s : stmt) ~(old : t) (ll : t) =
-    if varmap_list_equal old ll then None else
-    Some(varmap_list_combine old ll)
+    if power_poly_equal old ll then None else
+    Some(power_poly_combine old ll)
 
   let doInstr (i : instr) (ll : t) =
-    let action = varmap_list_handle_inst i in
+    let action = power_poly_handle_inst i in
     DF.Post action
 
 
   let doStmt stm ll = DF.SDefault
-  let doGuard c ll = DF.GDefault
+
+  let doGuard c ll =
   let filterStmt stm = true
 
 end
 
 
-module OddEven = DF.ForwardsDataFlow(OddEvenDF)
+module PowerPolyFDF = DF.ForwardsDataFlow(PowerPolyDF)
 
 
-let collectVars (fd : fundec) : varmap list =
+let collectVars (fd : fundec) : int =
   (fd.sformals @ fd.slocals)
   |> L.filter (fun vi -> isIntegralType vi.vtype)
-  |> L.map (fun vi -> (vi.vid, (vi, Bottom)))
+  |> L.length
 
 
-let computeOddEven (fd : fundec) : unit =
+let computePowerPoly (fd : fundec) : unit =
   Cfg.clearCFGinfo fd;
   ignore(Cfg.cfgFun fd);
   let first_stmt = L.hd fd.sbody.bstmts in
-  let vml = collectVars fd in
-  IH.clear OddEvenDF.stmtStartData;
-  IH.add OddEvenDF.stmtStartData first_stmt.sid vml;
-  OddEven.compute [first_stmt]
+  let var_length = collectVars fd in
+  let powerPoly = ppl_new_Pointset_Powerset_C_Polyhedron_from_space_dimension var_length in
+  IH.clear DF.stmtStartData;
+  IH.add PolyhedraDF.stmtStartData first_stmt.sid powerPoly;
+  PowerPolyFDF.compute [first_stmt]
 
 
 let getOddEvens (sid : int) : varmap list option =
