@@ -1,11 +1,12 @@
 (* TODO: handle Assignment *)
-(* TODO: handle terminal condition *)
 (* TODO: handle powerset combine *)
 (* TODO: handle the if condition *)
 open Cil
 open Pretty
+open Printf
 open Tututil
 open Ppl_ocaml
+open Gmp
 
 module L  = List
 module E  = Errormsg
@@ -18,187 +19,103 @@ module C = Cil
 
 module O = Ciltutoptions
 
+type varmap = int * int 	(* map vid to dimension *)
+		      
+type memState = { varmaplist:varmap list; pp:pointset_powerset_c_polyhedron}
+
+let id_of_vm   (vm : varmap) : int  = fst vm
+let dim_of_vm   (vm : varmap) : int = snd vm
 
 let debug = ref false
+		
+let string_pretty () (s: string) =
+  s |> text
 
-
-(* type oekind = Top | Odd | Even | Bottom *)
-
-type lekind = linear_expression
-
-type varmap = int * (varinfo * lekind)
-
-let id_of_vm   (vm : varmap) : int     = fst vm
-let vi_of_vm   (vm : varmap) : varinfo = vm |> snd |> fst
-let kind_of_vm (vm : varmap) : lekind  = vm |> snd |> snd
-
-let print_string_if_very_noisy = function str ->
-  let less_noisy = "LESS_NOISY"
-  in let very_noisy = try Sys.getenv "PPL_VERY_NOISY_TESTS"
-    with Not_found -> less_noisy
-  in
-    if (very_noisy != less_noisy)
-    then print_string str;
-;;
-
-let print_string_if_noisy = function str ->
-  let quiet = "QUIET"
-  in let noisy = try Sys.getenv "PPL_NOISY_TESTS"
-    with Not_found -> quiet
-  in
-    if (noisy != quiet)
-    then print_string str
-    else print_string_if_very_noisy str;
-;;
-
-let print_int_if_very_noisy = function num ->
-  let less_noisy = "LESS_NOISY"
-  in let very_noisy = try Sys.getenv "PPL_VERY_NOISY_TESTS"
-    with Not_found -> less_noisy
-  in
-    if (very_noisy != less_noisy)
-    then print_int num;
-;;
-
-let print_int_if_noisy = function num ->
-  let quiet = "QUIET"
-  in let noisy = try Sys.getenv "PPL_NOISY_TESTS"
-    with Not_found -> quiet
-  in
-    if (noisy != quiet)
-    then print_int num
-    else print_int_if_very_noisy num;
-;;
-
-let rec print_linear_expression = function
-    Variable v ->
-      print_string_if_noisy "V(";
-      print_int_if_noisy v;
-      print_string_if_noisy ")";
+let rec string_of_le = function
+    Variable v -> "V(" ^ string_of_int v ^ ")"
   | Coefficient c ->
-      print_int_if_noisy(Z.to_int c)
+      string_of_int (Z.to_int c)
   | Unary_Minus e ->
-      print_string_if_noisy "-(";
-      print_linear_expression e;
-      print_string_if_noisy ")";
+      "-(" ^ string_of_le e ^ ")"
   | Unary_Plus e ->
-      print_linear_expression e
+      string_of_le e
   | Plus (e1, e2) ->
-      print_string_if_noisy "(";
-      print_linear_expression e1;
-      print_string_if_noisy " + ";
-      print_linear_expression e2;
-      print_string_if_noisy ")";
+     "(" ^ string_of_le e1 ^ " + " ^
+      string_of_le e2 ^ ")"
   | Minus (e1, e2) ->
-      print_string_if_noisy "(";
-      print_linear_expression e1;
-      print_string_if_noisy " - ";
-      print_linear_expression e2;
-      print_string_if_noisy ")";
+     "(" ^ string_of_le e1 ^ " - " ^
+      string_of_le e2 ^ ")"
   | Times (c, e) ->
-      print_int_if_noisy(Z.to_int c);
-      print_string_if_noisy "*(";
-      print_linear_expression e;
-      print_string_if_noisy ")";
-;;
+     string_of_int (Z.to_int c) ^"*(" ^ string_of_le e ^ " ) "
+  | _ -> "error"
+		 
+let rec string_of_lc = function
+    Less_Than (le1, le2) ->
+      string_of_le le1 ^ " < " ^
+	string_of_le le2 ^ ", "
+  | Less_Or_Equal (le1, le2) ->
+     string_of_le le1 ^ " <= " ^
+       string_of_le le2 ^ ", "
+  | Equal (le1, le2) ->
+     string_of_le le1 ^ " == " ^
+      string_of_le le2 ^ ", "
+  | Greater_Than (le1, le2) ->
+     string_of_le le1 ^ " > " ^
+       string_of_le le2 ^ ", "
+  | Greater_Or_Equal (le1, le2) ->
+     string_of_le le1 ^ " >= " ^
+       string_of_le le2 ^ ", "
 
-let string_of_oekind (k : lekind) : string =
-    print_linear_expression k
+let string_of_poly poly = L.fold_left (fun s c -> s ^ string_of_lc c) ""  (ppl_Polyhedron_get_constraints poly)  
 
-let string_of_varmap (vm : varmap) : string =
-  let vi = vi_of_vm vm in
-  "("^vi.vname^", "^(vm |> kind_of_vm |> string_of_oekind)^")"
+let string_of_power_poly  pp =
+  let iter = ppl_Pointset_Powerset_C_Polyhedron_begin_iterator pp in
+  let end_iter = ppl_Pointset_Powerset_C_Polyhedron_end_iterator pp in
+  let s = [| "" |] in
+  let i = ref 0 in
+  while not (ppl_Pointset_Powerset_C_Polyhedron_iterator_equals_iterator iter end_iter) do
+    let poly = ppl_Pointset_Powerset_C_Polyhedron_get_disjunct iter in 
+    s.(!i) <- string_of_poly poly;
+    ppl_Pointset_Powerset_C_Polyhedron_increment_iterator iter;
+    i := !i + 1							  
+  done;
+  String.concat "###########################################" (Array.to_list s)
 
-
-let string_of_varmap_list (vml : varmap list) : string =
-  vml
-  |> L.map string_of_varmap
-  |> String.concat ", "
-
-
-let varmap_list_pretty () (vml : varmap list) =
-  vml |> string_of_varmap_list |> text
-
-
-let oekind_neg (k : oekind) : oekind =
-  match k with
-  | Even -> Odd
-  | Odd -> Even
-  | _ -> k
-
-
-let varmap_equal (vm1 : varmap) (vm2 : varmap) : bool =
-  (id_of_vm vm1) = (id_of_vm vm2) &&
-  (kind_of_vm vm1) = (kind_of_vm vm2)
-
-
-let varmap_list_equal (vml1 : varmap list) (vml2 : varmap list) : bool =
-  let sort = L.sort (fun (id1,_) (id2,_) -> compare id1 id2) in
-  list_equal varmap_equal (sort vml1) (sort vml2)
-
-
-let oekind_includes (is_this : oekind) (in_this : oekind) : bool =
-  match is_this, in_this with
-  | _, Top -> true
-  | Bottom, _ -> true
-  | _, _ -> false
-
-
-
-
-let power_poly_equal
-
-let power_poly_combine (pp1: Pointset_Powerset_C_Polyhedron) (pp2: Pointset_Powerset_C_Polyhedron) :
-      Pointset_Powerset_C_Polyhedron option =
-
-
-let oekind_combine (k1 : oekind) (k2 : oekind) : oekind =
-  match k1, k2 with
-  | Top, _ | _, Top | Odd, Even | Even, Odd -> Top
-  | Odd, _ | _, Odd -> Odd
-  | Even, _ | _, Even -> Even
-  | Bottom, Bottom -> Bottom
-
-let varmap_combine (vm1 : varmap) (vm2 : varmap) : varmap option =
-  match vm1, vm2 with
-  | (id1, _), (id2, _) when id1 <> id2 -> None
-  | (id1, (vi1, k1)), (_,(_,k2)) -> Some(id1,(vi1,oekind_combine k1 k2))
-
+let power_poly_pretty () (memst : memState) =
+  string_of_power_poly memst.pp |> text
+let le_pretty () (le : linear_expression) =
+  string_of_le le |> text
 
 (* let varmap_list_replace (vml : varmap list) (vm : varmap) : varmap list = *)
   (* vm :: (L.remove_assoc (id_of_vm vm) vml) *)
 
 
-let rec construct_linear_of_exp (e : exp) : linear_expression list =
+let rec construct_linear_of_exp (e : exp) (memst : memState) : linear_expression =
   match e with
-  | Const(CInt64(i, _, _)) -> [Coefficient i]
-  (* | Lval(Var vi, NoOffset) -> vml |> L.assoc vi.vid |> snd *)
+  | Const(CInt64(i, _, _)) -> Coefficient (Z.from_int 1)
+  | Lval(Var vi, NoOffset) -> let var_dim = L.assoc vi.vid memst.varmaplist in
+      E.log "%a\n" le_pretty (Variable var_dim);			      
+      Variable var_dim
   (* | SizeOf _ | SizeOfE _ | SizeOfStr _ | AlignOf _ | AlignOfE _ -> *)
     (* e |> constFold true |> oekind_of_exp vml *)
   (* | UnOp(uo, e, t) -> oekind_of_unop vml uo e *)
-  | BinOp(bo, e1, e2, t) -> construct_linear_of_binop bo e1 e2
+  | BinOp(bo, e1, e2, t) -> construct_linear_of_binop bo e1 e2 memst
   (* | CastE(t, e) -> oekind_of_exp vml e *)
-  | _ -> [Coefficient 0]        (* TODO: handle other cases *)
+  | _ -> Coefficient (Z.from_int 0)        (* TODO: handle other cases *)
 
 
 (* Construct unary op *)
 (* and construct_linear_of_unop (vml : linear_expression list) (u : unop) (e : exp) : linear_expression list = *)
 
-let construct_linear_combine (op) (l1 : linear_expression list) (l2 : linear_expression list) : linear_expression list =
-  L.fold_left (construct_linear_combine_one op l1) l2
-
-let construct_linear_combine_one (op) (l : linear_expression list) (le : linear_expression) : linear_expression list =
-  L.map (op le) l
-
-and construct_linear_of_binop (b : binop) (e1 : exp) (e2 : exp) : linear_expression list =
-  let l1, l2 = construct_linear_of_exp e1, construct_linear_of_exp e2 in
+and construct_linear_of_binop (b : binop) (e1 : exp) (e2 : exp) (memst : memState) : linear_expression =
+  let l1, l2 = construct_linear_of_exp e1 memst, construct_linear_of_exp e2 memst in
   match b with
   | PlusA -> begin
-    construct_linear_combine Plus l1 l2
+    Plus (l1, l2)
     end
 
   | MinusA -> begin
-    construct_linear_combine Minus l1 l2
+    Minus (l1, l2)
     end
   (* | Mult -> begin *)
     (* end *)
@@ -206,42 +123,54 @@ and construct_linear_of_binop (b : binop) (e1 : exp) (e2 : exp) : linear_express
   (* TODO: Handle more binary operations *)
    | _ -> l1
 
-let power_poly_handle_inst (i : instr) (pp : Pointset_Powerset_C_Polyhedron) : Pointset_Powerset_C_Polyhedron =
+let power_poly_handle_inst (i : instr) (memst : memState) : memState =
   match i with
   | Set((Var vi, NoOffset), e, loc) when not(vi.vglob) && (isIntegralType vi.vtype) ->
-     let le_list = construct_linear_of_exp e in
-     L.map (fun e ->
-            ppl_Pointset_Powerset_C_Polyhedron_add_constraint(Equal (Variable vi.vid, e))) le_list
+     let le  = construct_linear_of_exp e memst in
+     let dim = L.assoc vi.vid memst.varmaplist in
+     ppl_Pointset_Powerset_C_Polyhedron_add_constraint memst.pp (Equal (Variable dim, le));
+     memst;
+
      (* linearize expression *)
 
   | Set((Mem _, _), _, _)
   (* | Call _ -> varmap_list_kill vml *)
-  | _ -> pp
+  | _ -> memst
 
-
+let convertExpToConstraint(c : exp) (memst: memState) : linear_constraint = 
+  (* TODO convert linear constraint *)
+  match c with 
+  UnOp (LNot, _, _) -> Less_Or_Equal (Variable 1, Variable 2)
+  | _ -> Less_Or_Equal (Variable 0, Variable 1)
+	    
 module PowerPolyDF = struct
-
-  let name = "Polyhedra"
+  let name = "PowerPolyhedra"
   let debug = debug
-  type t = Pointset_Powerset_C_Polyhedron
-  let copy powerPoly = powerPoly
+  type t = memState
+  let copy memst = {varmaplist = memst.varmaplist; pp = ppl_new_Pointset_Powerset_C_Polyhedron_from_Pointset_Powerset_C_Polyhedron memst.pp}
   let stmtStartData = IH.create 64
   let pretty = power_poly_pretty
-  let computeFirstPredecessor stm powerPoly = powerPoly
+  let computeFirstPredecessor stm memst = memst
 
+  let combinePredecessors (s : stmt) ~(old : t) (newMemst : t) =
+    if ppl_Pointset_Powerset_C_Polyhedron_geometrically_equals_Pointset_Powerset_C_Polyhedron old.pp newMemst.pp then None else
+      begin
+	ppl_Pointset_Powerset_C_Polyhedron_concatenate_assign old.pp newMemst.pp;
+	Some(old)
+      end
 
-  let combinePredecessors (s : stmt) ~(old : t) (ll : t) =
-    if power_poly_equal old ll then None else
-    Some(power_poly_combine old ll)
-
-  let doInstr (i : instr) (ll : t) =
-    let action = power_poly_handle_inst i in
+  let doInstr (i : instr) (memst : t) =
+    let action = power_poly_handle_inst i  in
     DF.Post action
 
 
-  let doStmt stm ll = DF.SDefault
+  let doStmt stm memst = DF.SDefault
 
-  let doGuard c ll =
+  let doGuard (c : exp) (memst : t) =
+    let condConstraint = convertExpToConstraint c memst in
+    E.error "%a" Cil.d_exp c;
+     ppl_Pointset_Powerset_C_Polyhedron_refine_with_constraint memst.pp condConstraint;
+     DF.GDefault				      
   let filterStmt stm = true
 
 end
@@ -249,36 +178,44 @@ end
 
 module PowerPolyFDF = DF.ForwardsDataFlow(PowerPolyDF)
 
+let rec mapVarToIndex (i:int) (l) : varmap list =
+  match l with
+  |[] -> []
+  |x::rl -> (x.vid, i)::mapVarToIndex (i + 1) rl
 
-let collectVars (fd : fundec) : int =
+
+let collectVars (fd : fundec) : varmap list=
   (fd.sformals @ fd.slocals)
   |> L.filter (fun vi -> isIntegralType vi.vtype)
-  |> L.length
+  |> mapVarToIndex 0
 
 
 let computePowerPoly (fd : fundec) : unit =
   Cfg.clearCFGinfo fd;
   ignore(Cfg.cfgFun fd);
   let first_stmt = L.hd fd.sbody.bstmts in
-  let var_length = collectVars fd in
-  let powerPoly = ppl_new_Pointset_Powerset_C_Polyhedron_from_space_dimension var_length in
-  IH.clear DF.stmtStartData;
-  IH.add PolyhedraDF.stmtStartData first_stmt.sid powerPoly;
+  let varmaplist = collectVars fd in 
+  let var_length = L.length varmaplist in
+  let poly = ppl_new_C_Polyhedron_from_space_dimension var_length Universe in
+  let powerPoly = ppl_new_Pointset_Powerset_C_Polyhedron_from_C_Polyhedron poly in
+  let memst = {varmaplist = varmaplist; pp = powerPoly} in
+  IH.clear PowerPolyDF.stmtStartData;
+  IH.add PowerPolyDF.stmtStartData first_stmt.sid memst;
   PowerPolyFDF.compute [first_stmt]
 
 
-let getOddEvens (sid : int) : varmap list option =
-  try Some(IH.find OddEvenDF.stmtStartData sid)
+let getMemState (sid : int) : memState option =
+  try Some(IH.find PowerPolyDF.stmtStartData sid)
   with Not_found -> None
 
 
-let instrOddEvens (il : instr list) (vml : varmap list) : varmap list list =
+let instrPowerPoly (il : instr list) (memst : memState) : memState list =
   let proc_one hil i =
     match hil with
-    | [] -> (varmap_list_handle_inst i vml) :: hil
-    | vml':: rst as l -> (varmap_list_handle_inst i vml') :: l
+    | [] -> (power_poly_handle_inst i memst) :: hil
+    | memst':: rst as l -> (power_poly_handle_inst i memst') :: l
   in
-  il |> L.fold_left proc_one [vml]
+  il |> L.fold_left proc_one [memst]
      |> L.tl
      |> L.rev
 
@@ -292,13 +229,13 @@ class vmlVisitorClass = object(self)
 
   method vstmt stm =
     sid <- stm.sid;
-    begin match getOddEvens sid with
+    begin match getMemState sid with
     | None -> current_state <- None
-    | Some vml -> begin
+    | Some memst -> begin
       match stm.skind with
       | Instr il ->
         current_state <- None;
-        state_list <- instrOddEvens il vml
+        state_list <- instrPowerPoly il memst
       | _ -> current_state <- None
     end end;
     DoChildren
@@ -312,8 +249,8 @@ class vmlVisitorClass = object(self)
 
   method get_cur_vml () =
     match current_state with
-    | None -> getOddEvens sid
-    | Some vml -> Some vml
+    | None -> getMemState sid
+    | Some memst -> Some memst
 
 end
 
@@ -324,25 +261,21 @@ class varUseReporterClass = object(self)
   method vvrbl (vi : varinfo) =
     match self#get_cur_vml () with
     | None -> SkipChildren
-    | Some vml -> begin
-      if L.mem_assoc vi.vid vml then begin
-        let vm = (vi.vid, L.assoc vi.vid vml) in
-        E.log "%a: %a\n" d_loc (!currentLoc) varmap_list_pretty [vm]
+    | Some memst -> begin
+        E.log "%a: %a\n" d_loc (!currentLoc) power_poly_pretty memst
       end;
       SkipChildren
-    end
-
 end
 
 
-let evenOddAnalysis (fd : fundec) (loc : location) : unit =
-  computeOddEven fd;
+let powerPolyAnalysis (fd : fundec) (loc : location) : unit =
+  computePowerPoly fd;
   let vis = ((new varUseReporterClass) :> nopCilVisitor) in
   ignore(visitCilFunction vis fd)
 
 
 let tut3 (f : file) : unit =
-  iterGlobals f (onlyFunctions evenOddAnalysis)
+  iterGlobals f (onlyFunctions powerPolyAnalysis)
 
 let parseOneFile (fname: string) : C.file =
   let cabs, cil = F.parse_with_cabs fname () in
@@ -385,6 +318,8 @@ let main () =
 
   Cabs2cil.doCollapseCallCast := true;
 
+   
+  
   let usageMsg = "Usage: ciltutcc [options] source-files" in
   Arg.parse (O.align ()) Ciloptions.recordFile usageMsg;
 
@@ -396,7 +331,6 @@ let main () =
     | [o] -> o
     | _ -> Mergecil.merge files "stdout"
   in
-
   processOneFile one
 ;;
 
