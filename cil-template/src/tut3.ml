@@ -1,6 +1,3 @@
-(* TODO: handle Assignment *)
-(* TODO: handle powerset combine *)
-(* TODO: handle the if condition *)
 open Cil
 open Pretty
 open Printf
@@ -18,8 +15,8 @@ module F = Frontc
 module C = Cil
 
 module O = Ciltutoptions
-
-type varmap = int * int 	(* map vid to dimension *)
+(* Assumption: do not consider expressions with mixed int and float types*)
+type varmap = int * int 	(* map float vid to dimension or map int vid to value *)
 
 type memState = { varmaplist:varmap list; pp:pointset_powerset_c_polyhedron}
 
@@ -92,7 +89,19 @@ let le_pretty () (le : linear_expression) =
 
 (* let varmap_list_replace (vml : varmap list) (vm : varmap) : varmap list = *)
   (* vm :: (L.remove_assoc (id_of_vm vm) vml) *)
+let rec cal_integer_exp(e : exp) (memst : memState) : int =
+  match e with
+  | Const(CInt64(i, _, _)) -> Int64.to_int i
+  | Lval(Var vi, NoOffset) -> let var_val = L.assoc vi.vid memst.varmaplist in
+			      var_val
+  | BinOp(bo, e1, e2, t) -> cal_binop bo e1 e2 memst
+  | _ -> E.error "Unsupported Operator %a" Cil.d_exp e; 0
 
+and cal_binop(b: binop) (e1 : exp) (e2 : exp) (memst : memState) : int =
+  let v1, v2 = cal_integer_exp e1 memst, cal_integer_exp e2 memst in
+  match b with
+  |PlusA -> v1 + v2
+  |MinusA -> v1 - v2
 
 let rec construct_linear_of_exp (e : exp) (memst : memState) : linear_expression =
   match e with
@@ -107,7 +116,7 @@ let rec construct_linear_of_exp (e : exp) (memst : memState) : linear_expression
   | CastE(t, e1) -> construct_linear_of_exp e1 memst
   | _ -> E.error "Unsupported Operator %a" Cil.d_exp e; Variable 0
 
-
+							      
 and construct_linear_of_binop (b : binop) (e1 : exp) (e2 : exp) (memst : memState) : linear_expression =
   let l1, l2 = construct_linear_of_exp e1 memst, construct_linear_of_exp e2 memst in
   match b with
@@ -155,14 +164,19 @@ let power_poly_handle_inst (i : instr) (memst : memState) : memState =
   | Set((Var vi, NoOffset), e, loc) when not(vi.vglob) &&
                                            isArithmeticType vi.vtype &&
                                              not(isIntegralType vi.vtype) ->
-     let le  = construct_linear_of_exp e memst in
+     
+     let lexp  = construct_linear_of_exp e memst in
      let dim = L.assoc vi.vid memst.varmaplist in
 
-     ppl_Pointset_Powerset_C_Polyhedron_affine_image memst.pp dim le (Z.from_int 1);
+     ppl_Pointset_Powerset_C_Polyhedron_affine_image memst.pp dim lexp (Z.from_int 1);
      memst;
-
+  
      (* linearize expression *)
-
+  | Set((Var vi, NoOffset), e, loc) when not(vi.vglob)
+					 && isIntegralType vi.vtype ->
+     let val_e = cal_integer_exp e memst in
+     L.Assoc.add memst.varmaplist vi.vid val_e
+									     
   | Set((Mem _, _), _, _)
   (* | Call _ -> varmap_list_kill vml *)
   | _ -> memst
@@ -174,8 +188,24 @@ let combine_power_set (pp1 : pointset_powerset_c_polyhedron) (pp2 : pointset_pow
     let poly = ppl_Pointset_Powerset_C_Polyhedron_get_disjunct iter in
     ppl_Pointset_Powerset_C_Polyhedron_add_disjunct pp1 poly;
     ppl_Pointset_Powerset_C_Polyhedron_increment_iterator iter
-   done;
-
+  done;
+  
+let cal_integer_birel (b : binop) (e1 : exp) (e2 : exp) (memst: memState) : bool =
+  let v1, v2 = cal_integer_exp e1 memst, cal_integer_exp e2 memst in
+  match b with
+  | Lt -> v1 < v2
+  | Gt -> v1 > v2
+  | Le -> v1 <= v2
+  | Ge -> v1 >= v2
+  | Eq -> v1 = v2
+  | Ne -> v1 <> v2
+  | _ -> E.error "unsupported condition"; true;
+	 
+let cal_integer_rel (c : exp) (memst: memState) : bool =    
+  match c with
+  | BinOp(binop, e1, e2) -> cal_integer_birel binop e1 e2 memst     
+  | UnOp(LNot, BinOp(binop, e1, e2), t) -> not(cal_integer_birel binop e1 e2 memst)
+     
 module PowerPolyDF = struct
   let name = "PowerPolyhedra"
   let debug = debug
@@ -208,21 +238,27 @@ module PowerPolyDF = struct
   let doStmt stm memst = DF.SDefault
 
   let doGuard (c : exp) (memst : t) =
-    let condConstraint = convert_exp_to_constraint c memst false in
-    match c with
-    | UnOp(LNot, e1, t) ->
-       begin
-         let memst_copy = copy memst in
-         ppl_Pointset_Powerset_C_Polyhedron_add_constraint memst_copy.pp condConstraint;
-         DF.GUse memst_copy
-       end
-    | _ ->
-       begin
-         let memst_copy = copy memst in
-         ppl_Pointset_Powerset_C_Polyhedron_add_constraint memst_copy.pp condConstraint;
-         DF.GUse memst_copy
-       end
-
+    if true then
+      if cal_integer_rel c memst then
+	let memst_copy = copy memst in
+	DF.GUse memst_copy
+      else
+	DF.GUnreachable	 
+    else
+      let condConstraint = convert_exp_to_constraint c memst false in
+      match c with
+      | UnOp(LNot, e1, t) ->
+	 begin
+           let memst_copy = copy memst in
+           ppl_Pointset_Powerset_C_Polyhedron_add_constraint memst_copy.pp condConstraint;
+           DF.GUse memst_copy
+	 end
+      | _ ->
+	 begin
+           let memst_copy = copy memst in
+           ppl_Pointset_Powerset_C_Polyhedron_add_constraint memst_copy.pp condConstraint;
+           DF.GUse memst_copy
+	 end
   let filterStmt stm = true
 
 end
@@ -233,12 +269,15 @@ module PowerPolyFDF = DF.ForwardsDataFlow(PowerPolyDF)
 let rec mapVarToIndex (i:int) (l) : varmap list =
   match l with
   |[] -> []
-  |x::rl -> (x.vid, i)::mapVarToIndex (i + 1) rl
+  |x::rl -> if isIntegerType vi.vtype then
+	      (x.vid, 0)::mapVarToIndex i rl (*map the integer variable to value 0*)
+	    else
+	      (x.vid, i)::mapVarToIndex (i + 1) rl (* map the float variable to dimension *)
 
 
 let collectVars (fd : fundec) : varmap list=
   (fd.sformals @ fd.slocals)
-  |> L.filter (fun vi -> isArithmeticType vi.vtype && not(isIntegralType vi.vtype))
+  |> L.filter (fun vi -> isArithmeticType vi.vtype)
   |> mapVarToIndex 0
 
 

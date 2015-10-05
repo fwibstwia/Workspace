@@ -4,9 +4,11 @@
 int main()
 {
   float a,b,c;
-  if (a >= 0){
-     a = b;
+  if (b - a >= 0){
+     a = a + b;
+  }else{
+     a = a + b;
   }
-  a = b + c;
+  a = a + b;
   return 0;
 }
