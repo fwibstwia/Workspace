@@ -159,6 +159,10 @@ and convert_exp_to_constraint(e : exp) (memst: memState) (need_neg : bool) : lin
                               convert_binop_to_constraint bo e1 e2 memst
   | _ -> E.error "unsupported condition"; Equal (Variable 0, Variable 1)
 
+						
+let varmap_list_replace (vml : varmap list ) (vid: int) (val_e : int): varmap list =
+  (vid, val_e) :: ( L.remove_assoc vid vml)
+	  
 let power_poly_handle_inst (i : instr) (memst : memState) : memState =
   match i with
   | Set((Var vi, NoOffset), e, loc) when not(vi.vglob) &&
@@ -175,22 +179,15 @@ let power_poly_handle_inst (i : instr) (memst : memState) : memState =
   | Set((Var vi, NoOffset), e, loc) when not(vi.vglob)
 					 && isIntegralType vi.vtype ->
      let val_e = cal_integer_exp e memst in
-     L.Assoc.add memst.varmaplist vi.vid val_e
-									     
-  | Set((Mem _, _), _, _)
+     let updated_vml = varmap_list_replace memst.varmaplist vi.vid val_e in
+     let updated_memst = {varmaplist = updated_vml; pp = memst.pp} in
+     updated_memst
+
+| Set((Mem _, _), _, _)
   (* | Call _ -> varmap_list_kill vml *)
   | _ -> memst
-
-let combine_power_set (pp1 : pointset_powerset_c_polyhedron) (pp2 : pointset_powerset_c_polyhedron) : unit =
-  let iter = ppl_Pointset_Powerset_C_Polyhedron_begin_iterator pp2 in
-  let end_iter = ppl_Pointset_Powerset_C_Polyhedron_end_iterator pp2 in
-  while not (ppl_Pointset_Powerset_C_Polyhedron_iterator_equals_iterator iter end_iter) do
-    let poly = ppl_Pointset_Powerset_C_Polyhedron_get_disjunct iter in
-    ppl_Pointset_Powerset_C_Polyhedron_add_disjunct pp1 poly;
-    ppl_Pointset_Powerset_C_Polyhedron_increment_iterator iter
-  done;
-  
-let cal_integer_birel (b : binop) (e1 : exp) (e2 : exp) (memst: memState) : bool =
+	   
+let cal_integer_birel (b : binop) (e1 : exp) (e2 : exp) (memst : memState) : bool =
   let v1, v2 = cal_integer_exp e1 memst, cal_integer_exp e2 memst in
   match b with
   | Lt -> v1 < v2
@@ -199,13 +196,23 @@ let cal_integer_birel (b : binop) (e1 : exp) (e2 : exp) (memst: memState) : bool
   | Ge -> v1 >= v2
   | Eq -> v1 = v2
   | Ne -> v1 <> v2
-  | _ -> E.error "unsupported condition"; true;
 	 
-let cal_integer_rel (c : exp) (memst: memState) : bool =    
+let cal_integer_rel (c : exp) (memst : memState) : bool =    
   match c with
-  | BinOp(binop, e1, e2) -> cal_integer_birel binop e1 e2 memst     
-  | UnOp(LNot, BinOp(binop, e1, e2), t) -> not(cal_integer_birel binop e1 e2 memst)
-     
+  | BinOp(binop, e1, e2, _) -> cal_integer_birel binop e1 e2 memst     
+  | UnOp(LNot, BinOp(binop, e1, e2, _), t) -> not(cal_integer_birel binop e1 e2 memst)
+
+					      
+let combine_power_set (pp1 : pointset_powerset_c_polyhedron) (pp2 : pointset_powerset_c_polyhedron) : unit =
+  let iter = ppl_Pointset_Powerset_C_Polyhedron_begin_iterator pp2 in
+  let end_iter = ppl_Pointset_Powerset_C_Polyhedron_end_iterator pp2 in
+  while not (ppl_Pointset_Powerset_C_Polyhedron_iterator_equals_iterator iter end_iter) do
+    let poly = ppl_Pointset_Powerset_C_Polyhedron_get_disjunct iter in
+    ppl_Pointset_Powerset_C_Polyhedron_add_disjunct pp1 poly;
+    ppl_Pointset_Powerset_C_Polyhedron_increment_iterator iter
+  done;
+
+
 module PowerPolyDF = struct
   let name = "PowerPolyhedra"
   let debug = debug
@@ -238,12 +245,14 @@ module PowerPolyDF = struct
   let doStmt stm memst = DF.SDefault
 
   let doGuard (c : exp) (memst : t) =
-    if true then
+    if true then begin
+      E.error "visit while";
       if cal_integer_rel c memst then
 	let memst_copy = copy memst in
 	DF.GUse memst_copy
       else
-	DF.GUnreachable	 
+	DF.GUnreachable
+      end
     else
       let condConstraint = convert_exp_to_constraint c memst false in
       match c with
@@ -269,7 +278,7 @@ module PowerPolyFDF = DF.ForwardsDataFlow(PowerPolyDF)
 let rec mapVarToIndex (i:int) (l) : varmap list =
   match l with
   |[] -> []
-  |x::rl -> if isIntegerType vi.vtype then
+  |x::rl -> if isIntegralType x.vtype then
 	      (x.vid, 0)::mapVarToIndex i rl (*map the integer variable to value 0*)
 	    else
 	      (x.vid, i)::mapVarToIndex (i + 1) rl (* map the float variable to dimension *)
