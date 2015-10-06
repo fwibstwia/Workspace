@@ -68,7 +68,7 @@ let string_of_poly poly = L.fold_left (fun s c -> s ^ string_of_lc c) ""  (ppl_P
 let string_of_power_poly  pp =
   let iter = ppl_Pointset_Powerset_C_Polyhedron_begin_iterator pp in
   let end_iter = ppl_Pointset_Powerset_C_Polyhedron_end_iterator pp in
-  let s = Array.make 2 "" in
+  let s = Array.make (ppl_Pointset_Powerset_C_Polyhedron_size pp) "" in
   let i = ref 0 in
   while not (ppl_Pointset_Powerset_C_Polyhedron_iterator_equals_iterator iter end_iter) do
     let poly = ppl_Pointset_Powerset_C_Polyhedron_get_disjunct iter in
@@ -100,7 +100,7 @@ let rec cal_integer_exp(e : exp) (memst : memState) : int =
 and cal_binop(b: binop) (e1 : exp) (e2 : exp) (memst : memState) : int =
   let v1, v2 = cal_integer_exp e1 memst, cal_integer_exp e2 memst in
   match b with
-  |PlusA -> v1 + v2
+  |PlusA ->  v1 + v2
   |MinusA -> v1 - v2
 
 let rec construct_linear_of_exp (e : exp) (memst : memState) : linear_expression =
@@ -108,7 +108,10 @@ let rec construct_linear_of_exp (e : exp) (memst : memState) : linear_expression
   | Const(CInt64(i, _, _)) -> Coefficient (Z.from_int (Int64.to_int i))
   | Const(CReal(f, _, _)) -> Coefficient (Z.from_float f)
   | Lval(Var vi, NoOffset) -> let var_dim = L.assoc vi.vid memst.varmaplist in
-      Variable var_dim
+			      if isIntegralType vi.vtype then
+				Coefficient (Z.from_int var_dim)
+			      else
+				Variable var_dim
   (* | SizeOf _ | SizeOfE _ | SizeOfStr _ | AlignOf _ | AlignOfE _ -> *)
     (* e |> constFold true |> oekind_of_exp vml *)
   (* | UnOp(uo, e, t) -> construct_linear_of_unop uo e memst *)
@@ -121,11 +124,15 @@ and construct_linear_of_binop (b : binop) (e1 : exp) (e2 : exp) (memst : memStat
   let l1, l2 = construct_linear_of_exp e1 memst, construct_linear_of_exp e2 memst in
   match b with
   | PlusA -> begin
-    Plus (l1, l2)
+      match l1, l2 with
+      |Coefficient a, Coefficient b -> Coefficient (Z.add a b)
+      |_ -> Plus (l1, l2)
     end
 
   | MinusA -> begin
-    Minus (l1, l2)
+      match l1, l2 with
+      |Coefficient a, Coefficient b -> Coefficient (Z.sub a b)
+      | _ -> Minus (l1, l2)
     end
   (* | Times of Z.t * linear_expression *)
 
@@ -151,12 +158,19 @@ and convert_binop_to_constraint (b : binop) (e1 : exp) (e2 : exp) (memst: memSta
       Equal (l1, l2)
     end
   | _ -> E.error "unsupported condition"; Less_Than (l1, l2)
-
-and convert_exp_to_constraint(e : exp) (memst: memState) (need_neg : bool) : linear_constraint =
+						    
+and neg_constraint (lc : linear_constraint) =
+  match lc with
+  | Less_Than (l1, l2) -> Greater_Or_Equal (l1, l2)
+  | Greater_Than (l1, l2) -> Less_Or_Equal (l1, l2)
+  | Less_Or_Equal (l1, l2) -> Greater_Or_Equal (l1, l2) (*does not support strictly >  *)
+  | Greater_Or_Equal (l1, l2) -> Less_Or_Equal (l1, l2) (* does not support strictly < *)
+  | Equal (l1, l2) -> Less_Or_Equal (l1, l2)		(* bug *)
+	   
+and convert_exp_to_constraint(e : exp) (memst: memState) : linear_constraint =
   match e with
-  | UnOp(LNot, e1, t) -> convert_exp_to_constraint e1 memst true
-  | BinOp(bo, e1, e2, t) -> if need_neg then convert_binop_to_constraint bo e2 e1 memst else
-                              convert_binop_to_constraint bo e1 e2 memst
+  | UnOp(LNot, e1, t) -> neg_constraint (convert_exp_to_constraint e1 memst)
+  | BinOp(bo, e1, e2, t) -> convert_binop_to_constraint bo e1 e2 memst                              
   | _ -> E.error "unsupported condition"; Equal (Variable 0, Variable 1)
 
 						
@@ -183,26 +197,24 @@ let power_poly_handle_inst (i : instr) (memst : memState) : memState =
      let updated_memst = {varmaplist = updated_vml; pp = memst.pp} in
      updated_memst
 
-| Set((Mem _, _), _, _)
+  | Set((Mem _, _), _, _)
   (* | Call _ -> varmap_list_kill vml *)
   | _ -> memst
-	   
-let cal_integer_birel (b : binop) (e1 : exp) (e2 : exp) (memst : memState) : bool =
-  let v1, v2 = cal_integer_exp e1 memst, cal_integer_exp e2 memst in
-  match b with
-  | Lt -> v1 < v2
-  | Gt -> v1 > v2
-  | Le -> v1 <= v2
-  | Ge -> v1 >= v2
-  | Eq -> v1 = v2
-  | Ne -> v1 <> v2
-	 
-let cal_integer_rel (c : exp) (memst : memState) : bool =    
-  match c with
-  | BinOp(binop, e1, e2, _) -> cal_integer_birel binop e1 e2 memst     
-  | UnOp(LNot, BinOp(binop, e1, e2, _), t) -> not(cal_integer_birel binop e1 e2 memst)
 
-					      
+let eval_constraint (condConstraint: linear_constraint) : bool option =
+  match condConstraint with
+  |Less_Than (Coefficient a, Coefficient b) ->
+    if Z.compare a b < 0 then Some true else Some false 
+  |Less_Or_Equal (Coefficient a, Coefficient b) ->
+    if Z.compare a b <= 0 then Some true else Some false
+  |Equal (Coefficient a, Coefficient b) ->
+    if Z.compare a b = 0 then Some true else Some false
+  |Greater_Than (Coefficient a, Coefficient b) ->
+    if Z.compare a b > 0 then Some true else Some false
+  |Greater_Or_Equal (Coefficient a, Coefficient b) ->
+    if Z.compare a b >= 0 then Some true else Some false		    
+  | _ -> None
+   					      
 let combine_power_set (pp1 : pointset_powerset_c_polyhedron) (pp2 : pointset_powerset_c_polyhedron) : unit =
   let iter = ppl_Pointset_Powerset_C_Polyhedron_begin_iterator pp2 in
   let end_iter = ppl_Pointset_Powerset_C_Polyhedron_end_iterator pp2 in
@@ -224,50 +236,50 @@ module PowerPolyDF = struct
   let computeFirstPredecessor stm memst = memst
 
   let combinePredecessors (s : stmt) ~(old : t) (newMemst : t) =
-    if ppl_Pointset_Powerset_C_Polyhedron_geometrically_equals_Pointset_Powerset_C_Polyhedron old.pp newMemst.pp then None else
+    if ppl_Pointset_Powerset_C_Polyhedron_geometrically_equals_Pointset_Powerset_C_Polyhedron old.pp newMemst.pp then begin E.error "visit None"; None end else
       begin
-        let iter = ppl_Pointset_Powerset_C_Polyhedron_begin_iterator newMemst.pp in
-        let end_iter = ppl_Pointset_Powerset_C_Polyhedron_end_iterator newMemst.pp in
-        while not (ppl_Pointset_Powerset_C_Polyhedron_iterator_equals_iterator iter end_iter) do
-          let poly = ppl_Pointset_Powerset_C_Polyhedron_get_disjunct iter in
-          ppl_Pointset_Powerset_C_Polyhedron_add_disjunct old.pp poly;
-          ppl_Pointset_Powerset_C_Polyhedron_increment_iterator iter
-        done;
-        E.error "%a" power_poly_pretty old;
-	Some(old)
+	if(ppl_Pointset_Powerset_C_Polyhedron_contains_Pointset_Powerset_C_Polyhedron newMemst.pp old.pp)
+	then
+	  Some(newMemst)
+	else
+	  begin
+            let iter = ppl_Pointset_Powerset_C_Polyhedron_begin_iterator old.pp in
+            let end_iter = ppl_Pointset_Powerset_C_Polyhedron_end_iterator old.pp in	
+            while not (ppl_Pointset_Powerset_C_Polyhedron_iterator_equals_iterator iter end_iter) do
+              let poly = ppl_Pointset_Powerset_C_Polyhedron_get_disjunct iter in
+              ppl_Pointset_Powerset_C_Polyhedron_add_disjunct newMemst.pp poly;
+              ppl_Pointset_Powerset_C_Polyhedron_increment_iterator iter;			    
+            done;
+	    Some(newMemst)
+	  end
       end
 
   let doInstr (i : instr) (memst : t) =
     let action = power_poly_handle_inst i  in
     DF.Post action
 
-
   let doStmt stm memst = DF.SDefault
 
   let doGuard (c : exp) (memst : t) =
-    if true then begin
-      E.error "visit while";
-      if cal_integer_rel c memst then
-	let memst_copy = copy memst in
-	DF.GUse memst_copy
-      else
-	DF.GUnreachable
-      end
-    else
-      let condConstraint = convert_exp_to_constraint c memst false in
-      match c with
-      | UnOp(LNot, e1, t) ->
-	 begin
-           let memst_copy = copy memst in
-           ppl_Pointset_Powerset_C_Polyhedron_add_constraint memst_copy.pp condConstraint;
-           DF.GUse memst_copy
-	 end
-      | _ ->
-	 begin
-           let memst_copy = copy memst in
-           ppl_Pointset_Powerset_C_Polyhedron_add_constraint memst_copy.pp condConstraint;
-           DF.GUse memst_copy
-	 end
+      let condConstraint = convert_exp_to_constraint c memst in
+      match eval_constraint condConstraint with
+      |None ->
+	begin
+          let memst_copy = copy memst in
+          ppl_Pointset_Powerset_C_Polyhedron_add_constraint memst_copy.pp condConstraint;
+          DF.GUse memst_copy
+	end
+      |Some b ->
+	if b then
+	  begin
+	    let memst_copy = copy memst in
+	    DF.GUse memst
+	  end
+	else
+	  begin
+	    DF.GUnreachable
+	  end
+	   
   let filterStmt stm = true
 
 end
@@ -417,8 +429,6 @@ let main () =
 
 
   Cabs2cil.doCollapseCallCast := true;
-
-
 
   let usageMsg = "Usage: ciltutcc [options] source-files" in
   Arg.parse (O.align ()) Ciloptions.recordFile usageMsg;
