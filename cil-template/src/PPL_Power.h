@@ -1,15 +1,24 @@
+#ifndef __PPL_POWER_H
+#define __PPL_POWER_H
 #include <ppl.hh>
+#include <sstream>
 #include "C_Expr_defs.h"
+
 
 using namespace std;
 using namespace Parma_Polyhedra_Library;
 using namespace Parma_Polyhedra_Library::IO_Operators;
 
 class Test_Oracle : public FP_Oracle<C_Expr,FP_Interval> {
-public:
-  Test_Oracle() : int_store(0) {}
+ public:
+ Test_Oracle() : int_store(0) {}
 
-  Test_Oracle(FP_Interval_Abstract_Store init) : int_store(init) {}
+ Test_Oracle(FP_Interval_Abstract_Store init) : int_store(init) {}
+
+  //copy constructor
+  Test_Oracle(Test_Oracle & oc){
+
+  }
 
   bool get_interval(dimension_type dim, FP_Interval& result) const {
     result = int_store.get_interval(Variable(dim));
@@ -48,5 +57,50 @@ public:
   FP_Interval_Abstract_Store int_store;
 };
 
+//TODO: Merge PowerSet
+
+class PPL_Manager {
+ public:
+ PPL_Manager(int *varIdArray, int dimLen): oracle(FP_Interval_Abstract_Store(dimLen)), power_poly(dimLen, EMPTY) {
+    for(int i = 0; i < dimLen; i ++){
+      varIdMap[varIdArray[i]] = new Variable(i);
+    }
+  }
+
+ PPL_Manager(PPL_Manager &manager): oracle(manager.oracle), power_poly(manager.power_poly), dimVarMap(manager.dimVarMap){    
+  }
+
+  map<int, Variable*> varIdMap; //map vid to PPL Variable Type
+  Test_Oracle oracle;
+  FP_Linear_Form_Abstract_Store lf_abstract_store;
+  Pointset_Powerset<NNC_Polyhedron> power_poly;
+};
+
 Concrete_Expression_Type FP_Type =
   Concrete_Expression_Type::floating_point(ANALYZED_FP_FORMAT);
+
+
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+  PPL_Manager *init(int *varIdArray, int dimLen){
+    return new PPL_Manager(varIdArray, dimLen);
+  }
+  
+  PPL_Manager *copy(PPL_Manager *manager){
+    return new PPL_Manager(*manager);
+  }// copy PPL_Manager;
+  
+  bool merge(PPL_Manager *new_m, PPL_Manager *old_m); // merge PPL_Manager return whether the state has changed
+  void setAffineFormImage(PPL_Manager *manager, int vid, Linear_Form<FP_Interval> *lf);
+  Linear_Form<FP_Interval> *getLinearFormConstant(float num);
+  Linear_Form<FP_Interval> *getLinearFormPlus(Linear_Form<FP_Interval> *left, Linear_Form<FP_Interval> *right);
+  Linear_Form<FP_Interval> *getLinearFormMinus(Linear_Form<FP_Interval> *left, Linear_Form<FP_Interval> *right);
+  void addConstraint(PPL_Manager *manager, Linear_Form<FP_Interval> *left, Linear_Form<FP_Interval *right);
+  string getConstraintString(PPL_Manager *manager);
+#ifdef __cplusplus
+}
+#endif
+
+#endif
