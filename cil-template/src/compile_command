@@ -1,0 +1,7 @@
+ocamlfind ocamlopt -o test -cc g++ -linkpkg -I +gmp -package unix,str,ocamlgraph,findlib,cil,cil.callgraph,ctypes.foreign  -I /usr/local/lib/ppl -I ~/Workspace/cil-template/ciltut-include -cclib -lppl -cclib -lm -cclib -lgmpxx -cclib -lgmp -cclib -L/home/fwibstwia/Workspace/cil-template/src -cclib -lpplpower -cclib -Xlinker -cclib --no-as-needed ppl_ocaml.cmxa gmp.cmxa tututil.ml ciltutoptions.ml tut3.ml pplpower.ml
+
+ocamlfind ocamlopt -o test -cc g++ -linkpkg  -linkpkg -cclib -lpplpower -cclib -Xlinker -cclib --no-as-needed -package unix,str,ocamlgraph,findlib,cil,cil.callgraph,ctypes.foreign pplpower.ml
+
+
+ocamlfind ocamlopt -o test -cc g++ -linkpkg  -linkpkg -cclib -L/home/fwibstwia/Workspace/cil-template/src -cclib -lpplpower -cclib -Xlinker -cclib --no-as-needed -cclib -lppl -cclib -lm -cclib -lgmpxx -cclib -lgmp  -package unix,str,ocamlgraph,findlib,cil,cil.callgraph,ctypes.foreign pplpower.ml
+

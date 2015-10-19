@@ -31,8 +31,7 @@ let string_pretty () (s: string) =
   s |> text
 
 let power_poly_pretty () (memst : memState) =
-  "test"|> text
-  (*get_constraint_pretty memst.pm |> text*)
+  get_constraint_pretty memst.pm |> text
 
 let rec construct_linear_of_exp (e : exp) (memst : memState) : expState =
   match e with
@@ -128,15 +127,18 @@ module PowerPolyDF = struct
   let debug = debug
   type t = memState
   (* let copy memst = memst *)
-  let copy memst = {intvarmaplist = memst.intvarmaplist; pm = memst.pm}
+  let copy memst = {intvarmaplist = memst.intvarmaplist; pm = copy(memst.pm)}
   let stmtStartData = IH.create 64
   let pretty = power_poly_pretty
   let computeFirstPredecessor stm memst = memst
 
   let combinePredecessors (s : stmt) ~(old : t) (newMemst : t) =
     let isStable = merge old.pm newMemst.pm in
-    if isStable then begin E.error "visit None"; None end else
-      Some(newMemst)
+    if isStable then begin E.log "visit None"; None end
+    else
+      begin
+	Some(newMemst)	    
+      end
 
   let doInstr (i : instr) (memst : t) =
     let action = power_poly_handle_inst i  in
