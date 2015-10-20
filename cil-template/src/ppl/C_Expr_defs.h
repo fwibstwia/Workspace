@@ -57,7 +57,7 @@ typedef Box<FP_Interval> FP_Interval_Abstract_Store;
 typedef std::map<dimension_type, FP_Linear_Form>
                                  FP_Linear_Form_Abstract_Store;
 
-typedef Octagonal_Shape<double> TOctagonal_Shape;
+typedef Octagonal_Shape<double> FP_Octagonal_Shape;
 
 struct C_Expr;
 

@@ -17,10 +17,10 @@ bool merge(PPL_Manager *old_m, PPL_Manager *new_m){
     delete old_m;  /*just for test*/
     return true;
   }else{
-    Pointset_Powerset<NNC_Polyhedron>::const_iterator iter = (old_m -> power_poly).begin();
+    Pointset_Powerset<FP_Octagonal_Shape>::const_iterator iter = (old_m -> power_poly).begin();
     while(iter != (old_m -> power_poly).end()){
-      NNC_Polyhedron p = iter -> pointset();
-      Pointset_Powerset<NNC_Polyhedron> pp(p);
+      FP_Octagonal_Shape p = iter -> pointset();
+      Pointset_Powerset<FP_Octagonal_Shape> pp(p);
       if(!(new_m -> power_poly).geometrically_covers(pp)){
 	(new_m -> power_poly).add_disjunct(p);
       }
@@ -32,11 +32,11 @@ bool merge(PPL_Manager *old_m, PPL_Manager *new_m){
 }
 
 void setAffineFormImage(PPL_Manager *manager, int vid, Linear_Form<FP_Interval> *lf){
-  Pointset_Powerset<NNC_Polyhedron>::iterator iter = (manager -> power_poly).begin();
-  Pointset_Powerset<NNC_Polyhedron> update_p(manager -> dimLen, EMPTY); 
+  Pointset_Powerset<FP_Octagonal_Shape>::iterator iter = (manager -> power_poly).begin();
+  Pointset_Powerset<FP_Octagonal_Shape> update_p(manager -> dimLen, EMPTY); 
   
   while(iter != (manager -> power_poly).end()){
-    NNC_Polyhedron p = iter -> pointset();
+    FP_Octagonal_Shape p = iter -> pointset();
     p.affine_form_image(*(manager -> varIdMap)[vid], *lf);
     update_p.add_disjunct(p);
     iter ++;
@@ -51,7 +51,6 @@ Linear_Form<FP_Interval> *getLinearFormConstant(PPL_Manager *manager, float num)
   sStream << fixed << setprecision(19) << num;
   string fs = sStream.str();
   const char* s = fs.c_str();
-  cout << fs << endl;
   Floating_Point_Constant<C_Expr> con(s, strlen(s));
 
   Linear_Form<FP_Interval> clf;
@@ -76,34 +75,45 @@ Linear_Form<FP_Interval> *getLinearFormPlus(PPL_Manager *manager, Linear_Form<FP
     if (lin_success) {
       ph.affine_form_image(R, lr);
       }*/
-  
-  Linear_Form<FP_Interval> *lf = new Linear_Form<FP_Interval>(*left + *right);
-    
+  //FP_Interval absError = Floating_Point_Expression<FP_Interval, IEEE754_SINGLE>::absolute_error;
+  Linear_Form<FP_Interval> rlerrLeft;
+  Linear_Form<FP_Interval> rlerrRight;
+  left -> relative_error (ANALYZED_FP_FORMAT, rlerrLeft);
+  right -> relative_error (ANALYZED_FP_FORMAT, rlerrRight);
+  Linear_Form<FP_Interval> *lf = new Linear_Form<FP_Interval>(*left + *right + rlerrLeft + rlerrRight);    
   delete left;
   delete right;
   return lf;
 }  
 
 Linear_Form<FP_Interval> *getLinearFormMinus(PPL_Manager *manager, Linear_Form<FP_Interval> *left, Linear_Form<FP_Interval> *right){
-
-  Linear_Form<FP_Interval> *lf = new Linear_Form<FP_Interval>(*left + *right);
+  //FP_Interval absError = Floating_Point_Expression<FP_Interval, float>::absolute_error;  
+  Linear_Form<FP_Interval> rlerrLeft;
+  Linear_Form<FP_Interval> rlerrRight;
+  left -> relative_error (ANALYZED_FP_FORMAT, rlerrLeft);
+  right -> relative_error (ANALYZED_FP_FORMAT, rlerrRight);
+  Linear_Form<FP_Interval> *lf = new Linear_Form<FP_Interval>(*left - *right + rlerrLeft + rlerrRight);
   delete left;
   delete right;
   return lf;
 }
 /* add constraint: left <= right */
 void addConstraint(PPL_Manager *manager, Linear_Form<FP_Interval> *left, Linear_Form<FP_Interval> *right){
-    Pointset_Powerset<NNC_Polyhedron>::iterator iter = (manager -> power_poly).begin();
+    Pointset_Powerset<FP_Octagonal_Shape>::iterator iter = (manager -> power_poly).begin();
     
-    Pointset_Powerset<NNC_Polyhedron> update_p(manager -> dimLen, EMPTY); 
-  
+    Pointset_Powerset<FP_Octagonal_Shape> update_p(manager -> dimLen, EMPTY);
+    cout << "left" << *left << endl;
+    cout << "right" << *right << endl;
     while(iter != (manager -> power_poly).end()){
-      NNC_Polyhedron p = iter -> pointset();
+      FP_Octagonal_Shape p = iter -> pointset();
+      cout << "before" << p.constraints() << endl;
       p.refine_with_linear_form_inequality(*left, *right);
+      cout << "after" << p.constraints() << endl;
       p.refine_fp_interval_abstract_store((manager -> oracle).int_store); /* need to merge the abstract store */
       update_p.add_disjunct(p);
       iter ++;
     }
+    
     manager -> power_poly = update_p;
     delete left;
     delete right;
@@ -111,10 +121,10 @@ void addConstraint(PPL_Manager *manager, Linear_Form<FP_Interval> *left, Linear_
 
 char *getConstraintPretty(PPL_Manager *manager){
   ostringstream sStream;
-  Pointset_Powerset<NNC_Polyhedron>::iterator iter = (manager -> power_poly).begin();
+  Pointset_Powerset<FP_Octagonal_Shape>::iterator iter = (manager -> power_poly).begin();
   static char *s = new char[10000];
   while(iter != (manager -> power_poly).end()){
-      NNC_Polyhedron p = iter -> pointset();
+      FP_Octagonal_Shape p = iter -> pointset();
       sStream << "{" << p.constraints() << "}" ;
       iter ++;
   }
