@@ -3,7 +3,7 @@
 
 int main()
 {
-  float a,b,c;
+  float a __attribute__((reorderable)),b,c;
   if (b - a < 0.1){
      a = a + b;
   }else{

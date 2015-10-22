@@ -2,6 +2,7 @@
 #include <sstream>
 #include <iostream>
 #include <iomanip>
+#include <cmath>
 #include "PPL_Power.h"
 
 using namespace std;
@@ -44,7 +45,47 @@ void setAffineFormImage(PPL_Manager *manager, int vid, Linear_Form<FP_Interval> 
   manager -> power_poly = update_p;
   delete lf;
 }
+double getAbsoluteMaxVal(FP_Interval &inv){
+  double upper = abs(inv.upper());
+  double lower = abs(inv.lower());
+  if(upper > lower)
+    return upper;
+  return lower;
+}
 
+void setAffineFormImageReorder(PPL_Manager *manager, int vid, void *vidList, int len){
+  
+  double error = 0;
+  FP_Interval interval;
+  Variable v = *(manager -> varIdMap[((int*)vidList)[0]]);
+  Linear_Form<FP_Interval> lf(v);
+  lf.intervalize(manager -> oracle, interval);
+  error += getAbsoluteMaxVal(interval);
+  for(int i = 1; i < len; i ++){
+    v = *(manager -> varIdMap[((int*)vidList)[i]]);
+    Linear_Form<FP_Interval> oplf(v);
+    oplf.intervalize(manager -> oracle, interval);
+    error += getAbsoluteMaxVal(interval);
+    lf += oplf;
+  }
+  error = error * (Floating_Point_Expression<FP_Interval, float_ieee754_single>::absolute_error.upper());
+  FP_Interval error_bound_inv;
+  error_bound_inv.upper() = error;
+  error_bound_inv.lower() = -error;
+  Linear_Form<FP_Interval> consError(error_bound_inv);
+  lf += consError;
+  
+  Pointset_Powerset<FP_Octagonal_Shape>::iterator iter = (manager -> power_poly).begin();
+  Pointset_Powerset<FP_Octagonal_Shape> update_p(manager -> dimLen, EMPTY); 
+  
+  while(iter != (manager -> power_poly).end()){
+    FP_Octagonal_Shape p = iter -> pointset();
+    p.affine_form_image(*(manager -> varIdMap)[vid], lf);
+    update_p.add_disjunct(p);
+    iter ++;
+  }
+  manager -> power_poly = update_p;
+}
 
 Linear_Form<FP_Interval> *getLinearFormConstant(PPL_Manager *manager, float num){
   ostringstream sStream;

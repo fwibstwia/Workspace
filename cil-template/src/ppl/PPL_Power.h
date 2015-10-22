@@ -72,6 +72,8 @@ class PPL_Manager {
     p.add_constraint(*varIdMap[varIdArray[0]] <= 2);
     p.add_constraint(*varIdMap[varIdArray[1]] >= 0);
     p.add_constraint(*varIdMap[varIdArray[1]] <= 2);
+    p.add_constraint(*varIdMap[varIdArray[2]] >= 0);
+    p.add_constraint(*varIdMap[varIdArray[2]] <= 2);
     
     power_poly.add_disjunct(p);
     p.refine_fp_interval_abstract_store(oracle.int_store);
@@ -105,6 +107,7 @@ extern "C" {
   
   bool merge(PPL_Manager *old_m, PPL_Manager *new_m); // merge PPL_Manager return whether the state has changed
   void setAffineFormImage(PPL_Manager *manager, int vid, Linear_Form<FP_Interval> *lf);
+  void setAffineFormImageReorder(PPL_Manager *manager, int vid, void *vidList, int len);
   Linear_Form<FP_Interval> *getLinearFormConstant(PPL_Manager *manager, float num);
   Linear_Form<FP_Interval> *getLinearFormVariable(PPL_Manager *manager, int vid);
   Linear_Form<FP_Interval> *getLinearFormPlus(PPL_Manager *manager, Linear_Form<FP_Interval> *left, Linear_Form<FP_Interval> *right);
