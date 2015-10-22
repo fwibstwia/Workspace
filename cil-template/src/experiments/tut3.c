@@ -4,11 +4,11 @@
 int main()
 {
   float a __attribute__((reorderable)),b,c;
-  if (b - a < 0.1){
-     a = a + b;
+  if (b < 0.1){
+     a = a + b + c;
   }else{
-     a = a + b;
+     a = a + b + c;
   }
-  a = a + b;
+  b = a;
   return 0;
 }

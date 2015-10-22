@@ -27,12 +27,27 @@ let val_of_vm   (vm : intVarmap) : int = snd vm
 
 let debug = ref false
 
+let reorderableStr = "reorderable"
+let hasReorderableAttrs : attributes -> bool = hasAttribute reorderableStr
+							    
 let string_pretty () (s: string) =
   s |> text
 
 let power_poly_pretty () (memst : memState) =
   get_constraint_pretty memst.pm |> text
 
+let rec collect_vars(e:exp) (memst: memState):int list =
+  match e with
+  |Lval(Var vi, NoOffset) -> vi.vid::[]
+  |BinOp(bo, e1, e2, t) -> List.append (collect_vars e1 memst) (collect_vars e2 memst)
+  |_ -> E.error "Unsupported reorderable expression"; []
+							
+let set_reorderable_val (vid:int) (pm:ppl_manager) arr : unit =
+  let open Unsigned.Size_t in
+  let len = of_int (CArray.length arr) in
+  let start = to_voidp (CArray.start arr) in
+  set_affine_form_image_reorder pm vid start len    
+							
 let rec construct_linear_of_exp (e : exp) (memst : memState) : expState =
   match e with
   | Const(CInt64(i, _, _)) -> IntValue (Int64.to_int i)
@@ -102,22 +117,25 @@ let varmap_list_replace (vml : intVarmap list ) (vid: int) (val_e : int): intVar
 let power_poly_handle_inst (i : instr) (memst : memState) : memState =
   match i with
   | Set((Var vi, NoOffset), e, loc) when not(vi.vglob) &&
-                                           isArithmeticType vi.vtype &&
-                                             not(isIntegralType vi.vtype) ->
-     begin
-       let es = construct_linear_of_exp e memst in
-       match es with
-       |IntValue v -> begin
-	   let updated_vml = varmap_list_replace memst.intvarmaplist vi.vid v in
-	   let updated_memst = {intvarmaplist = updated_vml; pm  = memst.pm} in
-	   updated_memst
-	 end
-       |LinearForm lf -> begin
-	   set_affine_form_image memst.pm vi.vid lf;
-	   memst;
-	 end
-     end
-
+                                           isArithmeticType vi.vtype  ->
+     if hasReorderableAttrs vi.vattr then
+       let varlist = collect_vars e memst in 
+       set_reorderable_val vi.vid memst.pm (CArray.of_list int varlist);
+       memst
+     else
+       begin
+	 let es = construct_linear_of_exp e memst in
+	 match es with
+	 |IntValue v -> begin
+	     let updated_vml = varmap_list_replace memst.intvarmaplist vi.vid v in
+	     let updated_memst = {intvarmaplist = updated_vml; pm  = memst.pm} in
+	     updated_memst
+	   end
+	 |LinearForm lf -> begin
+	     set_affine_form_image memst.pm vi.vid lf;
+	     memst
+	   end
+       end
   | Set((Mem _, _), _, _)
   (* | Call _ -> varmap_list_kill vml *)
   | _ -> memst

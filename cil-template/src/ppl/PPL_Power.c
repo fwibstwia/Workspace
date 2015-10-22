@@ -45,6 +45,7 @@ void setAffineFormImage(PPL_Manager *manager, int vid, Linear_Form<FP_Interval> 
   manager -> power_poly = update_p;
   delete lf;
 }
+
 double getAbsoluteMaxVal(FP_Interval &inv){
   double upper = abs(inv.upper());
   double lower = abs(inv.lower());
@@ -68,7 +69,9 @@ void setAffineFormImageReorder(PPL_Manager *manager, int vid, void *vidList, int
     error += getAbsoluteMaxVal(interval);
     lf += oplf;
   }
-  error = error * (Floating_Point_Expression<FP_Interval, float_ieee754_single>::absolute_error.upper());
+  cout << "error is " << error << endl;
+  error = error * numeric_limits<float>::denorm_min();
+  cout << "error are " << fixed << setprecision(19) << numeric_limits<float>::denorm_min() << endl;
   FP_Interval error_bound_inv;
   error_bound_inv.upper() = error;
   error_bound_inv.lower() = -error;
