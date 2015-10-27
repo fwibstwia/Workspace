@@ -69,9 +69,8 @@ void setAffineFormImageReorder(PPL_Manager *manager, int vid, void *vidList, int
     error += getAbsoluteMaxVal(interval);
     lf += oplf;
   }
-  cout << "error is " << error << endl;
-  error = error * numeric_limits<float>::denorm_min();
-  cout << "error are " << fixed << setprecision(19) << numeric_limits<float>::denorm_min() << endl;
+
+  error = error * ((len-1) *numeric_limits<float>::denorm_min()/(1-(len-1)*numeric_limits<float>::denorm_min()));
   FP_Interval error_bound_inv;
   error_bound_inv.upper() = error;
   error_bound_inv.lower() = -error;
