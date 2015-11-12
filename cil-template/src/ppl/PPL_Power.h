@@ -66,17 +66,17 @@ class PPL_Manager {
     for(int i = 0; i < dimLen; i ++){
       varIdMap[varIdArray[i]] = new Variable(i);
     }
-    FP_Octagonal_Shape p(len, UNIVERSE);
+    NNC_Polyhedron p(len, UNIVERSE);
     //add constraints
     p.add_constraint(*varIdMap[varIdArray[0]] >= 0);
-    p.add_constraint(*varIdMap[varIdArray[0]] <= 2);
+    p.add_constraint(*varIdMap[varIdArray[0]] <= 100000);
     p.add_constraint(*varIdMap[varIdArray[1]] >= 0);
-    p.add_constraint(*varIdMap[varIdArray[1]] <= 2);
-    p.add_constraint(*varIdMap[varIdArray[2]] >= 0);
+    p.add_constraint(*varIdMap[varIdArray[1]] <= 100000);
+    p.add_constraint(*varIdMap[varIdArray[2]] >= 1);
     p.add_constraint(*varIdMap[varIdArray[2]] <= 2);
     
     power_poly.add_disjunct(p);
-    p.refine_fp_interval_abstract_store(oracle.int_store);
+
   }
 
  PPL_Manager(PPL_Manager &manager): dimLen(manager.dimLen), oracle(manager.oracle), power_poly(manager.power_poly), varIdMap(manager.varIdMap){    
@@ -85,7 +85,7 @@ class PPL_Manager {
   map<int, Variable*> varIdMap; //map vid to PPL Variable Type
   Test_Oracle oracle;
   FP_Linear_Form_Abstract_Store lf_abstract_store;
-  Pointset_Powerset<FP_Octagonal_Shape> power_poly;
+  Pointset_Powerset<NNC_Polyhedron> power_poly;
   int dimLen;
 };
 

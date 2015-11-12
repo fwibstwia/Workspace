@@ -47,7 +47,7 @@ typedef Interval_Info_Bitset<unsigned int,
                              Floating_Real_Open_Interval_Info_Policy> Floating_Real_Open_Interval_Info;
 
 //FP_interval with interval type mpq_class, unbounded rational type 
-typedef Interval<double,
+typedef Interval<float,
                  Floating_Real_Open_Interval_Info> FP_Interval;
 
 typedef Linear_Form<FP_Interval> FP_Linear_Form;
@@ -57,7 +57,7 @@ typedef Box<FP_Interval> FP_Interval_Abstract_Store;
 typedef std::map<dimension_type, FP_Linear_Form>
                                  FP_Linear_Form_Abstract_Store;
 
-typedef Octagonal_Shape<double> FP_Octagonal_Shape;
+typedef Octagonal_Shape<float> FP_Octagonal_Shape;
 
 struct C_Expr;
 
