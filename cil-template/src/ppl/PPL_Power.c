@@ -60,6 +60,72 @@ mpq_class getAbsoluteMaxVal(const FP_Interval &inv){
   return lower;
 }
 
+void getNonLinearBounds(FP_Interval &vl_bound, FP_Interval &vr_bound, Variable &v_right,
+			Linear_Form<FP_Interval> &lf_lower, Linear_Form<FP_Interval> &lf_upper){
+  Linear_Form<FP_Interval> vf(v_right);
+  if(vr_bound.lower() >= 0){
+    FP_Interval coef_lower, coef_upper;
+    coef_lower.lower() = vl_bound.lower();
+    coef_lower.upper() = vl_bound.lower();
+    coef_upper.lower() = vl_bound.upper();
+    coef_upper.upper() = vl_bound.upper();
+    
+    lf_lower += coef_lower*vf;
+    lf_upper += coef_upper*vf;
+  }else if(vr_bound.upper() <= 0){
+    FP_Interval coef_lower, coef_upper;
+    coef_lower.lower() = vl_bound.lower();
+    coef_lower.upper() = vl_bound.lower();
+    coef_upper.lower() = vl_bound.upper();
+    coef_upper.upper() = vl_bound.upper();
+    
+    lf_lower += coef_upper * vf;
+    lf_upper += coef_lower * vf;
+  }else{
+    mpq_class a_k (vl_bound.lower());
+    mpq_class b_k (vl_bound.upper());
+    mpq_class w_k_lower (vr_bound.lower());
+    mpq_class w_k_upper (vr_bound.upper());
+    mpq_class c = (b_k*w_k_upper - a_k*w_k_lower)/(w_k_upper - w_k_lower);
+    mpq_class d = (a_k*w_k_upper - b_k*w_k_lower)/(w_k_upper - w_k_lower);
+    mpq_class yc = w_k_lower * a_k;
+    mpq_class yd = w_k_lower * b_k;
+    mpfr_t mpf_c, mpf_d, mpf_yc, mpf_yd;
+    mpfr_init2 (mpf_c, 24);
+    mpfr_init2 (mpf_d, 24);
+    mpfr_init2 (mpf_yc, 24);
+    mpfr_init2 (mpf_yd, 24);
+      
+    //convert to float
+    mpfr_set_q(mpf_c, c.get_mpq_t(), MPFR_RNDU);
+    mpfr_set_q(mpf_yc, yc.get_mpq_t(), MPFR_RNDU);
+    float fc = mpfr_get_d(mpf_c, MPFR_RNDU);
+    float fyc = mpfr_get_d(mpf_yc, MPFR_RNDU);
+    mpfr_set_q(mpf_d, d.get_mpq_t(), MPFR_RNDD);
+    mpfr_set_q(mpf_yd, d.get_mpq_t(), MPFR_RNDD);
+    float fd = mpfr_get_d(mpf_d, MPFR_RNDD);
+    float fyd = mpfr_get_d(mpf_yd, MPFR_RNDD);
+
+    FP_Interval coef_x1, coef_fd, coef_fyd, coef_fc, coef_fyc;
+    coef_x1.lower() = vr_bound.lower();
+    coef_x1.upper() = vr_bound.lower();
+    coef_fd.lower() = fd;
+    coef_fd.upper() = fd;
+    coef_fyd.lower() = fyd;
+    coef_fyd.upper() = fyd;
+    coef_fc.lower() = fc;
+    coef_fc.upper() = fc;
+    coef_fyc.lower() = fyc;
+    coef_fyc.upper() = fyc;
+
+    Linear_Form<FP_Interval> lf_coef_x1(coef_x1), lf_coef_fd(coef_fd),
+      lf_coef_fyd(coef_fyd), lf_coef_fc(coef_fc), lf_coef_fyc(coef_fyc);
+    
+    lf_lower += coef_fd*(vf - lf_coef_x1) + lf_coef_fyd;
+    lf_upper += coef_fc*(vf - lf_coef_x1) + lf_coef_fyc;
+  }
+}
+
 void setAffineFormImageReorder(PPL_Manager *manager, int vid, void *vidList, int len){
   Pointset_Powerset<NNC_Polyhedron>::iterator iter = (manager -> power_poly).begin();
   Pointset_Powerset<NNC_Polyhedron> update_p(manager -> dimLen, EMPTY); 
@@ -69,25 +135,29 @@ void setAffineFormImageReorder(PPL_Manager *manager, int vid, void *vidList, int
     
     FP_Interval_Abstract_Store int_store(manager -> dimLen);
     p.refine_fp_interval_abstract_store(int_store);
-    cout << "before" << p.constraints() << endl;
 
-    const int orig_round = fegetround();
+    Linear_Form<FP_Interval> lf_lower;
+    Linear_Form<FP_Interval> lf_upper;
 
-    mpq_class error = 0;
-    mpq_class num_limit = numeric_limits<float>::denorm_min();
-    
-    Linear_Form<FP_Interval> lf;
-    
     for(int i = 0; i < len; i = i + 2){
       Variable v_left = *(manager -> varIdMap[((int*)vidList)[i]]);
       Variable v_right = *(manager -> varIdMap[((int*)vidList)[i+1]]);
       FP_Interval vl_bound = int_store.get_interval(v_left);
+      FP_Interval vr_bound = int_store.get_interval(v_right);
+      getNonLinearBounds(vl_bound, vr_bound, v_right, lf_lower, lf_upper);
+    }
+      /*
       Linear_Form<FP_Interval> oprf(v_right);
       Linear_Form<FP_Interval> opf(vl_bound * oprf);
       error += getAbsoluteMaxVal(int_store.get_interval(v_right));
       lf = lf+ opf;
     }
     
+    
+    const int orig_round = fegetround();
+
+    mpq_class error = 0;
+    mpq_class num_limit = numeric_limits<float>::denorm_min();   
     error = error * ((len-1) * num_limit /(1-(len-1)*num_limit));
     //convert to float
     mpfr_t q;
@@ -103,8 +173,14 @@ void setAffineFormImageReorder(PPL_Manager *manager, int vid, void *vidList, int
       //lf += consError;
 
     cout << "constraint" << lf << endl;
-  
+
     p.affine_form_image(*(manager -> varIdMap)[vid], lf);
+      */
+    Linear_Form<FP_Interval> vf(*(manager->varIdMap)[vid]);
+    p.unconstrain(*(manager->varIdMap)[vid]);
+    p.refine_with_linear_form_inequality(lf_lower, vf);
+    p.refine_with_linear_form_inequality(vf, lf_upper);
+    
     cout << "after" << p.constraints() << endl;
     update_p.add_disjunct(p);
     iter ++;
