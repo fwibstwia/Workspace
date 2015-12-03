@@ -132,12 +132,13 @@ void setAffineFormImageReorder(PPL_Manager *manager, int vid, void *vidList, int
   
   while(iter != (manager -> power_poly).end()){  
     NNC_Polyhedron p = iter -> pointset();
-    
+    NNC_Polyhedron mine_p = iter -> pointset();    
     FP_Interval_Abstract_Store int_store(manager -> dimLen);
     p.refine_fp_interval_abstract_store(int_store);
 
     Linear_Form<FP_Interval> lf_lower;
     Linear_Form<FP_Interval> lf_upper;
+    Linear_Form<FP_Interval> mine_lf;
 
     for(int i = 0; i < len; i = i + 2){
       Variable v_left = *(manager -> varIdMap[((int*)vidList)[i]]);
@@ -145,6 +146,10 @@ void setAffineFormImageReorder(PPL_Manager *manager, int vid, void *vidList, int
       FP_Interval vl_bound = int_store.get_interval(v_left);
       FP_Interval vr_bound = int_store.get_interval(v_right);
       getNonLinearBounds(vl_bound, vr_bound, v_right, lf_lower, lf_upper);
+
+      Linear_Form<FP_Interval> mine_v_lf(v_right);
+      Linear_Form<FP_Interval> mine_mult_lf(vl_bound * mine_v_lf);
+      mine_lf = mine_lf + mine_mult_lf;
     }
       /*
       Linear_Form<FP_Interval> oprf(v_right);
@@ -180,8 +185,19 @@ void setAffineFormImageReorder(PPL_Manager *manager, int vid, void *vidList, int
     p.unconstrain(*(manager->varIdMap)[vid]);
     p.refine_with_linear_form_inequality(lf_lower, vf);
     p.refine_with_linear_form_inequality(vf, lf_upper);
+
+    mine_p.affine_form_image(*(manager -> varIdMap)[vid], mine_lf);
+
+    FP_Interval_Abstract_Store conv_store(manager -> dimLen);
+    p.refine_fp_interval_abstract_store(conv_store);
+    FP_Interval_Abstract_Store mine_store(manager -> dimLen);
+    mine_p.refine_fp_interval_abstract_store(mine_store);
     
-    cout << "after" << p.constraints() << endl;
+    cout << "conv: " << p.constraints() << endl;
+    cout << "conv: " << conv_store << endl;
+    cout << "mine: " << mine_p.constraints() << endl;
+    cout << "mine: " << mine_store << endl;
+    
     update_p.add_disjunct(p);
     iter ++;
   }

@@ -3,11 +3,10 @@
 
 int main()
 {
-  float a __attribute__((reorderable)),b,c;
+  float a __attribute__((reorderable)),b,c,d;
   //if (b < 0.1){
-  // a = c*b;
-   a = c*b + c*c;
-  //}
-  //b = a;
+  //a = c*b;
+  a = b*c;
+  //a = b*d;
   return 0;
 }

@@ -68,12 +68,12 @@ class PPL_Manager {
     }
     NNC_Polyhedron p(len, UNIVERSE);
     //add constraints
-    p.add_constraint(*varIdMap[varIdArray[0]] >= 0);
-    p.add_constraint(*varIdMap[varIdArray[0]] <= 100000);
-    p.add_constraint(*varIdMap[varIdArray[1]] >= 0);
-    p.add_constraint(*varIdMap[varIdArray[1]] <= 100000);
-    p.add_constraint(*varIdMap[varIdArray[2]] >= 1);
+    p.add_constraint(*varIdMap[varIdArray[1]] >= 1);
+    p.add_constraint(*varIdMap[varIdArray[1]] <= 2);
+    p.add_constraint(*varIdMap[varIdArray[2]] >= -1);
     p.add_constraint(*varIdMap[varIdArray[2]] <= 2);
+    //p.add_constraint(*varIdMap[varIdArray[3]] >= -1);
+    //p.add_constraint(*varIdMap[varIdArray[3]] <= 2);
     
     power_poly.add_disjunct(p);
 
