@@ -1,8 +1,12 @@
-g++ -g -c -fPIC PPL_Power.c  -o PPL_Power.o -lppl -lgmpxx -lgmp
-
-g++ -shared -Wl,-soname,libpplpower.so -o libpplpower.so.1.0.1 PPL_Power.o -lc
-
+g++ -g -c -fPIC PPL_Power.c  -o PPL_Power.o -lmpfr -lppl -lgmpxx -lgmp
+g++ -g -c -fPIC DP_Form.c  -o DP_Form.o -lmpfr -lppl -lgmpxx -lgmp 
+g++ -shared -Wl,-soname,libpplpower.so -o libpplpower.so.1.0.1 PPL_Power.o DP_Form.o -lc
 mv libpplpower.so.1.0.1 ../libpplpower.so
+cd ..
+./test --enable-tut3 experiments/while.c
+
+
+
 
 
 

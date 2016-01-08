@@ -46,10 +46,13 @@ struct Floating_Real_Open_Interval_Info_Policy {
 typedef Interval_Info_Bitset<unsigned int,
                              Floating_Real_Open_Interval_Info_Policy> Floating_Real_Open_Interval_Info;
 
-//FP_interval with interval type mpq_class, unbounded rational type 
+//FP_interval with interval type float, 
 typedef Interval<float,
                  Floating_Real_Open_Interval_Info> FP_Interval;
-
+ 
+typedef Interval<mpq_class,
+   Floating_Real_Open_Interval_Info> MPQ_Interval;
+ 
 typedef Linear_Form<FP_Interval> FP_Linear_Form;
 
 typedef Box<FP_Interval> FP_Interval_Abstract_Store;

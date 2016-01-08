@@ -17,48 +17,33 @@ module C = Cil
 module O = Ciltutoptions
 (* Assumption: do not consider expressions with mixed int and float types*)
 type intVarmap = int * int 	(*map int vid to value *)
-		   
-type memState = { intvarmaplist:intVarmap list; pm:ppl_manager}
 
-type expState = IntValue of int | LinearForm of linear_form
+type memState = { intvarmaplist:intVarmap list;  pm:ppl_manager}
+
+type expState = IntValue of int | DPForm of dp_form
 
 let id_of_vm   (vm : intVarmap) : int  = fst vm
 let val_of_vm   (vm : intVarmap) : int = snd vm
 
 let debug = ref false
-
-let reorderableStr = "reorderable"
-let hasReorderableAttrs : attributes -> bool = hasAttribute reorderableStr
 							    
 let string_pretty () (s: string) =
   s |> text
 
 let power_poly_pretty () (memst : memState) =
   get_constraint_pretty memst.pm |> text
-
-let rec collect_vars(e:exp) (memst: memState):int list =
-  match e with
-  |Lval(Var vi, NoOffset) -> vi.vid::[]
-  |BinOp(bo, e1, e2, t) -> List.append (collect_vars e1 memst) (collect_vars e2 memst)
-  |_ -> E.error "Unsupported reorderable expression"; []
-							
-let set_reorderable_val (vid:int) (pm:ppl_manager) arr : unit =
-  let open Unsigned.Size_t in
-  let len = of_int (CArray.length arr) in
-  let start = to_voidp (CArray.start arr) in
-  set_affine_form_image_reorder pm vid start len    
-							
+  
 let rec construct_linear_of_exp (e : exp) (memst : memState) : expState =
   match e with
   | Const(CInt64(i, _, _)) -> IntValue (Int64.to_int i)
-  | Const(CReal(f, _, _)) -> LinearForm (get_linear_form_constant (memst.pm) f)
+  | Const(CReal(f, _, _)) -> DPForm (get_dp_form_constant (memst.pm) f)
   | Lval(Var vi, NoOffset) -> 
      if isIntegralType vi.vtype then
        begin
 	 IntValue(L.assoc vi.vid memst.intvarmaplist)
        end
      else
-       LinearForm(get_linear_form_variable memst.pm vi.vid)
+       DPForm(get_dp_form_variable memst.pm vi.vid)
   (* | SizeOf _ | SizeOfE _ | SizeOfStr _ | AlignOf _ | AlignOfE _ -> *)
     (* e |> constFold true |> oekind_of_exp vml *)
   (* | UnOp(uo, e, t) -> construct_linear_of_unop uo e memst *)
@@ -73,14 +58,21 @@ and construct_linear_of_binop (b : binop) (e1 : exp) (e2 : exp) (memst : memStat
   | PlusA -> begin
       match l1, l2 with
       |IntValue v1, IntValue v2 -> IntValue (v1 + v2)
-      |LinearForm lf1, LinearForm lf2 -> LinearForm(get_linear_form_plus memst.pm lf1 lf2)
+      |DPForm lf1, DPForm lf2 -> DPForm(get_dp_form_plus memst.pm lf1 lf2)
       |_, _ -> E.error "mixed type exp"; IntValue(0)
     end
 
   | MinusA -> begin
       match l1, l2 with
       |IntValue v1, IntValue v2 -> IntValue (v1 - v2)
-      |LinearForm lf1, LinearForm lf2 -> LinearForm(get_linear_form_minus memst.pm lf1 lf2)
+      |DPForm lf1, DPForm lf2 -> DPForm(get_dp_form_minus memst.pm lf1 lf2)
+      |_, _ -> E.error "mixed type exp"; IntValue(0)
+    end
+
+  |Mult -> begin
+      match l1, l2 with
+      |IntValue v1, IntValue v2 -> IntValue (v1 * v2)
+      |DPForm lf1, DPForm lf2 -> DPForm(get_dp_form_times memst.pm lf1 lf2)
       |_, _ -> E.error "mixed type exp"; IntValue(0)
     end
   (* | Times of Z.t * linear_expression *)
@@ -95,7 +87,7 @@ and eval_exp_constraint (b : binop) (e1 : exp) (e2 : exp) (memst: memState) : in
       |IntValue v1, IntValue v2 -> begin
 	  if(v1 < v2) then 0 else 1
 	end
-      |LinearForm lf1, LinearForm lf2 ->begin
+      |DPForm lf1, DPForm lf2 ->begin
 	  add_constraint memst.pm lf1 lf2;
 	  2
 	end
@@ -118,11 +110,6 @@ let power_poly_handle_inst (i : instr) (memst : memState) : memState =
   match i with
   | Set((Var vi, NoOffset), e, loc) when not(vi.vglob) &&
                                            isArithmeticType vi.vtype  ->
-     if hasReorderableAttrs vi.vattr then
-       let varlist = collect_vars e memst in 
-       set_reorderable_val vi.vid memst.pm (CArray.of_list int varlist);
-       memst
-     else
        begin
 	 let es = construct_linear_of_exp e memst in
 	 match es with
@@ -131,13 +118,13 @@ let power_poly_handle_inst (i : instr) (memst : memState) : memState =
 	     let updated_memst = {intvarmaplist = updated_vml; pm  = memst.pm} in
 	     updated_memst
 	   end
-	 |LinearForm lf -> begin
+	 |DPForm lf -> begin
 	     set_affine_form_image memst.pm vi.vid lf;
 	     memst
 	   end
        end
   | Set((Mem _, _), _, _)
-  (* | Call _ -> varmap_list_kill vml *)
+  | Call _ 
   | _ -> memst
 
 module PowerPolyDF = struct
@@ -191,13 +178,13 @@ let rec fetchFloatVidList (l) : int list =
   match l with
   |[] -> []
   |x::rl -> x.vid::fetchFloatVidList rl
-					    
+				     
 let collectFloatVars (fd : fundec) : int list=
   (fd.sformals @ fd.slocals)
   |> L.filter (fun vi -> isArithmeticType vi.vtype &&
                                              not(isIntegralType vi.vtype) )
   |> fetchFloatVidList
-    
+				
 let initPowerManager arr =
   let open Unsigned.Size_t in
   let len = of_int (CArray.length arr) in
