@@ -48,9 +48,21 @@ let rec construct_linear_of_exp (e : exp) (memst : memState) : expState =
     (* e |> constFold true |> oekind_of_exp vml *)
   (* | UnOp(uo, e, t) -> construct_linear_of_unop uo e memst *)
   | BinOp(bo, e1, e2, t) -> construct_linear_of_binop bo e1 e2 memst
+  | UnOp(uo, e1, t) -> construct_linear_of_unop uo e1 memst  	      	
   | CastE(t, e1) -> construct_linear_of_exp e1 memst
   | _ -> E.error "Unsupported Operator %a" Cil.d_exp e; IntValue 0
-  
+								 
+and construct_linear_of_unop (uo : unop) (e1 : exp) (memst : memState) : expState =
+  let l1 = construct_linear_of_exp e1 memst in
+  match uo with
+  |Neg -> begin
+      match l1 with
+      |IntValue v1 -> IntValue (-v1)
+      |DPForm lf1 ->  DPForm (get_dp_form_unary_minus memst.pm lf1)
+    end
+  |_ -> E.error "unsupported unary operation"; l1
+ 
+    
 and construct_linear_of_binop (b : binop) (e1 : exp) (e2 : exp) (memst : memState) : expState=
   let l1, l2 = construct_linear_of_exp e1 memst, construct_linear_of_exp e2 memst in
 

@@ -30,7 +30,7 @@ bool merge(PPL_Manager *old_m, PPL_Manager *new_m){
   }
 }
 
-void setAffineFormImage(PPL_Manager *manager, int vid, DP_Form *dp_f){
+void setAffineFormImage(PPL_Manager *manager, int vid, Polynomial *poly){
   Pointset_Powerset<NNC_Polyhedron>::iterator iter = (manager -> power_poly).begin();
   Pointset_Powerset<NNC_Polyhedron> update_p(manager -> dimLen, EMPTY); 
   
@@ -39,63 +39,99 @@ void setAffineFormImage(PPL_Manager *manager, int vid, DP_Form *dp_f){
     FP_Interval_Abstract_Store inv_store(manager -> dimLen);
     p.refine_fp_interval_abstract_store(inv_store);
 
+    NNC_Polyhedron poly_p = poly -> polyhedronApprox(inv_store,  (*(manager->varIdMap)[vid]).id());
+    p.unconstrain(*(manager->varIdMap)[vid]);
+    p.intersection_assign (poly_p);
+    
+    /*
     Linear_Form<FP_Interval> lf_lower;
     Linear_Form<FP_Interval> lf_upper;
 
     dp_f -> convertToLC(manager, inv_store, lf_lower, lf_upper, vid);
+    
     Linear_Form<FP_Interval> vf(*(manager->varIdMap)[vid]);
+    
     p.unconstrain(*(manager->varIdMap)[vid]);
+    
     p.refine_with_linear_form_inequality(lf_lower, vf);
-    p.refine_with_linear_form_inequality(vf, lf_upper);
+    
+    p.refine_with_linear_form_inequality(vf, lf_upper);*/
+    
     update_p.add_disjunct(p);
     iter ++;
   }
   manager -> power_poly = update_p;
-  delete dp_f;
+  delete poly;
 }
 
 
-DP_Form *getDPFormConstant(PPL_Manager *manager, float num){
-  return new DP_Form(num);
+Polynomial *getPolynomialConstant(PPL_Manager *manager, float num){
+  return new Polynomial(num, manager -> dimLen);
 }
 
-DP_Form *getDPFormVariable(PPL_Manager *manager, int vid){
-  return new DP_Form(vid);
+Polynomial *getPolynomialVariable(PPL_Manager *manager, int vid){
+  
+  Polynomial *p = new Polynomial((int)(*(manager->varIdMap)[vid]).id(), manager -> dimLen);
+  return p;
 }
 
-DP_Form *getDPFormPlus(PPL_Manager *manager, DP_Form *left, DP_Form *right){
-  DP_Form *vlf = new DP_Form(*left + *right);  
+Polynomial *getPolynomialPlus(PPL_Manager *manager, Polynomial *left, Polynomial *right){
+  Polynomial *p = new Polynomial(*left + *right);  
   delete left;
   delete right;
-  return vlf;
+  return p;
 }
 
-DP_Form *getDPFormMinus(PPL_Manager *manager, DP_Form *left, DP_Form *right){  
-  DP_Form *vlf = new DP_Form(*left - *right);  
-  delete left;
-  delete right;
-  return vlf;
+Polynomial *getPolynomialUnaryMinus(PPL_Manager *manager, Polynomial *l){
+  Polynomial *minusOne = getPolynomialConstant(manager, -1);
+  Polynomial *r = getPolynomialTimes(manager, minusOne, l);
+  return r;
 }
 
-DP_Form *getDPFormTimes(PPL_Manager *manager, DP_Form *left, DP_Form *right){//parenthesis free
-  pair<vector<float>, vector<int> > p = left -> getLk();				     
-  DP_Form *vlf = new DP_Form(p * (*right));  
+Polynomial *getPolynomialMinus(PPL_Manager *manager, Polynomial *left, Polynomial *right){  
+  Polynomial *p = new Polynomial(*left - *right);  
   delete left;
   delete right;
-  return vlf;
+  return p;
+}
+
+Polynomial *getPolynomialTimes(PPL_Manager *manager, Polynomial *left, Polynomial *right){//parenthesis free
+				     
+  Polynomial *p = new Polynomial((left->monomial_list)[0] * (*right));
+  delete left;
+  delete right;
+  return p;
 }
 
 /* add constraint: A <= 0 */
-void addConstraint(PPL_Manager *manager, DP_Form *left, DP_Form *right){
+//TODO : need to use linear constraint, instead of linear form constraint
+void addConstraint(PPL_Manager *manager, Polynomial *left, Polynomial *right){
     Pointset_Powerset<NNC_Polyhedron>::iterator iter = (manager -> power_poly).begin();    
     Pointset_Powerset<NNC_Polyhedron> update_p(manager -> dimLen, EMPTY);
-
-    int vid = ((left->getLk()).second)[0];
-    float c = ((right->getLk()).first)[0];
+    int dim = 0;
+    float c = 0.0;
+    
+    if(((left->monomial_list[0]).coefficients).size() > 0){
+      c = (left -> monomial_list[0]).coefficients[0].get_d();
+      for(int j = 0; j < right -> dimLen; j ++){
+	if((dim = right -> monomial_list[0].m_degree[j]) != 0){
+	  break;
+	}
+      }
+    } else {
+      c = (right -> monomial_list[0]).coefficients[0].get_d();
+      for(int j = 0; j < left -> dimLen; j ++){
+	if((dim = left -> monomial_list[0].m_degree[j]) != 0){
+	  break;
+	}
+      }      
+    }
+      
     FP_Interval inv_c;
     inv_c.lower() = c;
     inv_c.upper() = c;
-    Variable v = *(manager -> varIdMap[vid]);
+    Variable v(dim);
+    
     Linear_Form<FP_Interval> lf_v(v), lf_c(inv_c);
     
     while(iter != (manager -> power_poly).end()){

@@ -4,7 +4,7 @@
 #include <sstream>
 
 #include "PPL_Manager.h"
-#include "DP_Form.h"
+#include "Polynomial.h"
 
 
 using namespace std;
@@ -28,13 +28,14 @@ extern "C" {
   bool merge(PPL_Manager *old_m, PPL_Manager *new_m); // merge PPL_Manager return whether the state has changed
 
 
-  void setAffineFormImage(PPL_Manager *manager, int vid, DP_Form *dp_f);
-  DP_Form *getDPFormConstant(PPL_Manager *manager, float num);
-  DP_Form *getDPFormVariable(PPL_Manager *manager, int vid);
-  DP_Form *getDPFormPlus(PPL_Manager *manager, DP_Form *left, DP_Form *right);
-  DP_Form *getDPFormMinus(PPL_Manager *manager, DP_Form *left, DP_Form *right);
-  DP_Form *getDPFormTimes(PPL_Manager *manager, DP_Form *left, DP_Form *right);
-  void addConstraint(PPL_Manager *manager, DP_Form *left, DP_Form *right);
+  void setAffineFormImage(PPL_Manager *manager, int vid, Polynomial *dp_f);
+  Polynomial *getPolynomialConstant(PPL_Manager *manager, float num);
+  Polynomial *getPolynomialVariable(PPL_Manager *manager, int vid);
+  Polynomial *getPolynomialPlus(PPL_Manager *manager, Polynomial *left, Polynomial *right);
+  Polynomial *getPolynomialUnaryMinus(PPL_Manager *manager, Polynomial *left);
+  Polynomial *getPolynomialMinus(PPL_Manager *manager, Polynomial *left, Polynomial *right);
+  Polynomial *getPolynomialTimes(PPL_Manager *manager, Polynomial *left, Polynomial *right);
+  void addConstraint(PPL_Manager *manager, Polynomial *left, Polynomial *right);
   char *getConstraintPretty(PPL_Manager *manager);
 #ifdef __cplusplus
 }
