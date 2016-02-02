@@ -1,0 +1,18 @@
+From this course, first I want to learn some basics about model
+checking and program verification, like how to establish formal
+models for a given program and use model checking tools to verify
+that these models have certain properties. Also I want to know
+the current status of model checking field, like the research
+problems people are currently working on. It seems that this
+week's talk "Lightweight Formal Methods for LLVM Verification" is
+similar with the model checking. He first established some model
+and verified that these models have certain properties with the
+help of SMT solver, and automatically generated c++ codes based
+on these models. About the last step, I want to know whether
+there are similar techniques in the model checking field. 
+
+Another aspect I want to learn is the theory behind model
+checking, like automata theory and temporal logic.
+
+I prefer to do some projects using model checking tools to verify
+some non-trivial programs.
