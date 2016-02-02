@@ -69,3 +69,11 @@ dist/
 /fpa-heterogeneous/
 /opencl-fp/
 /llvm2.9/
+*.so
+*.cmi
+*.cmx
+*.native
+_build
+_tags
+opencl-fp
+boxPower

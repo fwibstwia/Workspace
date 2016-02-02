@@ -24,18 +24,19 @@ class PPL_Manager {
     p.add_constraint(*varIdMap[varIdArray[1]] >= 0);
     p.add_constraint(*varIdMap[varIdArray[1]] <= 1);
 
-    p.add_constraint(*varIdMap[varIdArray[2]] >= 0);
-    p.add_constraint(*varIdMap[varIdArray[2]] <= 1);
+    /*
+    p.add_constraint(*varIdMap[varIdArray[2]] >= 1);
+    p.add_constraint(*varIdMap[varIdArray[2]] <= 2);
 
-    p.add_constraint(*varIdMap[varIdArray[3]] >= 0);
-    p.add_constraint(*varIdMap[varIdArray[3]] <= 1);
+    p.add_constraint(*varIdMap[varIdArray[3]] >= 1);
+    p.add_constraint(*varIdMap[varIdArray[3]] <= 2);
     
-    p.add_constraint(*varIdMap[varIdArray[4]] >= 0);
-    p.add_constraint(*varIdMap[varIdArray[4]] <= 1);
-    p.add_constraint(*varIdMap[varIdArray[5]] >= 0);
-    p.add_constraint(*varIdMap[varIdArray[5]] <= 1);
-    p.add_constraint(*varIdMap[varIdArray[6]] >= 0);
-    p.add_constraint(*varIdMap[varIdArray[6]] <= 1);
+    p.add_constraint(*varIdMap[varIdArray[4]] >= 1);
+    p.add_constraint(*varIdMap[varIdArray[4]] <= 2);
+    p.add_constraint(*varIdMap[varIdArray[5]] >= 1);
+    p.add_constraint(*varIdMap[varIdArray[5]] <= 2);
+    p.add_constraint(*varIdMap[varIdArray[6]] >= 1);
+    p.add_constraint(*varIdMap[varIdArray[6]] <= 2);*/
     
     //p.add_constraint(*varIdMap[varIdArray[3]] >= -1);
     //p.add_constraint(*varIdMap[varIdArray[3]] <= 2);

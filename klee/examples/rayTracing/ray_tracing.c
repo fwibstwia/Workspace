@@ -9,20 +9,49 @@ float dot3(float *a, float *b){     //Dot Product 3-Vectors
   return r;
 }
 
-int ray_tracing(float *r, float *s, float radius) {
-  float A = dot3(r,r);                       
-  float B = -2.0 * dot3(s,r);               
-  float C = dot3(s,s) - radius;          
-  float D = B*B - 4*A*C;  
-  //float D = A + B - C ;*/ 
-  printf("%.19f\n", D);  
-           
-  if (D > 0){
-    //printf("1\n");  
-  }else{
-    //printf("-1\n"); 
-  }
-  return 0;
+
+float ray_tracing(float *r, float *s, float radius) {
+  float A = dot3(r,r);
+  float A_Min = getMinWithFMA(r, r);
+  float A_Max = getMaxWithFMA(r, r);
+
+  float B1 = dot3(s,r);   
+  float B1_Min = getMinWithFMA(s, r);
+  float B1_Max = getMaxWithFMA(s, r);                   
+  float B = -2.0 * B1; 
+  float B_Min  = getMinInvMult(-2.0, -2.0, B1_Min, B1_Max);
+  float B_Max  = getMaxInvMult(-2.0, -2.0, B1_Min, B1_Max);
+
+  float C1 = dot3(s,s);  
+  float C1_Min = getMinWithFMA(r, r);
+  float C1_Max = getMaxWithFMA(r, r);            
+  float C = C1 - radius;
+  float C_Min  = getMinInvMinus(C1_Min, C1_Max, radius, radius);
+  float C_Max  = getMaxInvMinus(C1_Min, C1_Max, radius, radius);
+
+  float D1 = B*B;
+  float D1_Min  = getMinInvMult(B_Min, B_Max, B_Min, B_Max);
+  float D1_Max  = getMaxInvMult(B_Min, B_Max, B_Min, B_Max);
+
+  float D2 = A*C;
+  float D2_Min  = getMinInvMult(A_Min, A_Max, C_Min, C_Max);
+  float D2_Max  = getMaxInvMult(A_Min, A_Max, C_Min, C_Max);
+
+  float D3 = 4 * D2;
+  float D3_Min  = getMinInvMult(4, 4, D2_Min, D2_Max);
+  float D3_Max  = getMaxInvMult(4, 4, D2_Min, D2_Max);
+
+  float D = D1 - D3;
+  float D_Min  = getMinInvMinus(D1_Min, D1_Max, D3_Min, D3_Max);
+  float D_Max  = getMaxInvMinus(D1_Min, D1_Max, D3_Min, D3_Max);
+
+  //self assign
+  r[0] = dot3(r,r);
+  r0_Min = getMinWithFMA(r, r);
+  r0_Max = getMaxWithFMA(r, r);
+
+  //return value           
+  return D; //return D_Min, D_Max
 } 
 
 int main() {

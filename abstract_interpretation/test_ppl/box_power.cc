@@ -71,7 +71,7 @@ if(A + B >= 3 && A + B <= 4){
 Concrete_Expression_Type FP_Type =
   Concrete_Expression_Type::floating_point(ANALYZED_FP_FORMAT);
 
-
+/*
 void test_ray_trace(){
   Variable A(0);
   Variable B(1);
@@ -237,7 +237,7 @@ void test_power_oct(){
   bool ok = ps_o.is_empty();
   cout << "*** is_empty *** " << ok << endl;
 }
-/*
+
   a \in [0,2]
   b \in [0,2]
   c \in [0,2]
@@ -251,6 +251,39 @@ void test_power_oct(){
   if(f > 1)
 */
 
+void test_refine_linear_form(){
+  Variable A(0);
+  Variable B(1);
+  TOctagonal_Shape oc(2);
+  oc.add_constraint(A >= 0);
+  oc.add_constraint(A <= 2);
+  oc.add_constraint(B >= 0);
+  oc.add_constraint(B <= 2);
+  Test_Oracle oracle(FP_Interval_Abstract_Store(2));
+  oc.refine_fp_interval_abstract_store(oracle.int_store);
+
+  FP_Linear_Form left(A);
+  FP_Linear_Form right(B);
+  Linear_Form<FP_Interval> rlerrLeft;
+  Linear_Form<FP_Interval> rlerrRight;
+  left.relative_error (ANALYZED_FP_FORMAT, rlerrLeft);
+  right.relative_error (ANALYZED_FP_FORMAT, rlerrRight);
+
+  //oc.affine_form_image(A, left + right + rlerrLeft + rlerrRight);
+  
+  FP_Interval vtmp;
+  vtmp.lower() = 1;
+  vtmp.upper() = 1;
+  FP_Linear_Form lc_l(vtmp);
+
+  Linear_Form<FP_Interval>  lf(left + right + rlerrLeft + rlerrRight);
+  cout << lf << "<=" << lc_l << endl;
+  cout << oc.constraints() << endl;
+  oc.refine_with_linear_form_inequality(lf, lc_l);
+  cout << oc.constraints() << endl;
+  
+}
+/*
 void test_fd_power_oct_stable(){
   Variable A(0);
   Variable B(1);
@@ -400,7 +433,7 @@ void test_fp_power_oct(){
   cout << "*** oc2 is_empty *** " << ok << endl;
   ok = oc3.is_empty();
   cout << "*** oc1 join oc2 is_empty *** " << ok << endl;
-  /*
+  
   Pointset_Powerset<TOctagonal_Shape>::const_iterator i;
 
   for(i = ps_o.begin(); i != ps_o.end(); i ++){
@@ -419,11 +452,11 @@ void test_fp_power_oct(){
        cout << "*** dist_oct1.constraints ***" << osi.constraints() << endl;
        bool ok = osi.is_empty();
        cout << "*** is_empty *** " << ok << endl;
-       }*/
+       }
 
-}
+}*/
 
 int main(){
-  test_ray_trace();
+  test_refine_linear_form();
   return 0;
 }
