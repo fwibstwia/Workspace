@@ -33,6 +33,7 @@
 #include <vector>
 #include <iostream>
 #include <iomanip>
+#include <fstream>
 
 #include <errno.h>
 #include <unistd.h>
@@ -54,6 +55,11 @@ llvm::cl::opt<double>
   SearchPoint("search-point",
 	      llvm::cl::desc("Search Point (default=0 (off))"),
 	      llvm::cl::init(0));
+
+llvm::cl::opt<std::string>
+  SimulateFile("simulate",
+                cl::desc("Specify an out file to simulate"),
+                cl::value_desc("simulate file"));
 
 using namespace klee;
 
@@ -367,51 +373,78 @@ bool Solver::checkStable(const Query& query, bool &result){
     Query q = Query(query.constraints, EqExpr::alloc(BE->left, BE->right));
     findSymbolicObjects(query.expr, objects);
     std::vector< std::vector<unsigned char> > values;
-    while(!success && trials < 50){
-      /*
-      timeval t;
-      gettimeofday(&t, NULL);
-      long start = t.tv_usec;*/
-      impl->computeInitialValues(q, objects, values, hasSolution);
-      /*
-      gettimeofday(&t, NULL);
-      long end = t.tv_usec;
-      std::cout << "Solver time: " << end - start << std::endl;
-
-      gettimeofday(&t, NULL);
-      start = t.tv_usec;*/
-
-      if(hasSolution){
-	ReExprEvaluator a(objects, values);
-	ref<Expr> epsilon;
-	state = a.isAssignmentStable(query.expr, epsilon);
-        switch(state){
-	case ReExprEvaluator::Success:
-          printUnstableInput(objects, values);
-	  success = true;
-	  break;
-	case ReExprEvaluator::Epsilon:
-	  //std::cout << "change epsilon" << std::endl;
-	  q.changeConstant(epsilon);
-	  values.clear();
-	  break;
-	case ReExprEvaluator::MinEqualMax:
-	  //std::cout << "min = max" << std::endl;
-	  break;
+    if(!SimulateFile.empty()){
+      ifstream simufile;
+      std::string path = SimulateFile;
+      simufile.open(path.c_str());
+      values.reserve(objects.size());
+      for(std::vector<const Array*>::const_iterator it = objects.begin(), ie = objects.end(); it != ie; ++it){
+	const Array *array = *it;
+	std::vector<unsigned char> data;
+	for(unsigned i = 0; i < array ->size; i ++){
+	  std::vector<unsigned char> floatData;
+	  float v;
+	  floatData.resize(sizeof(float));
+	  simufile >> v;
+	  char *p = reinterpret_cast<char*>(&v);
+	  std::copy(p, p + sizeof(float), floatData.begin());
+	  data.insert(data.end(), floatData.begin(), floatData.end());
 	}
-      }else{
-	std::cout << "no solution" << std::endl;
-	trials = 50;
+	values.push_back(data);
       }
-      trials ++;
+      ReExprEvaluator a(objects, values);
+      ref<Expr> epsilon;
+      state = a.isAssignmentStable(query.expr, epsilon);
+      printUnstableInput(objects, values);
+      simufile.close();
+      success = true;
+    }else{   
+      while(!success && trials < 50){
+	/*
+	  timeval t;
+	  gettimeofday(&t, NULL);
+	  long start = t.tv_usec;*/
+	impl->computeInitialValues(q, objects, values, hasSolution);
+	/*
+	  gettimeofday(&t, NULL);
+	  long end = t.tv_usec;
+	  std::cout << "Solver time: " << end - start << std::endl;
 
-      /*
-      gettimeofday(&t, NULL);
-      end = t.tv_usec;
-      std::cout << "Bound time: " << end - start << std::endl;
-      */
+	  gettimeofday(&t, NULL);
+	  start = t.tv_usec;*/
+
+	if(hasSolution){
+	  ReExprEvaluator a(objects, values);
+	  ref<Expr> epsilon;
+	  state = a.isAssignmentStable(query.expr, epsilon);
+	  switch(state){
+	  case ReExprEvaluator::Success:
+	    printUnstableInput(objects, values);
+	    success = true;
+	    break;
+	  case ReExprEvaluator::Epsilon:
+	    //std::cout << "change epsilon" << std::endl;
+	    q.changeConstant(epsilon);
+	    values.clear();
+	    break;
+	  case ReExprEvaluator::MinEqualMax:
+	    //std::cout << "min = max" << std::endl;
+	    break;
+	  }
+	}else{
+	  std::cout << "no solution" << std::endl;
+	  trials = 50;
+	}
+	trials ++;
+
+	/*
+	  gettimeofday(&t, NULL);
+	  end = t.tv_usec;
+	  std::cout << "Bound time: " << end - start << std::endl;
+	*/
+      }
+      result = success;
     }
-    result = success;
   }
   return success;
 }

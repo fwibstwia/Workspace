@@ -167,13 +167,18 @@ void ReExprEvaluator::evalFComp(const ref<Expr> &e, vector<ref<Expr> > &res){
     tmp[0] = e->getKid(0);
     evaluate(e->getKid(1), kidRes);
     for(int i = 0; i < kidRes.size(); i ++){
+      cout << "fcomp" << endl;
       if(ConstantExpr *CEL = dyn_cast<ConstantExpr>(kidRes[i])){
+	
 	ref<ConstantExpr> value = CER->FSub(CEL);
 	ref<ConstantExpr> dist = CER->FAbs(CEL);
+
 	if(minValue.get()){
 	  if(isMinEqMax){
 	    llvm::APFloat apfmin = minValue -> getAPFValue();
 	    llvm::APFloat apfv = value -> getAPFValue();
+	    cout << apfv.convertToFloat() << endl;
+	    
             if(value -> getWidth() == Expr::Int32){
 	      if(apfmin.convertToFloat() != apfv.convertToFloat()){
 		isMinEqMax = false;
