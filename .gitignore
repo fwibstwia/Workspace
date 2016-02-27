@@ -79,3 +79,5 @@ opencl-fp
 boxPower
 *.so.1
 temp
+*.cmx
+*.cmi

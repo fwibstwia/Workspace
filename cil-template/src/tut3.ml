@@ -144,7 +144,7 @@ module PowerPolyDF = struct
   let debug = debug
   type t = memState
   (* let copy memst = memst *)
-  let copy memst = {intvarmaplist = memst.intvarmaplist; pm = copy(memst.pm)}
+  let copy memst = {intvarmaplist = memst.intvarmaplist; pm = copy_pm(memst.pm)}
   let stmtStartData = IH.create 64
   let pretty = power_poly_pretty
   let computeFirstPredecessor stm memst = memst
@@ -256,6 +256,7 @@ class vmlVisitorClass = object(self)
     try let data = L.hd state_list in
         current_state <- Some(data);
         state_list <- L.tl state_list;
+	E.log "%a: %a\n" d_loc (!currentLoc) power_poly_pretty data;
         DoChildren
     with Failure "hd" -> DoChildren
 
@@ -266,23 +267,9 @@ class vmlVisitorClass = object(self)
 
 end
 
-
-class varUseReporterClass = object(self)
-  inherit vmlVisitorClass as super
-
-  method vvrbl (vi : varinfo) =
-    match self#get_cur_vml () with
-    | None -> SkipChildren
-    | Some memst -> begin
-        E.log "%a: %a\n" d_loc (!currentLoc) power_poly_pretty memst
-      end;
-      SkipChildren
-end
-
-
 let powerPolyAnalysis (fd : fundec) (loc : location) : unit =
   computePowerPoly fd;
-  let vis = ((new varUseReporterClass) :> nopCilVisitor) in
+  let vis = ((new vmlVisitorClass) :> nopCilVisitor) in
   ignore(visitCilFunction vis fd)
 
 

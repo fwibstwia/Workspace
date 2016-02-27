@@ -3,18 +3,17 @@
 
 int main()
 {
-  float A, B;
+  /*float A, B;
   float C = A*B;
   float D = A*A;
-  float E = C - D;
-  //float C = A * B - A * A;
-  /*  
+  float E = C - D;*/
+  
   float A, B, C, D, E, F, G;
   float H = A * A + B * B + C*C;
   float I = -2.0*(A*D + B*E + C*F);
   float J = D*D + E*E + F*F - G;
   float K = I*I-4.0*H*J;
-  */
+  
 
   return 0;
 }
