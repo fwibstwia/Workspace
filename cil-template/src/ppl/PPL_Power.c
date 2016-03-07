@@ -64,6 +64,40 @@ void setAffineFormImage(PPL_Manager *manager, int vid, Polynomial *poly){
   delete poly;
 }
 
+/*return true, we have found fake counter example; return false, continue the refine process*/
+bool refineBadState(PPL_Manager *manager, int vid, Polynomial *poly){
+  Pointset_Powerset<NNC_Polyhedron>::iterator iter = (manager -> power_poly).begin();
+  Pointset_Powerset<NNC_Polyhedron> update_p(manager -> dimLen, EMPTY); 
+
+  /*TODO:currently we assume only one branch, thus the powerset contains just one polyhedron */
+  while(iter != (manager -> power_poly).end()){
+    NNC_Polyhedron p = iter -> pointset();
+    FP_Interval_Abstract_Store inv_store(manager -> dimLen);
+    p.refine_fp_interval_abstract_store(inv_store);
+    NNC_Polyhedron poly_p(manager->dimLen);
+    int count = 0;
+    while(count < 10){
+      poly_p = poly -> polyhedronApprox(inv_store,  (*(manager->varIdMap)[vid]).id());
+      poly_p.intersection_assign(p);
+      if(poly_p.is_empty()){
+	cout << "success SSSSSSSSSSSSSSSSSSSSS" << endl;
+	return true;
+      }
+      poly_p.refine_fp_interval_abstract_store(inv_store);
+      cout << "count" << count << "{" << inv_store << "}" << endl;
+      p = poly_p;
+      count ++;
+    }
+
+    poly_p.unconstrain(*(manager->varIdMap)[vid]);    
+    update_p.add_disjunct(poly_p);
+    iter ++;
+  }
+  manager -> power_poly = update_p;
+  delete poly;
+  return false;
+}
+
 
 Polynomial *getPolynomialConstant(PPL_Manager *manager, float num){
   return new Polynomial(num, manager -> dimLen);
@@ -145,6 +179,51 @@ void addConstraint(PPL_Manager *manager, Polynomial *left, Polynomial *right){
     delete left;
     delete right;
 }
+
+//TODO: see above addConstraint
+void evalEqualConstraint(PPL_Manager *manager, Polynomial *left, Polynomial *right){
+    Pointset_Powerset<NNC_Polyhedron>::iterator iter = (manager -> power_poly).begin();    
+    Pointset_Powerset<NNC_Polyhedron> update_p(manager -> dimLen, EMPTY);
+    int dim = 0;
+    float c = 0.0;
+    
+    if(((left->monomial_list[0]).coefficients).size() > 0){
+      c = (left -> monomial_list[0]).coefficients[0].get_d();
+      for(int j = 0; j < right -> dimLen; j ++){
+	if((dim = right -> monomial_list[0].m_degree[j]) != 0){
+	  break;
+	}
+      }
+    } else {
+      c = (right -> monomial_list[0]).coefficients[0].get_d();
+      for(int j = 0; j < left -> dimLen; j ++){
+	if((dim = left -> monomial_list[0].m_degree[j]) != 0){
+	  break;
+	}
+      }      
+    }
+      
+    FP_Interval inv_c;
+    inv_c.lower() = c;
+    inv_c.upper() = c;
+    Variable v(dim);
+    
+    Linear_Form<FP_Interval> lf_v(v), lf_c(inv_c);
+    
+    while(iter != (manager -> power_poly).end()){
+      NNC_Polyhedron p = iter -> pointset();
+      //refine with linear equality lf_v == lf_c
+      p.refine_with_linear_form_inequality(lf_v, lf_c);
+      p.refine_with_linear_form_inequality(lf_c, lf_v);
+      update_p.add_disjunct(p);
+      iter ++;
+    }
+    
+    manager -> power_poly = update_p;
+    delete left;
+    delete right;
+}
+
 
 char *getConstraintPretty(PPL_Manager *manager){
   ostringstream sStream;

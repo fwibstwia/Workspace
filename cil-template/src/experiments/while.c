@@ -13,6 +13,9 @@ int main()
   float I = -2.0*(A*D + B*E + C*F);
   float J = D*D + E*E + F*F - G;
   float K = I*I-4.0*H*J;
+  if(K < 0){
+    return 1;
+  }
   
 
   return 0;

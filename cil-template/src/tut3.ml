@@ -18,7 +18,8 @@ module O = Ciltutoptions
 (* Assumption: do not consider expressions with mixed int and float types*)
 type intVarmap = int * int 	(*map int vid to value *)
 
-type memState = { intvarmaplist:intVarmap list;  pm:ppl_manager}
+(* branch_dir: record which branch to take, 0 - false branch, 1-true branch, 2-undetermine*)			 
+type memState = { intvarmaplist:intVarmap list;  pm:ppl_manager; branch_dir: int}
 
 type expState = IntValue of int | DPForm of dp_form
 
@@ -91,27 +92,28 @@ and construct_linear_of_binop (b : binop) (e1 : exp) (e2 : exp) (memst : memStat
   | _ -> E.error "unsupported binop"; l1
 
 (* eval_exp_constraint: 0 - false; 1-true; 2-undecide *)
-and eval_exp_constraint (b : binop) (e1 : exp) (e2 : exp) (memst: memState) : int =
+and eval_exp_constraint (b : binop) (e1 : exp) (e2 : exp) (memst: memState) : memState =
   let l1, l2 = construct_linear_of_exp e1 memst, construct_linear_of_exp e2 memst in
   match b with
   | Lt -> begin
       match l1, l2 with
       |IntValue v1, IntValue v2 -> begin
-	  if(v1 < v2) then 0 else 1
+	  let br_d = if(v1 < v2) then 0 else 1 in
+	  let updated_memst = {intvarmaplist = memst.intvarmaplist; pm = memst.pm; branch_dir = br_d} in
+	  updated_memst
 	end
       |DPForm lf1, DPForm lf2 ->begin
-	  add_constraint memst.pm lf1 lf2;
-	  2
+          ppl_eval_equal_constraint memst.pm lf1 lf2;
+	  memst
 	end
-      |_ , _ -> E.error "mixed type exp"; 0
+      |_ , _ -> E.error "mixed type exp"; memst
     end
-  | _ -> E.error "unsupported condition"; 0
-						    
-and convert_exp_constraint(e : exp) (memst: memState) : int =
-  match e with
-  | UnOp(LNot, BinOp(bo, e1, e2, _), t) -> eval_exp_constraint bo e2 e1 memst
+  | _ -> E.error "unsupported condition"; memst
+
+and get_cond_bad_state(c : exp) (memst: memState) : memState =					    
+  match c with
   | BinOp(bo, e1, e2, t) -> eval_exp_constraint bo e1 e2 memst
-  | _ -> E.error "unsupported condition"; 0
+  | _ -> E.error "unsupported condition"; memst
 
 						
 let varmap_list_replace (vml : intVarmap list ) (vid: int) (val_e : int): intVarmap list =
@@ -127,7 +129,7 @@ let power_poly_handle_inst (i : instr) (memst : memState) : memState =
 	 match es with
 	 |IntValue v -> begin
 	     let updated_vml = varmap_list_replace memst.intvarmaplist vi.vid v in
-	     let updated_memst = {intvarmaplist = updated_vml; pm  = memst.pm} in
+	     let updated_memst = {intvarmaplist = updated_vml; pm  = memst.pm; branch_dir = memst.branch_dir} in
 	     updated_memst
 	   end
 	 |DPForm lf -> begin
@@ -139,12 +141,58 @@ let power_poly_handle_inst (i : instr) (memst : memState) : memState =
   | Call _ 
   | _ -> memst
 
+(*TODO: consider what to do after refine success, should not continue to fold right*)	   
+let refine_inst_bad_state(i: instr) (bad_memst : memState) : memState =
+  match i with
+  | Set((Var vi, NoOffset), e, loc) when not(vi.vglob) &&
+                                           isArithmeticType vi.vtype  ->
+       begin
+	 let es = construct_linear_of_exp e bad_memst in
+	 match es with
+	 |IntValue v -> bad_memst
+	 |DPForm lf -> begin
+	     if (ppl_refine_bad_state bad_memst.pm vi.vid lf) then E.error "success";
+	     bad_memst
+	   end
+       end
+	 
+  | _ -> bad_memst
+
+(* for each instr in the state refine the bad state in the rev order; 
+   otherwise return the original one *)	   
+let refine_stmt_bad_state(s: stmt) (bad_memst : memState) : memState =
+  match s.skind with
+  | Instr il ->
+       L.fold_right refine_inst_bad_state il bad_memst
+  | _ -> bad_memst
+	   	   
+let handle_cond_stmt (s : stmt) (memst: memState) : memState =
+  match s.skind with
+  |If(exp, _, _, _) ->
+    begin
+      let pred_s = L.hd s.preds in (*hack: multiple previous stmt*)
+      let bad_memst = get_cond_bad_state exp memst in
+      if bad_memst.branch_dir > 1 then (* if <=1, we already know which branch to take *)
+	refine_stmt_bad_state pred_s bad_memst
+      else
+	bad_memst
+    end
+  |_ -> memst
+
+let eval_cond_exp(e : exp) (memst: memState) : int =
+  match e with
+  | UnOp(LNot, BinOp(bo, e1, e2, _), t) ->
+     if memst.branch_dir == 0 then 1 else 0
+  | BinOp(bo, e1, e2, t) ->
+     if memst.branch_dir == 1 then 1 else 0						
+  | _ -> E.error "unsupported condition"; 0	  
+
 module PowerPolyDF = struct
   let name = "PowerPolyhedra"
   let debug = debug
   type t = memState
   (* let copy memst = memst *)
-  let copy memst = {intvarmaplist = memst.intvarmaplist; pm = copy_pm(memst.pm)}
+  let copy memst = {intvarmaplist = memst.intvarmaplist; pm = copy_pm(memst.pm); branch_dir = memst.branch_dir}
   let stmtStartData = IH.create 64
   let pretty = power_poly_pretty
   let computeFirstPredecessor stm memst = memst
@@ -161,16 +209,18 @@ module PowerPolyDF = struct
     let action = power_poly_handle_inst i  in
     DF.Post action
 
-  let doStmt stm memst = DF.SDefault
+  (*check if the stmt is if condition, run check stable module *)	    
+  let doStmt stm memst =
+    handle_cond_stmt stm memst;
+    DF.SDefault
 
   let doGuard (c : exp) (memst : t) =
     let memst_copy = copy memst in
-    let r = convert_exp_constraint c memst_copy in
-    if r < 1 then DF.GUnreachable
+    let dir = eval_cond_exp c memst_copy in 
+    if dir < 1 then DF.GUnreachable
     else DF.GUse memst_copy
 		 
   let filterStmt stm = true
-
 end
 
 
@@ -210,7 +260,7 @@ let computePowerPoly (fd : fundec) : unit =
   let intvmlist = collectIntVars fd in
   let floatvarlist = collectFloatVars fd in
   let powerManager = initPowerManager (CArray.of_list int floatvarlist) in
-  let memst = {intvarmaplist = intvmlist; pm = powerManager} in
+  let memst = {intvarmaplist = intvmlist; pm = powerManager; branch_dir = 2} in
   IH.clear PowerPolyDF.stmtStartData;
   IH.add PowerPolyDF.stmtStartData first_stmt.sid memst;
   PowerPolyFDF.compute [first_stmt]

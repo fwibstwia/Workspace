@@ -42,7 +42,6 @@ NNC_Polyhedron BernsteinPoly::getApproxPolyhedron(FP_Interval_Abstract_Store &in
     int b = v_bound.upper();
     nnc_p.affine_image(Variable(j), a + (b-a)*Variable(j));
   }
-  cout << "poly is: " << nnc_p << endl;  
   return nnc_p;
 }
 
@@ -54,12 +53,6 @@ void BernsteinPoly::changeBasis(FP_Interval_Abstract_Store &inv_store,
   k_degree.resize(dimLen);
   MonomialNode *root = new MonomialNode();
   buildMonomialTree(root, p, n_degree);
-  
-  for(int j = 0; j < dimLen; j ++){
-    cout << "----------n_degree" << n_degree[j];
-  }
-  cout << endl;
-  
   changeBasisHelp(inv_store, 0, root, k_degree, n_degree);
   delete root;
 }
@@ -75,7 +68,6 @@ void BernsteinPoly::changeBasisHelp(FP_Interval_Abstract_Store &inv_store, int d
       m.m_degree[j] = k_degree[j];
     }
     mpq_class coff = getUnitPCoeff(inv_store, root, k_degree, n_degree);
-    cout << "#####enter change basis help " << coff << endl;
     m.coefficients.push_back(coff);
     unit_p.monomial_list.push_back(m);
     
@@ -111,10 +103,10 @@ mpq_class BernsteinPoly::getUnitPCoeffHelp(FP_Interval_Abstract_Store &inv_store
 	}
 	mpz_class rop_i_k;
 	mpz_class i_degree_z(i_degree[j]);
-        cout << "enter ci " << i_degree[j] << " " << k_degree[j] << endl;
+
 	mpz_bin_ui(rop_i_k.get_mpz_t(), i_degree_z.get_mpz_t(), k_degree[j]);
         ci = ci * (rop_i_k.get_ui());
-	cout << "ci bino: " << ci << endl;
+
 	MPQ_Interval inv_v;
 	FP_Interval v_bound = inv_store.get_interval(Variable(j));
 	inv_v.lower() = v_bound.lower();
@@ -123,14 +115,14 @@ mpq_class BernsteinPoly::getUnitPCoeffHelp(FP_Interval_Abstract_Store &inv_store
 	for(int e = 0; e < k_degree[j]; e ++){
 	  ci = ci * (inv_v.upper() - inv_v.lower());  
 	}
-	cout << "ci inv: " << ci << endl;
+
 	for(int e = 0; e < i_degree[j] - k_degree[j]; e ++){
 	  ci = ci * (inv_v.lower());
 	}
-	cout << "ci lower: " << ci << endl;
+
       }
       r = ci;
-      cout << "exit coef if" << ci << endl;
+
     }
     return r;
   }

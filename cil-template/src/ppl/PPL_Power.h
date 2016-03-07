@@ -29,6 +29,7 @@ extern "C" {
 
 
   void setAffineFormImage(PPL_Manager *manager, int vid, Polynomial *dp_f);
+  bool refineBadState(PPL_Manager *manager, int vid, Polynomial *dp_f);
   Polynomial *getPolynomialConstant(PPL_Manager *manager, float num);
   Polynomial *getPolynomialVariable(PPL_Manager *manager, int vid);
   Polynomial *getPolynomialPlus(PPL_Manager *manager, Polynomial *left, Polynomial *right);
@@ -36,6 +37,7 @@ extern "C" {
   Polynomial *getPolynomialMinus(PPL_Manager *manager, Polynomial *left, Polynomial *right);
   Polynomial *getPolynomialTimes(PPL_Manager *manager, Polynomial *left, Polynomial *right);
   void addConstraint(PPL_Manager *manager, Polynomial *left, Polynomial *right);
+  void evalEqualConstraint(PPL_Manager *manager, Polynomial *left, Polynomial *right);
   char *getConstraintPretty(PPL_Manager *manager);
 #ifdef __cplusplus
 }
