@@ -78,22 +78,25 @@ bool refineBadState(PPL_Manager *manager, int vid, Polynomial *poly){
     int count = 0;
     while(count < 10){
       poly_p = poly -> polyhedronApprox(inv_store,  (*(manager->varIdMap)[vid]).id());
-      poly_p.intersection_assign(p);
+      cout << "before:" <<  inv_store << endl;
+      p.intersection_assign(poly_p);      
       if(poly_p.is_empty()){
 	cout << "success SSSSSSSSSSSSSSSSSSSSS" << endl;
 	return true;
       }
-      poly_p.refine_fp_interval_abstract_store(inv_store);
-      cout << "count" << count << "{" << inv_store << "}" << endl;
-      p = poly_p;
+      p.refine_fp_interval_abstract_store(inv_store);
+      cout << "after:" <<  inv_store << endl;
+      cout << "after:" << p << endl;
       count ++;
     }
 
-    poly_p.unconstrain(*(manager->varIdMap)[vid]);    
-    update_p.add_disjunct(poly_p);
+    //p.unconstrain(*(manager->varIdMap)[vid]);    
+    update_p.add_disjunct(p);
     iter ++;
   }
+  
   manager -> power_poly = update_p;
+  cout << "new:" << getConstraintPretty(manager) << endl;
   delete poly;
   return false;
 }
@@ -206,20 +209,24 @@ void evalEqualConstraint(PPL_Manager *manager, Polynomial *left, Polynomial *rig
     FP_Interval inv_c;
     inv_c.lower() = c;
     inv_c.upper() = c;
-    Variable v(dim);
+    cout << "dim: " << dim << endl;
+    Variable v(10);
     
     Linear_Form<FP_Interval> lf_v(v), lf_c(inv_c);
-    
+    cout << "before:" << getConstraintPretty(manager) << endl;
     while(iter != (manager -> power_poly).end()){
       NNC_Polyhedron p = iter -> pointset();
       //refine with linear equality lf_v == lf_c
-      p.refine_with_linear_form_inequality(lf_v, lf_c);
-      p.refine_with_linear_form_inequality(lf_c, lf_v);
+      //p.refine_with_linear_form_inequality(lf_v, lf_c);
+      //p.refine_with_linear_form_inequality(lf_c, lf_v);
+      //HACK: Fix K == 0
+      p.add_constraint(v == 0);
       update_p.add_disjunct(p);
       iter ++;
     }
     
     manager -> power_poly = update_p;
+    cout << "after:" << getConstraintPretty(manager) << endl;
     delete left;
     delete right;
 }

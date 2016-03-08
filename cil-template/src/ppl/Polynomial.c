@@ -25,12 +25,12 @@ NNC_Polyhedron Polynomial::polyhedronApprox(FP_Interval_Abstract_Store &inv_stor
   NNC_Polyhedron nnc_p = bp.getApproxPolyhedron(inv_store);
   Variable f(dimLen), v(affine_image_dim);
   nnc_p.add_constraint(v - f == 0);
-  cout << "after" << nnc_p << endl;
+  //cout << "after" << nnc_p << endl;
   nnc_p.unconstrain(f);
-  cout << "after1" << nnc_p << endl;
+  //cout << "after1" << nnc_p << endl;
   Variables_Set vs(f);
   nnc_p.remove_space_dimensions(vs);
-  cout << "after2" << nnc_p << endl;
+  //cout << "after2" << nnc_p << endl;
   
   return nnc_p;
   //error = error * getGammaN(n);

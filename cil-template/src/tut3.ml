@@ -146,15 +146,16 @@ let refine_inst_bad_state(i: instr) (bad_memst : memState) : memState =
   match i with
   | Set((Var vi, NoOffset), e, loc) when not(vi.vglob) &&
                                            isArithmeticType vi.vtype  ->
-       begin
-	 let es = construct_linear_of_exp e bad_memst in
-	 match es with
-	 |IntValue v -> bad_memst
-	 |DPForm lf -> begin
-	     if (ppl_refine_bad_state bad_memst.pm vi.vid lf) then E.error "success";
-	     bad_memst
-	   end
-       end
+     begin
+       E.error "refine inst bad state";
+       let es = construct_linear_of_exp e bad_memst in
+       match es with
+       |IntValue v -> bad_memst
+       |DPForm lf -> begin
+	   if (ppl_refine_bad_state bad_memst.pm vi.vid lf) then E.error "success";
+	   bad_memst
+	 end
+     end
 	 
   | _ -> bad_memst
 
@@ -163,12 +164,14 @@ let refine_inst_bad_state(i: instr) (bad_memst : memState) : memState =
 let refine_stmt_bad_state(s: stmt) (bad_memst : memState) : memState =
   match s.skind with
   | Instr il ->
+       E.error "stmt bad";
        L.fold_right refine_inst_bad_state il bad_memst
   | _ -> bad_memst
 	   	   
 let handle_cond_stmt (s : stmt) (memst: memState) : memState =
   match s.skind with
   |If(exp, _, _, _) ->
+
     begin
       let pred_s = L.hd s.preds in (*hack: multiple previous stmt*)
       let bad_memst = get_cond_bad_state exp memst in

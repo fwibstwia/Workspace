@@ -266,7 +266,7 @@ Generator BernsteinPoly::buildControlPoint(vector<int> &k_degree){
 
   Variable v(dimLen);
   le += ci_z * v;
-  cout << "point" << point(le, denominator) << endl;
+  //cout << "point" << point(le, denominator) << endl;
   return point(le, denominator);
 }
 
