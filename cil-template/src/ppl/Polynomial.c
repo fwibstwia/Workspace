@@ -8,7 +8,9 @@
 using namespace std;
 using namespace Parma_Polyhedra_Library;
 
-//TODO: ADD error constraints
+/*
+  Using polyhedron to approximate expression: A = B*C + D
+ */
 NNC_Polyhedron Polynomial::polyhedronApprox(FP_Interval_Abstract_Store &inv_store, int affine_image_dim){
 
   int n = 0;
@@ -20,18 +22,13 @@ NNC_Polyhedron Polynomial::polyhedronApprox(FP_Interval_Abstract_Store &inv_stor
     it ++;
   }
   
-
   BernsteinPoly bp(inv_store, *this, dimLen);
-  NNC_Polyhedron nnc_p = bp.getApproxPolyhedron(inv_store);
+  NNC_Polyhedron nnc_p = bp.getApproxPolyhedron();
   Variable f(dimLen), v(affine_image_dim);
   nnc_p.add_constraint(v - f == 0);
-  //cout << "after" << nnc_p << endl;
   nnc_p.unconstrain(f);
-  //cout << "after1" << nnc_p << endl;
   Variables_Set vs(f);
   nnc_p.remove_space_dimensions(vs);
-  //cout << "after2" << nnc_p << endl;
-  
   return nnc_p;
   //error = error * getGammaN(n);
   //MPQ_Interval error_bound;
@@ -39,6 +36,9 @@ NNC_Polyhedron Polynomial::polyhedronApprox(FP_Interval_Abstract_Store &inv_stor
   //  error_bound.upper() = error;
 }
 
+/*
+  get the error bound for each monomials of the polynomials
+ */
 mpq_class Polynomial::normalizeAndGetErrorBound(FP_Interval_Abstract_Store &inv_store, Monomial &m){
   //caculate the error bound for multiplication, without considering underflow
  
@@ -61,10 +61,7 @@ mpq_class Polynomial::normalizeAndGetErrorBound(FP_Interval_Abstract_Store &inv_
   }else{
     (m.coefficients)[0] = coeff_merger; //merge all the constants multiplication
   }
-  
- 
-  
-  //TODO: handel self assignment
+    
   MPQ_Interval inv_v;
   for(int j = 0; j < m.getSpaceDims(); j ++){
     for(int i = 0; i < (m.m_degree)[j]; i ++){
@@ -81,6 +78,9 @@ mpq_class Polynomial::normalizeAndGetErrorBound(FP_Interval_Abstract_Store &inv_
   
 }
 
+/*
+ Given an interval, get the absolute maximum value of the end point
+ */
 mpq_class Polynomial::getMaxAbsoluteBound(const MPQ_Interval &inv){
   mpq_class mpq_lower (abs(inv.lower()));
   mpq_class mpq_upper (abs(inv.upper()));
@@ -95,7 +95,7 @@ mpq_class Polynomial::getGammaN(int n){
   return (n-1) * num_limit /(1-(n-1)*num_limit);
 }
 
-//TODO: Assume no repetition of monomial
+
 Polynomial operator+ (const Polynomial &op1, const Polynomial &op2){
   vector<Monomial>::const_iterator it = (op2.monomial_list).begin();
   Polynomial r(op1);
@@ -114,14 +114,9 @@ Polynomial operator- (const Polynomial &op1, const Polynomial &op2){
   return op1 + neg_dp;
 }
 
-//TODO x*y*x is wrongly simplified to x^2*y
 Polynomial operator* (const Monomial &m,  const Polynomial &op2){
-
   Polynomial r(op2);
-
-
-  vector<Monomial>::iterator it = (r.monomial_list).begin();
-  
+  vector<Monomial>::iterator it = (r.monomial_list).begin();  
   while(it != (r.monomial_list).end()){
     //for constants
     vector<mpq_class>::const_iterator mpq_it = (m.coefficients).begin();  
@@ -132,10 +127,8 @@ Polynomial operator* (const Monomial &m,  const Polynomial &op2){
     //for variables
     for(int i = 0; i < m.getSpaceDims(); i++){
       (*it).m_degree[i] += m.m_degree[i];
-    }
-    
+    }    
     it ++;
-  }
-  
+  }  
   return r;
 }

@@ -29,7 +29,9 @@ bool merge(PPL_Manager *old_m, PPL_Manager *new_m){
     return false;
   }
 }
-
+/*
+  D = A*B + C
+ */
 void setAffineFormImage(PPL_Manager *manager, int vid, Polynomial *poly){
   Pointset_Powerset<NNC_Polyhedron>::iterator iter = (manager -> power_poly).begin();
   Pointset_Powerset<NNC_Polyhedron> update_p(manager -> dimLen, EMPTY); 
@@ -42,7 +44,6 @@ void setAffineFormImage(PPL_Manager *manager, int vid, Polynomial *poly){
     NNC_Polyhedron poly_p = poly -> polyhedronApprox(inv_store,  (*(manager->varIdMap)[vid]).id());
     p.unconstrain(*(manager->varIdMap)[vid]);
     p.intersection_assign (poly_p);
-    
     /*
     Linear_Form<FP_Interval> lf_lower;
     Linear_Form<FP_Interval> lf_upper;
@@ -78,15 +79,19 @@ bool refineBadState(PPL_Manager *manager, int vid, Polynomial *poly){
     int count = 0;
     while(count < 10){
       poly_p = poly -> polyhedronApprox(inv_store,  (*(manager->varIdMap)[vid]).id());
+
       cout << "before:" <<  inv_store << endl;
-      p.intersection_assign(poly_p);      
-      if(poly_p.is_empty()){
+      p.intersection_assign(poly_p);
+      FP_Interval_Abstract_Store inv_store_test(manager -> dimLen);
+      p.refine_fp_interval_abstract_store(inv_store_test);
+      cout << "intersec: " << inv_store_test << endl;
+      
+      if(p.is_empty()){
 	cout << "success SSSSSSSSSSSSSSSSSSSSS" << endl;
 	return true;
       }
       p.refine_fp_interval_abstract_store(inv_store);
       cout << "after:" <<  inv_store << endl;
-      cout << "after:" << p << endl;
       count ++;
     }
 
@@ -240,7 +245,7 @@ char *getConstraintPretty(PPL_Manager *manager){
       NNC_Polyhedron p = iter -> pointset();
       FP_Interval_Abstract_Store inv_store(manager -> dimLen);
       p.refine_fp_interval_abstract_store(inv_store);
-      sStream << "{" << p.constraints() << "}" << endl;
+      //sStream << "{" << p.constraints() << "}" << endl;
       sStream << "{" << inv_store << "}" << endl;
       /*
       for(map<int Variable*>::iterator it = varIdMap.begin(); it != varIdMap.end(); it ++){

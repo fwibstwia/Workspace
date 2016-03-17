@@ -1,4 +1,6 @@
 #include <iostream>
+#include <cassert>
+
 #include "BernsteinPoly.h"
 
 using namespace std;
@@ -7,17 +9,17 @@ using namespace Parma_Polyhedra_Library::IO_Operators;
 
 typedef pair<int, MonomialNode*> Pair;
 
-BernsteinPoly::BernsteinPoly(FP_Interval_Abstract_Store &inv_store, Polynomial &p, int dimLength):dimLen(dimLength){
+BernsteinPoly::BernsteinPoly(FP_Interval_Abstract_Store &store,
+			     Polynomial &p,
+			     int dimLength):dimLen(dimLength), inv_store(store){
   unit_p.dimLen = dimLength;
-  changeBasis(inv_store, p);
-  //unit_p = p;  
   n_degree.resize(dimLength, 0);
   root = new MonomialNode();
+  changeBasis(p);
   buildMonomialTree(root, unit_p, n_degree);
-  calDenominatorNDegree();
 }
 
-NNC_Polyhedron BernsteinPoly::getApproxPolyhedron(FP_Interval_Abstract_Store &inv_store){
+NNC_Polyhedron BernsteinPoly::getApproxPolyhedron(){
 
   Generator_System gs;
   vector<int> i_degree;
@@ -25,6 +27,9 @@ NNC_Polyhedron BernsteinPoly::getApproxPolyhedron(FP_Interval_Abstract_Store &in
   getApproxPolyhedronHelp(0, i_degree, n_degree, gs);
 
   NNC_Polyhedron nnc_p(gs);
+
+
+  
   Variables_Set vs;
   for(int j = 0; j < dimLen; j ++){
     if (n_degree[j] == 0){
@@ -38,27 +43,40 @@ NNC_Polyhedron BernsteinPoly::getApproxPolyhedron(FP_Interval_Abstract_Store &in
       continue;
     }
     FP_Interval v_bound = inv_store.get_interval(Variable(j));
-    int a = v_bound.lower();
-    int b = v_bound.upper();
-    nnc_p.affine_image(Variable(j), a + (b-a)*Variable(j));
+    mpq_class a = v_bound.lower();
+    mpz_class a_den = a.get_den();
+    mpq_class b = v_bound.upper();
+    mpz_class b_den = b.get_den();
+    mpq_class a_z = a * a_den * b_den;
+    mpq_class b_z = b * a_den * b_den;
+    a_z.canonicalize();
+    b_z.canonicalize();
+    mpz_class a_z_num = a_z.get_num();
+    mpz_class b_z_num = b_z.get_num();
+
+    nnc_p.generalized_affine_image(Variable(j), EQUAL,
+				   a_z_num + (b_z_num-a_z_num)*Variable(j),
+				   a_den * b_den);
   }
+  
   return nnc_p;
 }
 
-
-void BernsteinPoly::changeBasis(FP_Interval_Abstract_Store &inv_store,
-			   Polynomial &p){
+/*
+ change the domain of the polynomial to [0,1] unit domain
+ */
+void BernsteinPoly::changeBasis(Polynomial &p){
   vector<int> n_degree, k_degree;
   n_degree.resize(dimLen);
   k_degree.resize(dimLen);
   MonomialNode *root = new MonomialNode();
   buildMonomialTree(root, p, n_degree);
-  changeBasisHelp(inv_store, 0, root, k_degree, n_degree);
+  changeBasisHelp(0, root, k_degree, n_degree);
   delete root;
 }
 
-void BernsteinPoly::changeBasisHelp(FP_Interval_Abstract_Store &inv_store, int dim_index,
-				     MonomialNode *root,
+void BernsteinPoly::changeBasisHelp(int dim_index,
+				    MonomialNode *root,
 				    vector<int> &k_degree,
 				    const vector<int> &n_degree){
  
@@ -67,28 +85,28 @@ void BernsteinPoly::changeBasisHelp(FP_Interval_Abstract_Store &inv_store, int d
     for(int j = 0; j < dimLen; j ++){
       m.m_degree[j] = k_degree[j];
     }
-    mpq_class coff = getUnitPCoeff(inv_store, root, k_degree, n_degree);
+    mpq_class coff = getUnitPCoeff(root, k_degree, n_degree);
     m.coefficients.push_back(coff);
     unit_p.monomial_list.push_back(m);
     
   }else{    
     for(int i = 0; i <= n_degree[dim_index]; i++){
       k_degree[dim_index] = i;
-      changeBasisHelp(inv_store, dim_index + 1, root, k_degree, n_degree);
+      changeBasisHelp(dim_index + 1, root, k_degree, n_degree);
     }    
   }
 }
 
-mpq_class BernsteinPoly::getUnitPCoeff(FP_Interval_Abstract_Store &inv_store,
-				       MonomialNode *root, const vector<int> &k_degree, const vector<int> &n_degree){
+mpq_class BernsteinPoly::getUnitPCoeff(MonomialNode *root,
+				       const vector<int> &k_degree,
+				       const vector<int> &n_degree){
   vector<int> i_degree;
   i_degree.resize(dimLen);
-  return getUnitPCoeffHelp(inv_store, root, 0, i_degree, k_degree, n_degree);
+  return getUnitPCoeffHelp(root, 0, i_degree, k_degree, n_degree);
 }
 
-mpq_class BernsteinPoly::getUnitPCoeffHelp(FP_Interval_Abstract_Store &inv_store,
-					 MonomialNode *root,
-					 int dim_index, vector<int> &i_degree,
+mpq_class BernsteinPoly::getUnitPCoeffHelp(MonomialNode *root,
+					   int dim_index, vector<int> &i_degree,
 					   const vector<int> &k_degree,
 					   const vector<int> &n_degree){
   mpq_class r(0);
@@ -129,30 +147,21 @@ mpq_class BernsteinPoly::getUnitPCoeffHelp(FP_Interval_Abstract_Store &inv_store
   
   for(int i = k_degree[dim_index]; i <= n_degree[dim_index]; i++){
     i_degree[dim_index] = i;
-    r += getUnitPCoeffHelp(inv_store, root, dim_index + 1, i_degree, k_degree, n_degree);
+    r += getUnitPCoeffHelp(root, dim_index + 1, i_degree, k_degree, n_degree);
   }
   return r;
 }
 
 
 
-void BernsteinPoly::getApproxPolyhedronHelp(int dim_index, vector<int> &i_degree, vector<int> &n_degree, Generator_System &gs){
+void BernsteinPoly::getApproxPolyhedronHelp(int dim_index, vector<int> &i_degree,
+					    vector<int> &n_degree, Generator_System &gs){
   if(dim_index == dimLen){
     gs.insert(buildControlPoint(i_degree));
   } else{
     for(int i = 0; i <= n_degree[dim_index]; i ++){
       i_degree[dim_index] = i;
       getApproxPolyhedronHelp(dim_index + 1, i_degree, n_degree, gs);
-    }
-  }
-}
-
-
-void BernsteinPoly::calDenominatorNDegree(){
-  denominator = 1;
-  for(int i = 0; i < dimLen; i++){
-    if(n_degree[i] != 0){
-      denominator = denominator*n_degree[i];
     }
   }
 }
@@ -247,11 +256,20 @@ mpq_class BernsteinPoly::getBernsteinCoffHelp(int dim_index, vector<int>  &i_deg
   return r;
 }
 
-//TODO: need to think ci is float
 Generator BernsteinPoly::buildControlPoint(vector<int> &k_degree){
-  mpq_class ci = getBernsteinCoff(k_degree) * denominator;
-  ci.canonicalize();
-  mpz_class ci_z = ci.get_num(); // denominator should be 1
+  mpq_class ci = getBernsteinCoff(k_degree);
+
+  mpz_class denominator = ci.get_den();
+  for(int i = 0; i < dimLen; i++){
+    if(n_degree[i] != 0){
+      denominator = denominator*n_degree[i];
+    }
+  }
+  
+  mpq_class ci_int = ci * denominator;
+  ci_int.canonicalize();
+  assert(ci_int.get_den() == 1);
+  mpz_class ci_z = ci_int.get_num(); 
   
   Linear_Expression le;
   
@@ -259,7 +277,8 @@ Generator BernsteinPoly::buildControlPoint(vector<int> &k_degree){
     mpq_class kj_nj (k_degree[j], n_degree[j]); // ij/nj
     kj_nj *= denominator;
     kj_nj.canonicalize();
-    mpz_class kj_nj_z = kj_nj.get_num(); //denominator should be 1
+    mpz_class kj_nj_z = kj_nj.get_num(); 
+    assert(kj_nj.get_den() == 1);
     Variable v(j);
     le = le + kj_nj_z * v;
   }

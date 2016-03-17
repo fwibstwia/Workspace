@@ -1,3 +1,8 @@
 ocamlfind ocamlopt -o test -cc g++ -linkpkg -I +gmp -package unix,str,ocamlgraph,findlib,cil,cil.callgraph,ctypes.foreign  -I /usr/local/lib/ppl -I ~/Workspace/cil-template/ciltut-include -cclib -lppl -cclib -lm -cclib -lgmpxx -cclib -lgmp -cclib -L/home/fwibstwia/Workspace/cil-template/src -cclib -lpplpower -cclib -Xlinker -cclib --no-as-needed ppl_ocaml.cmxa gmp.cmxa tututil.ml ciltutoptions.ml pplpower.ml tut3.ml 
 
 ./test --enable-tut3 experiments/tut3.c
+
+
+LD_LIBRARY_PATH="/usr/local/lib;/home/fwibstwia/Workspace/cil-template/src"
+export LD_LIBRARY_PATH
+

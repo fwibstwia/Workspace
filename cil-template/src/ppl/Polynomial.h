@@ -11,10 +11,11 @@ using namespace Parma_Polyhedra_Library;
 using namespace Parma_Polyhedra_Library::IO_Operators;
 
 struct Monomial{
+  //variable dense representation 2*3*x^2*y^3
   vector<int> m_degree;
   vector<mpq_class> coefficients;
 
-  Monomial(const int dimLen){//variable dense representation
+  Monomial(const int dimLen){
     m_degree.resize(dimLen, 0);
 
   }
@@ -28,8 +29,6 @@ Monomial(const Monomial &m):m_degree(m.m_degree),
   
 };
 
-
-
 class Polynomial{
  public:
   NNC_Polyhedron polyhedronApprox(int affine_image_dim){}
@@ -37,17 +36,14 @@ class Polynomial{
   
  Polynomial(float c, const int dimLength):dimLen(dimLength){
     Monomial m(dimLen);
-    (m.coefficients).push_back(c);
-    
+    (m.coefficients).push_back(c);    
     monomial_list.push_back(m);
   }
 
  Polynomial(int dim, const int dimLength):dimLen(dimLength){    
     Monomial m(dimLen);    
     (m.m_degree)[dim] ++;
-    cout << "m " << m.m_degree.size() << endl;
     monomial_list.push_back(m);
-    cout << "m degree" << monomial_list[0].m_degree.size() << endl;
   }
 
  Polynomial(const Polynomial &poly):dimLen(poly.dimLen),

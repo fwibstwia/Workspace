@@ -18,26 +18,27 @@ class PPL_Manager {
     }
     NNC_Polyhedron p(len, UNIVERSE);
     //add constraints
-    p.add_constraint(*varIdMap[varIdArray[0]] >= 1);
-    p.add_constraint(*varIdMap[varIdArray[0]] <= 2);
+    p.add_constraint((*varIdMap[varIdArray[0]]) >= 1);
+    p.add_constraint(10*(*varIdMap[varIdArray[0]]) <= 20);
 
-    p.add_constraint(*varIdMap[varIdArray[1]] >= 1);
-    p.add_constraint(*varIdMap[varIdArray[1]] <= 2);
+    p.add_constraint((*varIdMap[varIdArray[1]]) >= 1);
+    p.add_constraint(10*(*varIdMap[varIdArray[1]]) <= 20);
 
     
-    p.add_constraint(*varIdMap[varIdArray[2]] >= 1);
-    p.add_constraint(*varIdMap[varIdArray[2]] <= 2);
+    p.add_constraint((*varIdMap[varIdArray[2]]) >= 1);
+    p.add_constraint(10*(*varIdMap[varIdArray[2]]) <= 20);
 
-    p.add_constraint(*varIdMap[varIdArray[3]] >= 1);
-    p.add_constraint(*varIdMap[varIdArray[3]] <= 2);
     
-    p.add_constraint(*varIdMap[varIdArray[4]] >= 1);
-    p.add_constraint(*varIdMap[varIdArray[4]] <= 2);
-    p.add_constraint(*varIdMap[varIdArray[5]] >= 1);
-    p.add_constraint(*varIdMap[varIdArray[5]] <= 2);
-    p.add_constraint(*varIdMap[varIdArray[6]] >= 1);
-    p.add_constraint(*varIdMap[varIdArray[6]] <= 2);
-    
+    p.add_constraint((*varIdMap[varIdArray[3]]) >= 1);
+    p.add_constraint(10*(*varIdMap[varIdArray[3]]) <= 20);
+
+    p.add_constraint((*varIdMap[varIdArray[4]]) >= 1);
+    p.add_constraint(10*(*varIdMap[varIdArray[4]]) <= 20);
+    p.add_constraint((*varIdMap[varIdArray[5]]) >= 1);
+    p.add_constraint(10*(*varIdMap[varIdArray[5]]) <= 20);
+    p.add_constraint((*varIdMap[varIdArray[6]]) >= 1);
+    p.add_constraint(10*(*varIdMap[varIdArray[6]]) <= 20);
+
     //p.add_constraint(*varIdMap[varIdArray[3]] >= -1);
     //p.add_constraint(*varIdMap[varIdArray[3]] <= 2);
     
