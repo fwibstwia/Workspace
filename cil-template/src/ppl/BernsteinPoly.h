@@ -39,8 +39,42 @@ class BernsteinPoly{
   }
 
  private:
-  void getApproxPolyhedronHelp(int dim_index, vector<int> &i_degree,
-			       vector<int> &n_degree, Generator_System &gs);
+  void convertToBernsteinBasis(int dim_index, vector<int> &i_degree);
+
+  void buildControlPoints(Generator_System &gs,
+			  vector<int> &k_degree,
+			  vector<int> &n_e_degree,
+			  vector<mpq_class> &bernsteinCoffsEDegree,
+			  int dim_index,
+			  int &coff_index);
+  
+  void degreeElevation(int dim_index,
+		       vector<int> &k_degree,
+		       vector<int> &e_degree,
+		       vector<mpq_class> &bernsteinCoffsEDegree);
+
+  mpq_class degreeElevationLSet(int dim_index,
+				vector<int> &l_degree,
+				vector<int> &k_degree,
+				vector<int> &e_degree);
+
+  int getLDegreeCoffIndex(vector<int> &l_degree);
+
+  mpq_class getBernsteinCoff(vector<int> &k_degree); //get bernstein coefficient b(n,k)
+
+  mpq_class getBernsteinCoffHelp(int dim_index,
+				 vector<int> &i_degree,
+				 const vector<int> &k_degree);
+
+  mpq_class getBinCoffCi(const vector<int> &i_degree,
+			 const vector<int> &k_degree);
+  
+  mpq_class getBinCoffCiElevate(const vector<int> &l_degree, 
+				const vector<int> &k_degree,
+				const vector<int> &e_degree);
+  mpq_class getPolyCoff(MonomialNode *root, vector<int> &m_degree);
+  
+  void buildMonomialTree(MonomialNode *root, Polynomial &poly, vector<int> &n_degree);
   //changes_bases
   void changeBasis(Polynomial &p);
   void changeBasisHelp(int dim_index,
@@ -57,24 +91,11 @@ class BernsteinPoly{
 			      const vector<int> &k_degree,
 			      const vector<int> &n_degree);
   
-  void buildMonomialTree(MonomialNode *root, Polynomial &poly, vector<int> &n_degree);
-
-  mpq_class getBernsteinCoff(vector<int> &k_degree); //get bernstein coefficient b(n,k)
-  mpq_class getBernsteinCoff(vector<int> &i_degree, vector<int> &k_degree);
-  
-  mpq_class getBernsteinCoffHelp(int dim_index, vector<int> &i_degree, const vector<int> &k_degree);
-
-  Generator buildControlPoint(vector<int> &k_degree);
-
-  mpq_class getBinomialCoff(const vector<int> &i_degree, const vector<int> &k_degree);
-  
-  mpq_class getPolyCoff(MonomialNode *root, vector<int> &m_degree);
-
-  
   Polynomial unit_p; //Polynomial defined in unit interval [0,1]
   MonomialNode *root; //Monomial Tree used for search
   vector<int> n_degree; //the max degree of the polynomial: n;
   FP_Interval_Abstract_Store &inv_store;
+  vector<mpq_class> bernsteinCoffs;
   int dimLen; //the dimensions of the polyhedron
 };
 #endif

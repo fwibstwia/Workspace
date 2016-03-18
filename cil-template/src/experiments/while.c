@@ -3,24 +3,20 @@
 
 int main()
 {
-  
-
   /*
   float C = A*A;
   float D = A*B;
   float E = B*B;
   float F = D*D - C*E;
   */
-  
   float A, B, C, D, E, F, G;
-  float H = A * A + B * B + C*C;
+  float H = A * A + B * B + C * C;
   float I = -2.0*(A*D + B*E +C*F);
   float J = D*D + E*E + F*F - G;
   float K = I*I-4.0*H*J;
   if(K < 0.0){
     return 1;
   }
-  
   return 0;
 }
 /* 

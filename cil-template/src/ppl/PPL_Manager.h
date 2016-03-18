@@ -38,7 +38,7 @@ class PPL_Manager {
     p.add_constraint(10*(*varIdMap[varIdArray[5]]) <= 20);
     p.add_constraint((*varIdMap[varIdArray[6]]) >= 1);
     p.add_constraint(10*(*varIdMap[varIdArray[6]]) <= 20);
-
+    
     //p.add_constraint(*varIdMap[varIdArray[3]] >= -1);
     //p.add_constraint(*varIdMap[varIdArray[3]] <= 2);
     
