@@ -1,0 +1,2150 @@
+m 11
+m degree11
+m 11
+m degree11
+m 11
+m degree11
+m 11
+m degree11
+m 11
+m degree11
+m 11
+m degree11
+----------n_degree2----------n_degree2----------n_degree2----------n_degree0----------n_degree0----------n_degree0----------n_degree0----------n_degree0----------n_degree0----------n_degree0----------n_degree0
+enter ci 0 0
+ci bino: 1
+ci inv: 1
+ci lower: 1
+enter ci 0 0
+ci bino: 1
+ci inv: 1
+ci lower: 1
+enter ci 2 0
+ci bino: 1
+ci inv: 1
+ci lower: 1
+exit coef if1
+enter ci 0 0
+ci bino: 1
+ci inv: 1
+ci lower: 1
+enter ci 2 0
+ci bino: 1
+ci inv: 1
+ci lower: 1
+enter ci 0 0
+ci bino: 1
+ci inv: 1
+ci lower: 1
+exit coef if1
+enter ci 2 0
+ci bino: 1
+ci inv: 1
+ci lower: 1
+enter ci 0 0
+ci bino: 1
+ci inv: 1
+ci lower: 1
+enter ci 0 0
+ci bino: 1
+ci inv: 1
+ci lower: 1
+exit coef if1
+#####enter change basis help 3
+enter ci 0 0
+ci bino: 1
+ci inv: 1
+ci lower: 1
+enter ci 0 0
+ci bino: 1
+ci inv: 1
+ci lower: 1
+enter ci 2 1
+ci bino: 2
+ci inv: 2
+ci lower: 2
+exit coef if2
+#####enter change basis help 2
+enter ci 0 0
+ci bino: 1
+ci inv: 1
+ci lower: 1
+enter ci 0 0
+ci bino: 1
+ci inv: 1
+ci lower: 1
+enter ci 2 2
+ci bino: 1
+ci inv: 1
+ci lower: 1
+exit coef if1
+#####enter change basis help 1
+enter ci 0 0
+ci bino: 1
+ci inv: 1
+ci lower: 1
+enter ci 2 1
+ci bino: 2
+ci inv: 2
+ci lower: 2
+enter ci 0 0
+ci bino: 2
+ci inv: 2
+ci lower: 2
+exit coef if2
+#####enter change basis help 2
+#####enter change basis help 0
+#####enter change basis help 0
+enter ci 0 0
+ci bino: 1
+ci inv: 1
+ci lower: 1
+enter ci 2 2
+ci bino: 1
+ci inv: 1
+ci lower: 1
+enter ci 0 0
+ci bino: 1
+ci inv: 1
+ci lower: 1
+exit coef if1
+#####enter change basis help 1
+#####enter change basis help 0
+#####enter change basis help 0
+enter ci 2 1
+ci bino: 2
+ci inv: 2
+ci lower: 2
+enter ci 0 0
+ci bino: 2
+ci inv: 2
+ci lower: 2
+enter ci 0 0
+ci bino: 2
+ci inv: 2
+ci lower: 2
+exit coef if2
+#####enter change basis help 2
+#####enter change basis help 0
+#####enter change basis help 0
+#####enter change basis help 0
+#####enter change basis help 0
+#####enter change basis help 0
+#####enter change basis help 0
+#####enter change basis help 0
+#####enter change basis help 0
+enter ci 2 2
+ci bino: 1
+ci inv: 1
+ci lower: 1
+enter ci 0 0
+ci bino: 1
+ci inv: 1
+ci lower: 1
+enter ci 0 0
+ci bino: 1
+ci inv: 1
+ci lower: 1
+exit coef if1
+#####enter change basis help 1
+#####enter change basis help 0
+#####enter change basis help 0
+#####enter change basis help 0
+#####enter change basis help 0
+#####enter change basis help 0
+#####enter change basis help 0
+#####enter change basis help 0
+#####enter change basis help 0
+pointp(3*L)
+pointp((C + 8*L)/2)
+pointp(C + 6*L)
+pointp((B + 8*L)/2)
+pointp((B + C + 10*L)/2)
+pointp((B + 2*C + 14*L)/2)
+pointp(B + 6*L)
+pointp((2*B + C + 14*L)/2)
+pointp(B + C + 9*L)
+pointp((A + 8*L)/2)
+pointp((A + C + 10*L)/2)
+pointp((A + 2*C + 14*L)/2)
+pointp((A + B + 10*L)/2)
+pointp((A + B + C + 12*L)/2)
+pointp((A + B + 2*C + 16*L)/2)
+pointp((A + 2*B + 14*L)/2)
+pointp((A + 2*B + C + 16*L)/2)
+pointp((A + 2*B + 2*C + 20*L)/2)
+pointp(A + 6*L)
+pointp((2*A + C + 14*L)/2)
+pointp(A + C + 9*L)
+pointp((2*A + B + 14*L)/2)
+pointp((2*A + B + C + 16*L)/2)
+pointp((2*A + B + 2*C + 20*L)/2)
+pointp(A + B + 9*L)
+pointp((2*A + 2*B + C + 20*L)/2)
+pointp(A + B + C + 12*L)
+poly is: -A >= -2, -4*A - 4*B - 4*C + L >= -12, -B >= -2, -4*A - 4*B - 2*C + L >= -9, -4*A - 2*B - 4*C + L >= -9, A >= 1, C >= 1, -2*A - 2*B - 4*C + L >= -6, -C >= -2, -2*A - 4*B - 4*C + L >= -9, B >= 1, 3*A + 3*B + 3*C - L >= 6, -4*A - 2*B - 2*C + L >= -6, -2*A - 2*B - 2*C + L >= -3, -2*A - 4*B - 2*C + L >= -6
+afterH - L = 0, -4*A - 4*B - 2*C + H >= -9, -4*A - 2*B - 4*C + H >= -9, -4*A - 2*B - 2*C + H >= -6, -2*A - 4*B - 4*C + H >= -9, -2*A - 4*B - 2*C + H >= -6, -2*A - 2*B - 4*C + H >= -6, -2*A - 2*B - 2*C + H >= -3, -A >= -2, -B >= -2, -C >= -2, C >= 1, B >= 1, A >= 1, 3*A + 3*B + 3*C - H >= 6, -4*A - 4*B - 4*C + H >= -12
+after1-4*A - 4*B - 4*C + H >= -12, -4*A - 4*B - 2*C + H >= -9, -4*A - 2*B - 4*C + H >= -9, -4*A - 2*B - 2*C + H >= -6, -2*A - 4*B - 4*C + H >= -9, -2*A - 4*B - 2*C + H >= -6, -2*A - 2*B - 4*C + H >= -6, -2*A - 2*B - 2*C + H >= -3, -A >= -2, -B >= -2, -C >= -2, C >= 1, B >= 1, A >= 1, 3*A + 3*B + 3*C - H >= 6
+after2-A >= -2, -4*A - 4*B - 4*C + H >= -12, -B >= -2, -4*A - 4*B - 2*C + H >= -9, -4*A - 2*B - 4*C + H >= -9, A >= 1, C >= 1, -2*A - 2*B - 4*C + H >= -6, -C >= -2, -2*A - 4*B - 4*C + H >= -9, B >= 1, 3*A + 3*B + 3*C - H >= 6, -4*A - 2*B - 2*C + H >= -6, -2*A - 2*B - 2*C + H >= -3, -2*A - 4*B - 2*C + H >= -6
+m 11
+m degree11
+m 11
+m degree11
+m 11
+m degree11
+m 11
+m degree11
+m 11
+m degree11
+m 11
+m degree11
+----------n_degree1----------n_degree1----------n_degree1----------n_degree1----------n_degree1----------n_degree1----------n_degree0----------n_degree0----------n_degree0----------n_degree0----------n_degree0
+enter ci 0 0
+ci bino: -2
+ci inv: -2
+ci lower: -2
+enter ci 0 0
+ci bino: -2
+ci inv: -2
+ci lower: -2
+enter ci 1 0
+ci bino: -2
+ci inv: -2
+ci lower: -2
+enter ci 0 0
+ci bino: -2
+ci inv: -2
+ci lower: -2
+enter ci 0 0
+ci bino: -2
+ci inv: -2
+ci lower: -2
+enter ci 1 0
+ci bino: -2
+ci inv: -2
+ci lower: -2
+exit coef if-2
+enter ci 0 0
+ci bino: -2
+ci inv: -2
+ci lower: -2
+enter ci 1 0
+ci bino: -2
+ci inv: -2
+ci lower: -2
+enter ci 0 0
+ci bino: -2
+ci inv: -2
+ci lower: -2
+enter ci 0 0
+ci bino: -2
+ci inv: -2
+ci lower: -2
+enter ci 1 0
+ci bino: -2
+ci inv: -2
+ci lower: -2
+enter ci 0 0
+ci bino: -2
+ci inv: -2
+ci lower: -2
+exit coef if-2
+enter ci 1 0
+ci bino: -2
+ci inv: -2
+ci lower: -2
+enter ci 0 0
+ci bino: -2
+ci inv: -2
+ci lower: -2
+enter ci 0 0
+ci bino: -2
+ci inv: -2
+ci lower: -2
+enter ci 1 0
+ci bino: -2
+ci inv: -2
+ci lower: -2
+enter ci 0 0
+ci bino: -2
+ci inv: -2
+ci lower: -2
+enter ci 0 0
+ci bino: -2
+ci inv: -2
+ci lower: -2
+exit coef if-2
+#####enter change basis help -6
+enter ci 0 0
+ci bino: -2
+ci inv: -2
+ci lower: -2
+enter ci 0 0
+ci bino: -2
+ci inv: -2
+ci lower: -2
+enter ci 1 0
+ci bino: -2
+ci inv: -2
+ci lower: -2
+enter ci 0 0
+ci bino: -2
+ci inv: -2
+ci lower: -2
+enter ci 0 0
+ci bino: -2
+ci inv: -2
+ci lower: -2
+enter ci 1 1
+ci bino: -2
+ci inv: -2
+ci lower: -2
+exit coef if-2
+#####enter change basis help -2
+enter ci 0 0
+ci bino: -2
+ci inv: -2
+ci lower: -2
+enter ci 1 0
+ci bino: -2
+ci inv: -2
+ci lower: -2
+enter ci 0 0
+ci bino: -2
+ci inv: -2
+ci lower: -2
+enter ci 0 0
+ci bino: -2
+ci inv: -2
+ci lower: -2
+enter ci 1 1
+ci bino: -2
+ci inv: -2
+ci lower: -2
+enter ci 0 0
+ci bino: -2
+ci inv: -2
+ci lower: -2
+exit coef if-2
+#####enter change basis help -2
+#####enter change basis help 0
+enter ci 1 0
+ci bino: -2
+ci inv: -2
+ci lower: -2
+enter ci 0 0
+ci bino: -2
+ci inv: -2
+ci lower: -2
+enter ci 0 0
+ci bino: -2
+ci inv: -2
+ci lower: -2
+enter ci 1 1
+ci bino: -2
+ci inv: -2
+ci lower: -2
+enter ci 0 0
+ci bino: -2
+ci inv: -2
+ci lower: -2
+enter ci 0 0
+ci bino: -2
+ci inv: -2
+ci lower: -2
+exit coef if-2
+#####enter change basis help -2
+#####enter change basis help 0
+#####enter change basis help 0
+#####enter change basis help 0
+enter ci 0 0
+ci bino: -2
+ci inv: -2
+ci lower: -2
+enter ci 0 0
+ci bino: -2
+ci inv: -2
+ci lower: -2
+enter ci 1 1
+ci bino: -2
+ci inv: -2
+ci lower: -2
+enter ci 0 0
+ci bino: -2
+ci inv: -2
+ci lower: -2
+enter ci 0 0
+ci bino: -2
+ci inv: -2
+ci lower: -2
+enter ci 1 0
+ci bino: -2
+ci inv: -2
+ci lower: -2
+exit coef if-2
+#####enter change basis help -2
+enter ci 0 0
+ci bino: -2
+ci inv: -2
+ci lower: -2
+enter ci 0 0
+ci bino: -2
+ci inv: -2
+ci lower: -2
+enter ci 1 1
+ci bino: -2
+ci inv: -2
+ci lower: -2
+enter ci 0 0
+ci bino: -2
+ci inv: -2
+ci lower: -2
+enter ci 0 0
+ci bino: -2
+ci inv: -2
+ci lower: -2
+enter ci 1 1
+ci bino: -2
+ci inv: -2
+ci lower: -2
+exit coef if-2
+#####enter change basis help -2
+#####enter change basis help 0
+#####enter change basis help 0
+#####enter change basis help 0
+#####enter change basis help 0
+#####enter change basis help 0
+#####enter change basis help 0
+enter ci 0 0
+ci bino: -2
+ci inv: -2
+ci lower: -2
+enter ci 1 1
+ci bino: -2
+ci inv: -2
+ci lower: -2
+enter ci 0 0
+ci bino: -2
+ci inv: -2
+ci lower: -2
+enter ci 0 0
+ci bino: -2
+ci inv: -2
+ci lower: -2
+enter ci 1 0
+ci bino: -2
+ci inv: -2
+ci lower: -2
+enter ci 0 0
+ci bino: -2
+ci inv: -2
+ci lower: -2
+exit coef if-2
+#####enter change basis help -2
+#####enter change basis help 0
+enter ci 0 0
+ci bino: -2
+ci inv: -2
+ci lower: -2
+enter ci 1 1
+ci bino: -2
+ci inv: -2
+ci lower: -2
+enter ci 0 0
+ci bino: -2
+ci inv: -2
+ci lower: -2
+enter ci 0 0
+ci bino: -2
+ci inv: -2
+ci lower: -2
+enter ci 1 1
+ci bino: -2
+ci inv: -2
+ci lower: -2
+enter ci 0 0
+ci bino: -2
+ci inv: -2
+ci lower: -2
+exit coef if-2
+#####enter change basis help -2
+#####enter change basis help 0
+#####enter change basis help 0
+#####enter change basis help 0
+#####enter change basis help 0
+#####enter change basis help 0
+#####enter change basis help 0
+#####enter change basis help 0
+#####enter change basis help 0
+#####enter change basis help 0
+#####enter change basis help 0
+#####enter change basis help 0
+#####enter change basis help 0
+#####enter change basis help 0
+enter ci 1 1
+ci bino: -2
+ci inv: -2
+ci lower: -2
+enter ci 0 0
+ci bino: -2
+ci inv: -2
+ci lower: -2
+enter ci 0 0
+ci bino: -2
+ci inv: -2
+ci lower: -2
+enter ci 1 0
+ci bino: -2
+ci inv: -2
+ci lower: -2
+enter ci 0 0
+ci bino: -2
+ci inv: -2
+ci lower: -2
+enter ci 0 0
+ci bino: -2
+ci inv: -2
+ci lower: -2
+exit coef if-2
+#####enter change basis help -2
+#####enter change basis help 0
+#####enter change basis help 0
+#####enter change basis help 0
+enter ci 1 1
+ci bino: -2
+ci inv: -2
+ci lower: -2
+enter ci 0 0
+ci bino: -2
+ci inv: -2
+ci lower: -2
+enter ci 0 0
+ci bino: -2
+ci inv: -2
+ci lower: -2
+enter ci 1 1
+ci bino: -2
+ci inv: -2
+ci lower: -2
+enter ci 0 0
+ci bino: -2
+ci inv: -2
+ci lower: -2
+enter ci 0 0
+ci bino: -2
+ci inv: -2
+ci lower: -2
+exit coef if-2
+#####enter change basis help -2
+#####enter change basis help 0
+#####enter change basis help 0
+#####enter change basis help 0
+#####enter change basis help 0
+#####enter change basis help 0
+#####enter change basis help 0
+#####enter change basis help 0
+#####enter change basis help 0
+#####enter change basis help 0
+#####enter change basis help 0
+#####enter change basis help 0
+#####enter change basis help 0
+#####enter change basis help 0
+#####enter change basis help 0
+#####enter change basis help 0
+#####enter change basis help 0
+#####enter change basis help 0
+#####enter change basis help 0
+#####enter change basis help 0
+#####enter change basis help 0
+#####enter change basis help 0
+#####enter change basis help 0
+#####enter change basis help 0
+#####enter change basis help 0
+#####enter change basis help 0
+#####enter change basis help 0
+#####enter change basis help 0
+pointp(-6*L)
+pointp(F - 8*L)
+pointp(E - 8*L)
+pointp(E + F - 10*L)
+pointp(D - 8*L)
+pointp(D + F - 10*L)
+pointp(D + E - 10*L)
+pointp(D + E + F - 12*L)
+pointp(C - 8*L)
+pointp(C + F - 12*L)
+pointp(C + E - 10*L)
+pointp(C + E + F - 14*L)
+pointp(C + D - 10*L)
+pointp(C + D + F - 14*L)
+pointp(C + D + E - 12*L)
+pointp(C + D + E + F - 16*L)
+pointp(B - 8*L)
+pointp(B + F - 10*L)
+pointp(B + E - 12*L)
+pointp(B + E + F - 14*L)
+pointp(B + D - 10*L)
+pointp(B + D + F - 12*L)
+pointp(B + D + E - 14*L)
+pointp(B + D + E + F - 16*L)
+pointp(B + C - 10*L)
+pointp(B + C + F - 14*L)
+pointp(B + C + E - 14*L)
+pointp(B + C + E + F - 18*L)
+pointp(B + C + D - 12*L)
+pointp(B + C + D + F - 16*L)
+pointp(B + C + D + E - 16*L)
+pointp(B + C + D + E + F - 20*L)
+pointp(A - 8*L)
+pointp(A + F - 10*L)
+pointp(A + E - 10*L)
+pointp(A + E + F - 12*L)
+pointp(A + D - 12*L)
+pointp(A + D + F - 14*L)
+pointp(A + D + E - 14*L)
+pointp(A + D + E + F - 16*L)
+pointp(A + C - 10*L)
+pointp(A + C + F - 14*L)
+pointp(A + C + E - 12*L)
+pointp(A + C + E + F - 16*L)
+pointp(A + C + D - 14*L)
+pointp(A + C + D + F - 18*L)
+pointp(A + C + D + E - 16*L)
+pointp(A + C + D + E + F - 20*L)
+pointp(A + B - 10*L)
+pointp(A + B + F - 12*L)
+pointp(A + B + E - 14*L)
+pointp(A + B + E + F - 16*L)
+pointp(A + B + D - 14*L)
+pointp(A + B + D + F - 16*L)
+pointp(A + B + D + E - 18*L)
+pointp(A + B + D + E + F - 20*L)
+pointp(A + B + C - 12*L)
+pointp(A + B + C + F - 16*L)
+pointp(A + B + C + E - 16*L)
+pointp(A + B + C + E + F - 20*L)
+pointp(A + B + C + D - 16*L)
+pointp(A + B + C + D + F - 20*L)
+pointp(A + B + C + D + E - 20*L)
+pointp(A + B + C + D + E + F - 24*L)
+poly is: -A >= -2, -B >= -2, -4*A - 4*B - 4*C - 4*D - 4*E - 4*F - L >= -24, 2*A + 2*B + 2*C + 4*D + 4*E + 4*F + L >= 12, -C >= -2, 2*A + 4*B + 4*C + 4*D + 2*E + 2*F + L >= 12, 4*A + 2*B + 2*C + 2*D + 4*E + 4*F + L >= 12, -D >= -2, -E >= -2, 2*A + 4*B + 2*C + 4*D + 2*E + 4*F + L >= 12, 4*A + 4*B + 2*C + 2*D + 2*E + 4*F + L >= 12, -F >= -2, 4*A + 4*B + 4*C + 2*D + 2*E + 2*F + L >= 12, 2*A + 2*B + 4*C + 4*D + 4*E + 2*F + L >= 12, 4*A + 2*B + 4*C + 2*D + 4*E + 2*F + L >= 12, A >= 1, -4*A - 2*B - 2*C - 4*D - 2*E - 2*F - L >= -12, -4*A - 2*B - 4*C - 4*D - 2*E - 4*F - L >= -18, -2*A - 2*B - 4*C - 2*D - 2*E - 4*F - L >= -12, D >= 1, -2*A - 4*B - 4*C - 2*D - 4*E - 4*F - L >= -18, E >= 1, B >= 1, C >= 1, -2*A - 2*B - 2*C - 2*D - 2*E - 2*F - L >= -6, -2*A - 4*B - 2*C - 2*D - 4*E - 2*F - L >= -12, F >= 1, -4*A - 4*B - 2*C - 4*D - 4*E - 2*F - L >= -18
+afterI - L = 0, -4*A - 4*B - 2*C - 4*D - 4*E - 2*F - I >= -18, -4*A - 2*B - 4*C - 4*D - 2*E - 4*F - I >= -18, -4*A - 2*B - 2*C - 4*D - 2*E - 2*F - I >= -12, -2*A - 4*B - 4*C - 2*D - 4*E - 4*F - I >= -18, -2*A - 4*B - 2*C - 2*D - 4*E - 2*F - I >= -12, -2*A - 2*B - 4*C - 2*D - 2*E - 4*F - I >= -12, -2*A - 2*B - 2*C - 2*D - 2*E - 2*F - I >= -6, -A >= -2, -B >= -2, -C >= -2, -D >= -2, -E >= -2, -F >= -2, F >= 1, E >= 1, D >= 1, C >= 1, B >= 1, A >= 1, 2*A + 2*B + 2*C + 4*D + 4*E + 4*F + I >= 12, 2*A + 2*B + 4*C + 4*D + 4*E + 2*F + I >= 12, 2*A + 4*B + 2*C + 4*D + 2*E + 4*F + I >= 12, 2*A + 4*B + 4*C + 4*D + 2*E + 2*F + I >= 12, 4*A + 2*B + 2*C + 2*D + 4*E + 4*F + I >= 12, 4*A + 2*B + 4*C + 2*D + 4*E + 2*F + I >= 12, 4*A + 4*B + 2*C + 2*D + 2*E + 4*F + I >= 12, 4*A + 4*B + 4*C + 2*D + 2*E + 2*F + I >= 12, -4*A - 4*B - 4*C - 4*D - 4*E - 4*F - I >= -24
+after1-4*A - 4*B - 4*C - 4*D - 4*E - 4*F - I >= -24, -4*A - 4*B - 2*C - 4*D - 4*E - 2*F - I >= -18, -4*A - 2*B - 4*C - 4*D - 2*E - 4*F - I >= -18, -4*A - 2*B - 2*C - 4*D - 2*E - 2*F - I >= -12, -2*A - 4*B - 4*C - 2*D - 4*E - 4*F - I >= -18, -2*A - 4*B - 2*C - 2*D - 4*E - 2*F - I >= -12, -2*A - 2*B - 4*C - 2*D - 2*E - 4*F - I >= -12, -2*A - 2*B - 2*C - 2*D - 2*E - 2*F - I >= -6, -A >= -2, -B >= -2, -C >= -2, -D >= -2, -E >= -2, -F >= -2, F >= 1, E >= 1, D >= 1, C >= 1, B >= 1, A >= 1, 2*A + 2*B + 2*C + 4*D + 4*E + 4*F + I >= 12, 2*A + 2*B + 4*C + 4*D + 4*E + 2*F + I >= 12, 2*A + 4*B + 2*C + 4*D + 2*E + 4*F + I >= 12, 2*A + 4*B + 4*C + 4*D + 2*E + 2*F + I >= 12, 4*A + 2*B + 2*C + 2*D + 4*E + 4*F + I >= 12, 4*A + 2*B + 4*C + 2*D + 4*E + 2*F + I >= 12, 4*A + 4*B + 2*C + 2*D + 2*E + 4*F + I >= 12, 4*A + 4*B + 4*C + 2*D + 2*E + 2*F + I >= 12
+after2-A >= -2, -B >= -2, -4*A - 4*B - 4*C - 4*D - 4*E - 4*F - I >= -24, 2*A + 2*B + 2*C + 4*D + 4*E + 4*F + I >= 12, -C >= -2, 2*A + 4*B + 4*C + 4*D + 2*E + 2*F + I >= 12, 4*A + 2*B + 2*C + 2*D + 4*E + 4*F + I >= 12, -D >= -2, -E >= -2, 2*A + 4*B + 2*C + 4*D + 2*E + 4*F + I >= 12, 4*A + 4*B + 2*C + 2*D + 2*E + 4*F + I >= 12, -F >= -2, 4*A + 4*B + 4*C + 2*D + 2*E + 2*F + I >= 12, 2*A + 2*B + 4*C + 4*D + 4*E + 2*F + I >= 12, 4*A + 2*B + 4*C + 2*D + 4*E + 2*F + I >= 12, A >= 1, -4*A - 2*B - 2*C - 4*D - 2*E - 2*F - I >= -12, -4*A - 2*B - 4*C - 4*D - 2*E - 4*F - I >= -18, -2*A - 2*B - 4*C - 2*D - 2*E - 4*F - I >= -12, D >= 1, -2*A - 4*B - 4*C - 2*D - 4*E - 4*F - I >= -18, E >= 1, B >= 1, C >= 1, -2*A - 2*B - 2*C - 2*D - 2*E - 2*F - I >= -6, -2*A - 4*B - 2*C - 2*D - 4*E - 2*F - I >= -12, F >= 1, -4*A - 4*B - 2*C - 4*D - 4*E - 2*F - I >= -18
+m 11
+m degree11
+m 11
+m degree11
+m 11
+m degree11
+m 11
+m degree11
+m 11
+m degree11
+m 11
+m degree11
+m 11
+m degree11
+----------n_degree0----------n_degree0----------n_degree0----------n_degree2----------n_degree2----------n_degree2----------n_degree1----------n_degree0----------n_degree0----------n_degree0----------n_degree0
+enter ci 0 0
+ci bino: -1
+ci inv: -1
+ci lower: -1
+enter ci 0 0
+ci bino: -1
+ci inv: -1
+ci lower: -1
+enter ci 0 0
+ci bino: -1
+ci inv: -1
+ci lower: -1
+enter ci 1 0
+ci bino: -1
+ci inv: -1
+ci lower: -1
+exit coef if-1
+enter ci 0 0
+ci bino: 1
+ci inv: 1
+ci lower: 1
+enter ci 0 0
+ci bino: 1
+ci inv: 1
+ci lower: 1
+enter ci 2 0
+ci bino: 1
+ci inv: 1
+ci lower: 1
+enter ci 0 0
+ci bino: 1
+ci inv: 1
+ci lower: 1
+exit coef if1
+enter ci 0 0
+ci bino: 1
+ci inv: 1
+ci lower: 1
+enter ci 2 0
+ci bino: 1
+ci inv: 1
+ci lower: 1
+enter ci 0 0
+ci bino: 1
+ci inv: 1
+ci lower: 1
+enter ci 0 0
+ci bino: 1
+ci inv: 1
+ci lower: 1
+exit coef if1
+enter ci 2 0
+ci bino: 1
+ci inv: 1
+ci lower: 1
+enter ci 0 0
+ci bino: 1
+ci inv: 1
+ci lower: 1
+enter ci 0 0
+ci bino: 1
+ci inv: 1
+ci lower: 1
+enter ci 0 0
+ci bino: 1
+ci inv: 1
+ci lower: 1
+exit coef if1
+#####enter change basis help 2
+enter ci 0 0
+ci bino: -1
+ci inv: -1
+ci lower: -1
+enter ci 0 0
+ci bino: -1
+ci inv: -1
+ci lower: -1
+enter ci 0 0
+ci bino: -1
+ci inv: -1
+ci lower: -1
+enter ci 1 1
+ci bino: -1
+ci inv: -1
+ci lower: -1
+exit coef if-1
+#####enter change basis help -1
+enter ci 0 0
+ci bino: 1
+ci inv: 1
+ci lower: 1
+enter ci 0 0
+ci bino: 1
+ci inv: 1
+ci lower: 1
+enter ci 2 1
+ci bino: 2
+ci inv: 2
+ci lower: 2
+enter ci 0 0
+ci bino: 2
+ci inv: 2
+ci lower: 2
+exit coef if2
+#####enter change basis help 2
+#####enter change basis help 0
+enter ci 0 0
+ci bino: 1
+ci inv: 1
+ci lower: 1
+enter ci 0 0
+ci bino: 1
+ci inv: 1
+ci lower: 1
+enter ci 2 2
+ci bino: 1
+ci inv: 1
+ci lower: 1
+enter ci 0 0
+ci bino: 1
+ci inv: 1
+ci lower: 1
+exit coef if1
+#####enter change basis help 1
+#####enter change basis help 0
+enter ci 0 0
+ci bino: 1
+ci inv: 1
+ci lower: 1
+enter ci 2 1
+ci bino: 2
+ci inv: 2
+ci lower: 2
+enter ci 0 0
+ci bino: 2
+ci inv: 2
+ci lower: 2
+enter ci 0 0
+ci bino: 2
+ci inv: 2
+ci lower: 2
+exit coef if2
+#####enter change basis help 2
+#####enter change basis help 0
+#####enter change basis help 0
+#####enter change basis help 0
+#####enter change basis help 0
+#####enter change basis help 0
+enter ci 0 0
+ci bino: 1
+ci inv: 1
+ci lower: 1
+enter ci 2 2
+ci bino: 1
+ci inv: 1
+ci lower: 1
+enter ci 0 0
+ci bino: 1
+ci inv: 1
+ci lower: 1
+enter ci 0 0
+ci bino: 1
+ci inv: 1
+ci lower: 1
+exit coef if1
+#####enter change basis help 1
+#####enter change basis help 0
+#####enter change basis help 0
+#####enter change basis help 0
+#####enter change basis help 0
+#####enter change basis help 0
+enter ci 2 1
+ci bino: 2
+ci inv: 2
+ci lower: 2
+enter ci 0 0
+ci bino: 2
+ci inv: 2
+ci lower: 2
+enter ci 0 0
+ci bino: 2
+ci inv: 2
+ci lower: 2
+enter ci 0 0
+ci bino: 2
+ci inv: 2
+ci lower: 2
+exit coef if2
+#####enter change basis help 2
+#####enter change basis help 0
+#####enter change basis help 0
+#####enter change basis help 0
+#####enter change basis help 0
+#####enter change basis help 0
+#####enter change basis help 0
+#####enter change basis help 0
+#####enter change basis help 0
+#####enter change basis help 0
+#####enter change basis help 0
+#####enter change basis help 0
+#####enter change basis help 0
+#####enter change basis help 0
+#####enter change basis help 0
+#####enter change basis help 0
+#####enter change basis help 0
+#####enter change basis help 0
+enter ci 2 2
+ci bino: 1
+ci inv: 1
+ci lower: 1
+enter ci 0 0
+ci bino: 1
+ci inv: 1
+ci lower: 1
+enter ci 0 0
+ci bino: 1
+ci inv: 1
+ci lower: 1
+enter ci 0 0
+ci bino: 1
+ci inv: 1
+ci lower: 1
+exit coef if1
+#####enter change basis help 1
+#####enter change basis help 0
+#####enter change basis help 0
+#####enter change basis help 0
+#####enter change basis help 0
+#####enter change basis help 0
+#####enter change basis help 0
+#####enter change basis help 0
+#####enter change basis help 0
+#####enter change basis help 0
+#####enter change basis help 0
+#####enter change basis help 0
+#####enter change basis help 0
+#####enter change basis help 0
+#####enter change basis help 0
+#####enter change basis help 0
+#####enter change basis help 0
+#####enter change basis help 0
+pointp(2*L)
+pointp(G + L)
+pointp((F + 6*L)/2)
+pointp((F + 2*G + 4*L)/2)
+pointp(F + 5*L)
+pointp(F + G + 4*L)
+pointp((E + 6*L)/2)
+pointp((E + 2*G + 4*L)/2)
+pointp((E + F + 8*L)/2)
+pointp((E + F + 2*G + 6*L)/2)
+pointp((E + 2*F + 12*L)/2)
+pointp((E + 2*F + 2*G + 10*L)/2)
+pointp(E + 5*L)
+pointp(E + G + 4*L)
+pointp((2*E + F + 12*L)/2)
+pointp((2*E + F + 2*G + 10*L)/2)
+pointp(E + F + 8*L)
+pointp(E + F + G + 7*L)
+pointp((D + 6*L)/2)
+pointp((D + 2*G + 4*L)/2)
+pointp((D + F + 8*L)/2)
+pointp((D + F + 2*G + 6*L)/2)
+pointp((D + 2*F + 12*L)/2)
+pointp((D + 2*F + 2*G + 10*L)/2)
+pointp((D + E + 8*L)/2)
+pointp((D + E + 2*G + 6*L)/2)
+pointp((D + E + F + 10*L)/2)
+pointp((D + E + F + 2*G + 8*L)/2)
+pointp((D + E + 2*F + 14*L)/2)
+pointp((D + E + 2*F + 2*G + 12*L)/2)
+pointp((D + 2*E + 12*L)/2)
+pointp((D + 2*E + 2*G + 10*L)/2)
+pointp((D + 2*E + F + 14*L)/2)
+pointp((D + 2*E + F + 2*G + 12*L)/2)
+pointp((D + 2*E + 2*F + 18*L)/2)
+pointp((D + 2*E + 2*F + 2*G + 16*L)/2)
+pointp(D + 5*L)
+pointp(D + G + 4*L)
+pointp((2*D + F + 12*L)/2)
+pointp((2*D + F + 2*G + 10*L)/2)
+pointp(D + F + 8*L)
+pointp(D + F + G + 7*L)
+pointp((2*D + E + 12*L)/2)
+pointp((2*D + E + 2*G + 10*L)/2)
+pointp((2*D + E + F + 14*L)/2)
+pointp((2*D + E + F + 2*G + 12*L)/2)
+pointp((2*D + E + 2*F + 18*L)/2)
+pointp((2*D + E + 2*F + 2*G + 16*L)/2)
+pointp(D + E + 8*L)
+pointp(D + E + G + 7*L)
+pointp((2*D + 2*E + F + 18*L)/2)
+pointp((2*D + 2*E + F + 2*G + 16*L)/2)
+pointp(D + E + F + 11*L)
+pointp(D + E + F + G + 10*L)
+poly is: -D >= -2, -4*D - 4*E - 4*F + G + L >= -12, -4*D - 4*E - 2*F + G + L >= -9, -E >= -2, -G >= -2, -2*D - 4*E - 4*F + G + L >= -9, -4*D - 2*E - 4*F + G + L >= -9, -F >= -2, -4*D - 2*E - 2*F + G + L >= -6, 3*D + 3*E + 3*F - G - L >= 6, F >= 1, D >= 1, E >= 1, -2*D - 4*E - 2*F + G + L >= -6, G >= 1, -2*D - 2*E - 4*F + G + L >= -6, -2*D - 2*E - 2*F + G + L >= -3
+afterJ - L = 0, -4*D - 4*E - 2*F + G + J >= -9, -4*D - 2*E - 4*F + G + J >= -9, -4*D - 2*E - 2*F + G + J >= -6, -2*D - 4*E - 4*F + G + J >= -9, -2*D - 4*E - 2*F + G + J >= -6, -2*D - 2*E - 4*F + G + J >= -6, -2*D - 2*E - 2*F + G + J >= -3, -D >= -2, -E >= -2, -F >= -2, -G >= -2, G >= 1, F >= 1, E >= 1, D >= 1, 3*D + 3*E + 3*F - G - J >= 6, -4*D - 4*E - 4*F + G + J >= -12
+after1-4*D - 4*E - 4*F + G + J >= -12, -4*D - 4*E - 2*F + G + J >= -9, -4*D - 2*E - 4*F + G + J >= -9, -4*D - 2*E - 2*F + G + J >= -6, -2*D - 4*E - 4*F + G + J >= -9, -2*D - 4*E - 2*F + G + J >= -6, -2*D - 2*E - 4*F + G + J >= -6, -2*D - 2*E - 2*F + G + J >= -3, -D >= -2, -E >= -2, -F >= -2, -G >= -2, G >= 1, F >= 1, E >= 1, D >= 1, 3*D + 3*E + 3*F - G - J >= 6
+after2-D >= -2, -4*D - 4*E - 4*F + G + J >= -12, -4*D - 4*E - 2*F + G + J >= -9, -E >= -2, -G >= -2, -2*D - 4*E - 4*F + G + J >= -9, -4*D - 2*E - 4*F + G + J >= -9, -F >= -2, -4*D - 2*E - 2*F + G + J >= -6, 3*D + 3*E + 3*F - G - J >= 6, F >= 1, D >= 1, E >= 1, -2*D - 4*E - 2*F + G + J >= -6, G >= 1, -2*D - 2*E - 4*F + G + J >= -6, -2*D - 2*E - 2*F + G + J >= -3
+m 11
+m degree11
+m 11
+m degree11
+m 11
+m degree11
+m 11
+m degree11
+----------n_degree0----------n_degree0----------n_degree0----------n_degree0----------n_degree0----------n_degree0----------n_degree0----------n_degree1----------n_degree2----------n_degree1----------n_degree0
+enter ci 0 0
+ci bino: 1
+ci inv: 1
+ci lower: 1
+enter ci 2 0
+ci bino: 1
+ci inv: 1
+ci lower: 576
+enter ci 0 0
+ci bino: 576
+ci inv: 576
+ci lower: 576
+exit coef if576
+enter ci 1 0
+ci bino: -4
+ci inv: -4
+ci lower: -12
+enter ci 0 0
+ci bino: -12
+ci inv: -12
+ci lower: -12
+enter ci 1 0
+ci bino: -12
+ci inv: -12
+ci lower: -12
+exit coef if-12
+#####enter change basis help 564
+enter ci 1 0
+ci bino: -4
+ci inv: -4
+ci lower: -12
+enter ci 0 0
+ci bino: -12
+ci inv: -12
+ci lower: -12
+enter ci 1 1
+ci bino: -12
+ci inv: -120
+ci lower: -120
+exit coef if-120
+#####enter change basis help -120
+enter ci 0 0
+ci bino: 1
+ci inv: 1
+ci lower: 1
+enter ci 2 1
+ci bino: 2
+ci inv: 36
+ci lower: -864
+enter ci 0 0
+ci bino: -864
+ci inv: -864
+ci lower: -864
+exit coef if-864
+#####enter change basis help -864
+#####enter change basis help 0
+enter ci 0 0
+ci bino: 1
+ci inv: 1
+ci lower: 1
+enter ci 2 2
+ci bino: 1
+ci inv: 324
+ci lower: 324
+enter ci 0 0
+ci bino: 324
+ci inv: 324
+ci lower: 324
+exit coef if324
+#####enter change basis help 324
+#####enter change basis help 0
+enter ci 1 1
+ci bino: -4
+ci inv: -36
+ci lower: -36
+enter ci 0 0
+ci bino: -36
+ci inv: -36
+ci lower: -36
+enter ci 1 0
+ci bino: -36
+ci inv: -36
+ci lower: -36
+exit coef if-36
+#####enter change basis help -36
+enter ci 1 1
+ci bino: -4
+ci inv: -36
+ci lower: -36
+enter ci 0 0
+ci bino: -36
+ci inv: -36
+ci lower: -36
+enter ci 1 1
+ci bino: -36
+ci inv: -360
+ci lower: -360
+exit coef if-360
+#####enter change basis help -360
+#####enter change basis help 0
+#####enter change basis help 0
+#####enter change basis help 0
+#####enter change basis help 0
+pointp(564*L)
+pointp(J + 444*L)
+pointp((I + 264*L)/2)
+pointp((I + 2*J + 24*L)/2)
+pointp(I + 24*L)
+pointp(I + J - 96*L)
+pointp(H + 528*L)
+pointp(H + J + 48*L)
+pointp((2*H + I + 192*L)/2)
+pointp((2*H + I + 2*J - 768*L)/2)
+pointp(H + I - 12*L)
+pointp(H + I + J - 492*L)
+poly is: -44*H - 30*I - 48*J - L >= -384, 4*H + 12*I + 48*J + L >= 12, -H >= -12, -J >= -11, 44*H + 12*I + 12*J + L >= 96, -I >= 6, 4*H + 48*I + 48*J + L >= -528, -4*H - 30*I - 12*J - L >= 132, H >= 3, I >= -24, 44*H + 48*I + 12*J + L >= -444, J >= 1
+afterK - L = 0, -4*H - 30*I - 12*J - K >= 132, -H >= -12, -I >= 6, -J >= -11, J >= 1, I >= -24, H >= 3, 4*H + 12*I + 48*J + K >= 12, 4*H + 48*I + 48*J + K >= -528, 44*H + 12*I + 12*J + K >= 96, 44*H + 48*I + 12*J + K >= -444, -44*H - 30*I - 48*J - K >= -384
+after1-44*H - 30*I - 48*J - K >= -384, -4*H - 30*I - 12*J - K >= 132, -H >= -12, -I >= 6, -J >= -11, J >= 1, I >= -24, H >= 3, 4*H + 12*I + 48*J + K >= 12, 4*H + 48*I + 48*J + K >= -528, 44*H + 12*I + 12*J + K >= 96, 44*H + 48*I + 12*J + K >= -444
+after2-44*H - 30*I - 48*J - K >= -384, 4*H + 12*I + 48*J + K >= 12, -H >= -12, -J >= -11, 44*H + 12*I + 12*J + K >= 96, -I >= 6, 4*H + 48*I + 48*J + K >= -528, -4*H - 30*I - 12*J - K >= 132, H >= 3, I >= -24, 44*H + 48*I + 12*J + K >= -444, J >= 1
+m 11
+m degree11
+m 11
+m degree11
+m 11
+m degree11
+m 11
+m degree11
+m 11
+m degree11
+m 11
+m degree11
+----------n_degree2----------n_degree2----------n_degree2----------n_degree0----------n_degree0----------n_degree0----------n_degree0----------n_degree0----------n_degree0----------n_degree0----------n_degree0
+enter ci 0 0
+ci bino: 1
+ci inv: 1
+ci lower: 1
+enter ci 0 0
+ci bino: 1
+ci inv: 1
+ci lower: 1
+enter ci 2 0
+ci bino: 1
+ci inv: 1
+ci lower: 1
+exit coef if1
+enter ci 0 0
+ci bino: 1
+ci inv: 1
+ci lower: 1
+enter ci 2 0
+ci bino: 1
+ci inv: 1
+ci lower: 1
+enter ci 0 0
+ci bino: 1
+ci inv: 1
+ci lower: 1
+exit coef if1
+enter ci 2 0
+ci bino: 1
+ci inv: 1
+ci lower: 1
+enter ci 0 0
+ci bino: 1
+ci inv: 1
+ci lower: 1
+enter ci 0 0
+ci bino: 1
+ci inv: 1
+ci lower: 1
+exit coef if1
+#####enter change basis help 3
+enter ci 0 0
+ci bino: 1
+ci inv: 1
+ci lower: 1
+enter ci 0 0
+ci bino: 1
+ci inv: 1
+ci lower: 1
+enter ci 2 1
+ci bino: 2
+ci inv: 2
+ci lower: 2
+exit coef if2
+#####enter change basis help 2
+enter ci 0 0
+ci bino: 1
+ci inv: 1
+ci lower: 1
+enter ci 0 0
+ci bino: 1
+ci inv: 1
+ci lower: 1
+enter ci 2 2
+ci bino: 1
+ci inv: 1
+ci lower: 1
+exit coef if1
+#####enter change basis help 1
+enter ci 0 0
+ci bino: 1
+ci inv: 1
+ci lower: 1
+enter ci 2 1
+ci bino: 2
+ci inv: 2
+ci lower: 2
+enter ci 0 0
+ci bino: 2
+ci inv: 2
+ci lower: 2
+exit coef if2
+#####enter change basis help 2
+#####enter change basis help 0
+#####enter change basis help 0
+enter ci 0 0
+ci bino: 1
+ci inv: 1
+ci lower: 1
+enter ci 2 2
+ci bino: 1
+ci inv: 1
+ci lower: 1
+enter ci 0 0
+ci bino: 1
+ci inv: 1
+ci lower: 1
+exit coef if1
+#####enter change basis help 1
+#####enter change basis help 0
+#####enter change basis help 0
+enter ci 2 1
+ci bino: 2
+ci inv: 2
+ci lower: 2
+enter ci 0 0
+ci bino: 2
+ci inv: 2
+ci lower: 2
+enter ci 0 0
+ci bino: 2
+ci inv: 2
+ci lower: 2
+exit coef if2
+#####enter change basis help 2
+#####enter change basis help 0
+#####enter change basis help 0
+#####enter change basis help 0
+#####enter change basis help 0
+#####enter change basis help 0
+#####enter change basis help 0
+#####enter change basis help 0
+#####enter change basis help 0
+enter ci 2 2
+ci bino: 1
+ci inv: 1
+ci lower: 1
+enter ci 0 0
+ci bino: 1
+ci inv: 1
+ci lower: 1
+enter ci 0 0
+ci bino: 1
+ci inv: 1
+ci lower: 1
+exit coef if1
+#####enter change basis help 1
+#####enter change basis help 0
+#####enter change basis help 0
+#####enter change basis help 0
+#####enter change basis help 0
+#####enter change basis help 0
+#####enter change basis help 0
+#####enter change basis help 0
+#####enter change basis help 0
+pointp(3*L)
+pointp((C + 8*L)/2)
+pointp(C + 6*L)
+pointp((B + 8*L)/2)
+pointp((B + C + 10*L)/2)
+pointp((B + 2*C + 14*L)/2)
+pointp(B + 6*L)
+pointp((2*B + C + 14*L)/2)
+pointp(B + C + 9*L)
+pointp((A + 8*L)/2)
+pointp((A + C + 10*L)/2)
+pointp((A + 2*C + 14*L)/2)
+pointp((A + B + 10*L)/2)
+pointp((A + B + C + 12*L)/2)
+pointp((A + B + 2*C + 16*L)/2)
+pointp((A + 2*B + 14*L)/2)
+pointp((A + 2*B + C + 16*L)/2)
+pointp((A + 2*B + 2*C + 20*L)/2)
+pointp(A + 6*L)
+pointp((2*A + C + 14*L)/2)
+pointp(A + C + 9*L)
+pointp((2*A + B + 14*L)/2)
+pointp((2*A + B + C + 16*L)/2)
+pointp((2*A + B + 2*C + 20*L)/2)
+pointp(A + B + 9*L)
+pointp((2*A + 2*B + C + 20*L)/2)
+pointp(A + B + C + 12*L)
+poly is: -A >= -2, -4*A - 4*B - 4*C + L >= -12, -B >= -2, -4*A - 4*B - 2*C + L >= -9, -4*A - 2*B - 4*C + L >= -9, A >= 1, C >= 1, -2*A - 2*B - 4*C + L >= -6, -C >= -2, -2*A - 4*B - 4*C + L >= -9, B >= 1, 3*A + 3*B + 3*C - L >= 6, -4*A - 2*B - 2*C + L >= -6, -2*A - 2*B - 2*C + L >= -3, -2*A - 4*B - 2*C + L >= -6
+afterH - L = 0, -4*A - 4*B - 2*C + H >= -9, -4*A - 2*B - 4*C + H >= -9, -4*A - 2*B - 2*C + H >= -6, -2*A - 4*B - 4*C + H >= -9, -2*A - 4*B - 2*C + H >= -6, -2*A - 2*B - 4*C + H >= -6, -2*A - 2*B - 2*C + H >= -3, -A >= -2, -B >= -2, -C >= -2, C >= 1, B >= 1, A >= 1, 3*A + 3*B + 3*C - H >= 6, -4*A - 4*B - 4*C + H >= -12
+after1-4*A - 4*B - 4*C + H >= -12, -4*A - 4*B - 2*C + H >= -9, -4*A - 2*B - 4*C + H >= -9, -4*A - 2*B - 2*C + H >= -6, -2*A - 4*B - 4*C + H >= -9, -2*A - 4*B - 2*C + H >= -6, -2*A - 2*B - 4*C + H >= -6, -2*A - 2*B - 2*C + H >= -3, -A >= -2, -B >= -2, -C >= -2, C >= 1, B >= 1, A >= 1, 3*A + 3*B + 3*C - H >= 6
+after2-A >= -2, -4*A - 4*B - 4*C + H >= -12, -B >= -2, -4*A - 4*B - 2*C + H >= -9, -4*A - 2*B - 4*C + H >= -9, A >= 1, C >= 1, -2*A - 2*B - 4*C + H >= -6, -C >= -2, -2*A - 4*B - 4*C + H >= -9, B >= 1, 3*A + 3*B + 3*C - H >= 6, -4*A - 2*B - 2*C + H >= -6, -2*A - 2*B - 2*C + H >= -3, -2*A - 4*B - 2*C + H >= -6
+m 11
+m degree11
+m 11
+m degree11
+m 11
+m degree11
+m 11
+m degree11
+m 11
+m degree11
+m 11
+m degree11
+----------n_degree1----------n_degree1----------n_degree1----------n_degree1----------n_degree1----------n_degree1----------n_degree0----------n_degree0----------n_degree0----------n_degree0----------n_degree0
+enter ci 0 0
+ci bino: -2
+ci inv: -2
+ci lower: -2
+enter ci 0 0
+ci bino: -2
+ci inv: -2
+ci lower: -2
+enter ci 1 0
+ci bino: -2
+ci inv: -2
+ci lower: -2
+enter ci 0 0
+ci bino: -2
+ci inv: -2
+ci lower: -2
+enter ci 0 0
+ci bino: -2
+ci inv: -2
+ci lower: -2
+enter ci 1 0
+ci bino: -2
+ci inv: -2
+ci lower: -2
+exit coef if-2
+enter ci 0 0
+ci bino: -2
+ci inv: -2
+ci lower: -2
+enter ci 1 0
+ci bino: -2
+ci inv: -2
+ci lower: -2
+enter ci 0 0
+ci bino: -2
+ci inv: -2
+ci lower: -2
+enter ci 0 0
+ci bino: -2
+ci inv: -2
+ci lower: -2
+enter ci 1 0
+ci bino: -2
+ci inv: -2
+ci lower: -2
+enter ci 0 0
+ci bino: -2
+ci inv: -2
+ci lower: -2
+exit coef if-2
+enter ci 1 0
+ci bino: -2
+ci inv: -2
+ci lower: -2
+enter ci 0 0
+ci bino: -2
+ci inv: -2
+ci lower: -2
+enter ci 0 0
+ci bino: -2
+ci inv: -2
+ci lower: -2
+enter ci 1 0
+ci bino: -2
+ci inv: -2
+ci lower: -2
+enter ci 0 0
+ci bino: -2
+ci inv: -2
+ci lower: -2
+enter ci 0 0
+ci bino: -2
+ci inv: -2
+ci lower: -2
+exit coef if-2
+#####enter change basis help -6
+enter ci 0 0
+ci bino: -2
+ci inv: -2
+ci lower: -2
+enter ci 0 0
+ci bino: -2
+ci inv: -2
+ci lower: -2
+enter ci 1 0
+ci bino: -2
+ci inv: -2
+ci lower: -2
+enter ci 0 0
+ci bino: -2
+ci inv: -2
+ci lower: -2
+enter ci 0 0
+ci bino: -2
+ci inv: -2
+ci lower: -2
+enter ci 1 1
+ci bino: -2
+ci inv: -2
+ci lower: -2
+exit coef if-2
+#####enter change basis help -2
+enter ci 0 0
+ci bino: -2
+ci inv: -2
+ci lower: -2
+enter ci 1 0
+ci bino: -2
+ci inv: -2
+ci lower: -2
+enter ci 0 0
+ci bino: -2
+ci inv: -2
+ci lower: -2
+enter ci 0 0
+ci bino: -2
+ci inv: -2
+ci lower: -2
+enter ci 1 1
+ci bino: -2
+ci inv: -2
+ci lower: -2
+enter ci 0 0
+ci bino: -2
+ci inv: -2
+ci lower: -2
+exit coef if-2
+#####enter change basis help -2
+#####enter change basis help 0
+enter ci 1 0
+ci bino: -2
+ci inv: -2
+ci lower: -2
+enter ci 0 0
+ci bino: -2
+ci inv: -2
+ci lower: -2
+enter ci 0 0
+ci bino: -2
+ci inv: -2
+ci lower: -2
+enter ci 1 1
+ci bino: -2
+ci inv: -2
+ci lower: -2
+enter ci 0 0
+ci bino: -2
+ci inv: -2
+ci lower: -2
+enter ci 0 0
+ci bino: -2
+ci inv: -2
+ci lower: -2
+exit coef if-2
+#####enter change basis help -2
+#####enter change basis help 0
+#####enter change basis help 0
+#####enter change basis help 0
+enter ci 0 0
+ci bino: -2
+ci inv: -2
+ci lower: -2
+enter ci 0 0
+ci bino: -2
+ci inv: -2
+ci lower: -2
+enter ci 1 1
+ci bino: -2
+ci inv: -2
+ci lower: -2
+enter ci 0 0
+ci bino: -2
+ci inv: -2
+ci lower: -2
+enter ci 0 0
+ci bino: -2
+ci inv: -2
+ci lower: -2
+enter ci 1 0
+ci bino: -2
+ci inv: -2
+ci lower: -2
+exit coef if-2
+#####enter change basis help -2
+enter ci 0 0
+ci bino: -2
+ci inv: -2
+ci lower: -2
+enter ci 0 0
+ci bino: -2
+ci inv: -2
+ci lower: -2
+enter ci 1 1
+ci bino: -2
+ci inv: -2
+ci lower: -2
+enter ci 0 0
+ci bino: -2
+ci inv: -2
+ci lower: -2
+enter ci 0 0
+ci bino: -2
+ci inv: -2
+ci lower: -2
+enter ci 1 1
+ci bino: -2
+ci inv: -2
+ci lower: -2
+exit coef if-2
+#####enter change basis help -2
+#####enter change basis help 0
+#####enter change basis help 0
+#####enter change basis help 0
+#####enter change basis help 0
+#####enter change basis help 0
+#####enter change basis help 0
+enter ci 0 0
+ci bino: -2
+ci inv: -2
+ci lower: -2
+enter ci 1 1
+ci bino: -2
+ci inv: -2
+ci lower: -2
+enter ci 0 0
+ci bino: -2
+ci inv: -2
+ci lower: -2
+enter ci 0 0
+ci bino: -2
+ci inv: -2
+ci lower: -2
+enter ci 1 0
+ci bino: -2
+ci inv: -2
+ci lower: -2
+enter ci 0 0
+ci bino: -2
+ci inv: -2
+ci lower: -2
+exit coef if-2
+#####enter change basis help -2
+#####enter change basis help 0
+enter ci 0 0
+ci bino: -2
+ci inv: -2
+ci lower: -2
+enter ci 1 1
+ci bino: -2
+ci inv: -2
+ci lower: -2
+enter ci 0 0
+ci bino: -2
+ci inv: -2
+ci lower: -2
+enter ci 0 0
+ci bino: -2
+ci inv: -2
+ci lower: -2
+enter ci 1 1
+ci bino: -2
+ci inv: -2
+ci lower: -2
+enter ci 0 0
+ci bino: -2
+ci inv: -2
+ci lower: -2
+exit coef if-2
+#####enter change basis help -2
+#####enter change basis help 0
+#####enter change basis help 0
+#####enter change basis help 0
+#####enter change basis help 0
+#####enter change basis help 0
+#####enter change basis help 0
+#####enter change basis help 0
+#####enter change basis help 0
+#####enter change basis help 0
+#####enter change basis help 0
+#####enter change basis help 0
+#####enter change basis help 0
+#####enter change basis help 0
+enter ci 1 1
+ci bino: -2
+ci inv: -2
+ci lower: -2
+enter ci 0 0
+ci bino: -2
+ci inv: -2
+ci lower: -2
+enter ci 0 0
+ci bino: -2
+ci inv: -2
+ci lower: -2
+enter ci 1 0
+ci bino: -2
+ci inv: -2
+ci lower: -2
+enter ci 0 0
+ci bino: -2
+ci inv: -2
+ci lower: -2
+enter ci 0 0
+ci bino: -2
+ci inv: -2
+ci lower: -2
+exit coef if-2
+#####enter change basis help -2
+#####enter change basis help 0
+#####enter change basis help 0
+#####enter change basis help 0
+enter ci 1 1
+ci bino: -2
+ci inv: -2
+ci lower: -2
+enter ci 0 0
+ci bino: -2
+ci inv: -2
+ci lower: -2
+enter ci 0 0
+ci bino: -2
+ci inv: -2
+ci lower: -2
+enter ci 1 1
+ci bino: -2
+ci inv: -2
+ci lower: -2
+enter ci 0 0
+ci bino: -2
+ci inv: -2
+ci lower: -2
+enter ci 0 0
+ci bino: -2
+ci inv: -2
+ci lower: -2
+exit coef if-2
+#####enter change basis help -2
+#####enter change basis help 0
+#####enter change basis help 0
+#####enter change basis help 0
+#####enter change basis help 0
+#####enter change basis help 0
+#####enter change basis help 0
+#####enter change basis help 0
+#####enter change basis help 0
+#####enter change basis help 0
+#####enter change basis help 0
+#####enter change basis help 0
+#####enter change basis help 0
+#####enter change basis help 0
+#####enter change basis help 0
+#####enter change basis help 0
+#####enter change basis help 0
+#####enter change basis help 0
+#####enter change basis help 0
+#####enter change basis help 0
+#####enter change basis help 0
+#####enter change basis help 0
+#####enter change basis help 0
+#####enter change basis help 0
+#####enter change basis help 0
+#####enter change basis help 0
+#####enter change basis help 0
+#####enter change basis help 0
+pointp(-6*L)
+pointp(F - 8*L)
+pointp(E - 8*L)
+pointp(E + F - 10*L)
+pointp(D - 8*L)
+pointp(D + F - 10*L)
+pointp(D + E - 10*L)
+pointp(D + E + F - 12*L)
+pointp(C - 8*L)
+pointp(C + F - 12*L)
+pointp(C + E - 10*L)
+pointp(C + E + F - 14*L)
+pointp(C + D - 10*L)
+pointp(C + D + F - 14*L)
+pointp(C + D + E - 12*L)
+pointp(C + D + E + F - 16*L)
+pointp(B - 8*L)
+pointp(B + F - 10*L)
+pointp(B + E - 12*L)
+pointp(B + E + F - 14*L)
+pointp(B + D - 10*L)
+pointp(B + D + F - 12*L)
+pointp(B + D + E - 14*L)
+pointp(B + D + E + F - 16*L)
+pointp(B + C - 10*L)
+pointp(B + C + F - 14*L)
+pointp(B + C + E - 14*L)
+pointp(B + C + E + F - 18*L)
+pointp(B + C + D - 12*L)
+pointp(B + C + D + F - 16*L)
+pointp(B + C + D + E - 16*L)
+pointp(B + C + D + E + F - 20*L)
+pointp(A - 8*L)
+pointp(A + F - 10*L)
+pointp(A + E - 10*L)
+pointp(A + E + F - 12*L)
+pointp(A + D - 12*L)
+pointp(A + D + F - 14*L)
+pointp(A + D + E - 14*L)
+pointp(A + D + E + F - 16*L)
+pointp(A + C - 10*L)
+pointp(A + C + F - 14*L)
+pointp(A + C + E - 12*L)
+pointp(A + C + E + F - 16*L)
+pointp(A + C + D - 14*L)
+pointp(A + C + D + F - 18*L)
+pointp(A + C + D + E - 16*L)
+pointp(A + C + D + E + F - 20*L)
+pointp(A + B - 10*L)
+pointp(A + B + F - 12*L)
+pointp(A + B + E - 14*L)
+pointp(A + B + E + F - 16*L)
+pointp(A + B + D - 14*L)
+pointp(A + B + D + F - 16*L)
+pointp(A + B + D + E - 18*L)
+pointp(A + B + D + E + F - 20*L)
+pointp(A + B + C - 12*L)
+pointp(A + B + C + F - 16*L)
+pointp(A + B + C + E - 16*L)
+pointp(A + B + C + E + F - 20*L)
+pointp(A + B + C + D - 16*L)
+pointp(A + B + C + D + F - 20*L)
+pointp(A + B + C + D + E - 20*L)
+pointp(A + B + C + D + E + F - 24*L)
+poly is: -A >= -2, -B >= -2, -4*A - 4*B - 4*C - 4*D - 4*E - 4*F - L >= -24, 2*A + 2*B + 2*C + 4*D + 4*E + 4*F + L >= 12, -C >= -2, 2*A + 4*B + 4*C + 4*D + 2*E + 2*F + L >= 12, 4*A + 2*B + 2*C + 2*D + 4*E + 4*F + L >= 12, -D >= -2, -E >= -2, 2*A + 4*B + 2*C + 4*D + 2*E + 4*F + L >= 12, 4*A + 4*B + 2*C + 2*D + 2*E + 4*F + L >= 12, -F >= -2, 4*A + 4*B + 4*C + 2*D + 2*E + 2*F + L >= 12, 2*A + 2*B + 4*C + 4*D + 4*E + 2*F + L >= 12, 4*A + 2*B + 4*C + 2*D + 4*E + 2*F + L >= 12, A >= 1, -4*A - 2*B - 2*C - 4*D - 2*E - 2*F - L >= -12, -4*A - 2*B - 4*C - 4*D - 2*E - 4*F - L >= -18, -2*A - 2*B - 4*C - 2*D - 2*E - 4*F - L >= -12, D >= 1, -2*A - 4*B - 4*C - 2*D - 4*E - 4*F - L >= -18, E >= 1, B >= 1, C >= 1, -2*A - 2*B - 2*C - 2*D - 2*E - 2*F - L >= -6, -2*A - 4*B - 2*C - 2*D - 4*E - 2*F - L >= -12, F >= 1, -4*A - 4*B - 2*C - 4*D - 4*E - 2*F - L >= -18
+afterI - L = 0, -4*A - 4*B - 2*C - 4*D - 4*E - 2*F - I >= -18, -4*A - 2*B - 4*C - 4*D - 2*E - 4*F - I >= -18, -4*A - 2*B - 2*C - 4*D - 2*E - 2*F - I >= -12, -2*A - 4*B - 4*C - 2*D - 4*E - 4*F - I >= -18, -2*A - 4*B - 2*C - 2*D - 4*E - 2*F - I >= -12, -2*A - 2*B - 4*C - 2*D - 2*E - 4*F - I >= -12, -2*A - 2*B - 2*C - 2*D - 2*E - 2*F - I >= -6, -A >= -2, -B >= -2, -C >= -2, -D >= -2, -E >= -2, -F >= -2, F >= 1, E >= 1, D >= 1, C >= 1, B >= 1, A >= 1, 2*A + 2*B + 2*C + 4*D + 4*E + 4*F + I >= 12, 2*A + 2*B + 4*C + 4*D + 4*E + 2*F + I >= 12, 2*A + 4*B + 2*C + 4*D + 2*E + 4*F + I >= 12, 2*A + 4*B + 4*C + 4*D + 2*E + 2*F + I >= 12, 4*A + 2*B + 2*C + 2*D + 4*E + 4*F + I >= 12, 4*A + 2*B + 4*C + 2*D + 4*E + 2*F + I >= 12, 4*A + 4*B + 2*C + 2*D + 2*E + 4*F + I >= 12, 4*A + 4*B + 4*C + 2*D + 2*E + 2*F + I >= 12, -4*A - 4*B - 4*C - 4*D - 4*E - 4*F - I >= -24
+after1-4*A - 4*B - 4*C - 4*D - 4*E - 4*F - I >= -24, -4*A - 4*B - 2*C - 4*D - 4*E - 2*F - I >= -18, -4*A - 2*B - 4*C - 4*D - 2*E - 4*F - I >= -18, -4*A - 2*B - 2*C - 4*D - 2*E - 2*F - I >= -12, -2*A - 4*B - 4*C - 2*D - 4*E - 4*F - I >= -18, -2*A - 4*B - 2*C - 2*D - 4*E - 2*F - I >= -12, -2*A - 2*B - 4*C - 2*D - 2*E - 4*F - I >= -12, -2*A - 2*B - 2*C - 2*D - 2*E - 2*F - I >= -6, -A >= -2, -B >= -2, -C >= -2, -D >= -2, -E >= -2, -F >= -2, F >= 1, E >= 1, D >= 1, C >= 1, B >= 1, A >= 1, 2*A + 2*B + 2*C + 4*D + 4*E + 4*F + I >= 12, 2*A + 2*B + 4*C + 4*D + 4*E + 2*F + I >= 12, 2*A + 4*B + 2*C + 4*D + 2*E + 4*F + I >= 12, 2*A + 4*B + 4*C + 4*D + 2*E + 2*F + I >= 12, 4*A + 2*B + 2*C + 2*D + 4*E + 4*F + I >= 12, 4*A + 2*B + 4*C + 2*D + 4*E + 2*F + I >= 12, 4*A + 4*B + 2*C + 2*D + 2*E + 4*F + I >= 12, 4*A + 4*B + 4*C + 2*D + 2*E + 2*F + I >= 12
+after2-A >= -2, -B >= -2, -4*A - 4*B - 4*C - 4*D - 4*E - 4*F - I >= -24, 2*A + 2*B + 2*C + 4*D + 4*E + 4*F + I >= 12, -C >= -2, 2*A + 4*B + 4*C + 4*D + 2*E + 2*F + I >= 12, 4*A + 2*B + 2*C + 2*D + 4*E + 4*F + I >= 12, -D >= -2, -E >= -2, 2*A + 4*B + 2*C + 4*D + 2*E + 4*F + I >= 12, 4*A + 4*B + 2*C + 2*D + 2*E + 4*F + I >= 12, -F >= -2, 4*A + 4*B + 4*C + 2*D + 2*E + 2*F + I >= 12, 2*A + 2*B + 4*C + 4*D + 4*E + 2*F + I >= 12, 4*A + 2*B + 4*C + 2*D + 4*E + 2*F + I >= 12, A >= 1, -4*A - 2*B - 2*C - 4*D - 2*E - 2*F - I >= -12, -4*A - 2*B - 4*C - 4*D - 2*E - 4*F - I >= -18, -2*A - 2*B - 4*C - 2*D - 2*E - 4*F - I >= -12, D >= 1, -2*A - 4*B - 4*C - 2*D - 4*E - 4*F - I >= -18, E >= 1, B >= 1, C >= 1, -2*A - 2*B - 2*C - 2*D - 2*E - 2*F - I >= -6, -2*A - 4*B - 2*C - 2*D - 4*E - 2*F - I >= -12, F >= 1, -4*A - 4*B - 2*C - 4*D - 4*E - 2*F - I >= -18
+m 11
+m degree11
+m 11
+m degree11
+m 11
+m degree11
+m 11
+m degree11
+m 11
+m degree11
+m 11
+m degree11
+m 11
+m degree11
+----------n_degree0----------n_degree0----------n_degree0----------n_degree2----------n_degree2----------n_degree2----------n_degree1----------n_degree0----------n_degree0----------n_degree0----------n_degree0
+enter ci 0 0
+ci bino: -1
+ci inv: -1
+ci lower: -1
+enter ci 0 0
+ci bino: -1
+ci inv: -1
+ci lower: -1
+enter ci 0 0
+ci bino: -1
+ci inv: -1
+ci lower: -1
+enter ci 1 0
+ci bino: -1
+ci inv: -1
+ci lower: -1
+exit coef if-1
+enter ci 0 0
+ci bino: 1
+ci inv: 1
+ci lower: 1
+enter ci 0 0
+ci bino: 1
+ci inv: 1
+ci lower: 1
+enter ci 2 0
+ci bino: 1
+ci inv: 1
+ci lower: 1
+enter ci 0 0
+ci bino: 1
+ci inv: 1
+ci lower: 1
+exit coef if1
+enter ci 0 0
+ci bino: 1
+ci inv: 1
+ci lower: 1
+enter ci 2 0
+ci bino: 1
+ci inv: 1
+ci lower: 1
+enter ci 0 0
+ci bino: 1
+ci inv: 1
+ci lower: 1
+enter ci 0 0
+ci bino: 1
+ci inv: 1
+ci lower: 1
+exit coef if1
+enter ci 2 0
+ci bino: 1
+ci inv: 1
+ci lower: 1
+enter ci 0 0
+ci bino: 1
+ci inv: 1
+ci lower: 1
+enter ci 0 0
+ci bino: 1
+ci inv: 1
+ci lower: 1
+enter ci 0 0
+ci bino: 1
+ci inv: 1
+ci lower: 1
+exit coef if1
+#####enter change basis help 2
+enter ci 0 0
+ci bino: -1
+ci inv: -1
+ci lower: -1
+enter ci 0 0
+ci bino: -1
+ci inv: -1
+ci lower: -1
+enter ci 0 0
+ci bino: -1
+ci inv: -1
+ci lower: -1
+enter ci 1 1
+ci bino: -1
+ci inv: -1
+ci lower: -1
+exit coef if-1
+#####enter change basis help -1
+enter ci 0 0
+ci bino: 1
+ci inv: 1
+ci lower: 1
+enter ci 0 0
+ci bino: 1
+ci inv: 1
+ci lower: 1
+enter ci 2 1
+ci bino: 2
+ci inv: 2
+ci lower: 2
+enter ci 0 0
+ci bino: 2
+ci inv: 2
+ci lower: 2
+exit coef if2
+#####enter change basis help 2
+#####enter change basis help 0
+enter ci 0 0
+ci bino: 1
+ci inv: 1
+ci lower: 1
+enter ci 0 0
+ci bino: 1
+ci inv: 1
+ci lower: 1
+enter ci 2 2
+ci bino: 1
+ci inv: 1
+ci lower: 1
+enter ci 0 0
+ci bino: 1
+ci inv: 1
+ci lower: 1
+exit coef if1
+#####enter change basis help 1
+#####enter change basis help 0
+enter ci 0 0
+ci bino: 1
+ci inv: 1
+ci lower: 1
+enter ci 2 1
+ci bino: 2
+ci inv: 2
+ci lower: 2
+enter ci 0 0
+ci bino: 2
+ci inv: 2
+ci lower: 2
+enter ci 0 0
+ci bino: 2
+ci inv: 2
+ci lower: 2
+exit coef if2
+#####enter change basis help 2
+#####enter change basis help 0
+#####enter change basis help 0
+#####enter change basis help 0
+#####enter change basis help 0
+#####enter change basis help 0
+enter ci 0 0
+ci bino: 1
+ci inv: 1
+ci lower: 1
+enter ci 2 2
+ci bino: 1
+ci inv: 1
+ci lower: 1
+enter ci 0 0
+ci bino: 1
+ci inv: 1
+ci lower: 1
+enter ci 0 0
+ci bino: 1
+ci inv: 1
+ci lower: 1
+exit coef if1
+#####enter change basis help 1
+#####enter change basis help 0
+#####enter change basis help 0
+#####enter change basis help 0
+#####enter change basis help 0
+#####enter change basis help 0
+enter ci 2 1
+ci bino: 2
+ci inv: 2
+ci lower: 2
+enter ci 0 0
+ci bino: 2
+ci inv: 2
+ci lower: 2
+enter ci 0 0
+ci bino: 2
+ci inv: 2
+ci lower: 2
+enter ci 0 0
+ci bino: 2
+ci inv: 2
+ci lower: 2
+exit coef if2
+#####enter change basis help 2
+#####enter change basis help 0
+#####enter change basis help 0
+#####enter change basis help 0
+#####enter change basis help 0
+#####enter change basis help 0
+#####enter change basis help 0
+#####enter change basis help 0
+#####enter change basis help 0
+#####enter change basis help 0
+#####enter change basis help 0
+#####enter change basis help 0
+#####enter change basis help 0
+#####enter change basis help 0
+#####enter change basis help 0
+#####enter change basis help 0
+#####enter change basis help 0
+#####enter change basis help 0
+enter ci 2 2
+ci bino: 1
+ci inv: 1
+ci lower: 1
+enter ci 0 0
+ci bino: 1
+ci inv: 1
+ci lower: 1
+enter ci 0 0
+ci bino: 1
+ci inv: 1
+ci lower: 1
+enter ci 0 0
+ci bino: 1
+ci inv: 1
+ci lower: 1
+exit coef if1
+#####enter change basis help 1
+#####enter change basis help 0
+#####enter change basis help 0
+#####enter change basis help 0
+#####enter change basis help 0
+#####enter change basis help 0
+#####enter change basis help 0
+#####enter change basis help 0
+#####enter change basis help 0
+#####enter change basis help 0
+#####enter change basis help 0
+#####enter change basis help 0
+#####enter change basis help 0
+#####enter change basis help 0
+#####enter change basis help 0
+#####enter change basis help 0
+#####enter change basis help 0
+#####enter change basis help 0
+pointp(2*L)
+pointp(G + L)
+pointp((F + 6*L)/2)
+pointp((F + 2*G + 4*L)/2)
+pointp(F + 5*L)
+pointp(F + G + 4*L)
+pointp((E + 6*L)/2)
+pointp((E + 2*G + 4*L)/2)
+pointp((E + F + 8*L)/2)
+pointp((E + F + 2*G + 6*L)/2)
+pointp((E + 2*F + 12*L)/2)
+pointp((E + 2*F + 2*G + 10*L)/2)
+pointp(E + 5*L)
+pointp(E + G + 4*L)
+pointp((2*E + F + 12*L)/2)
+pointp((2*E + F + 2*G + 10*L)/2)
+pointp(E + F + 8*L)
+pointp(E + F + G + 7*L)
+pointp((D + 6*L)/2)
+pointp((D + 2*G + 4*L)/2)
+pointp((D + F + 8*L)/2)
+pointp((D + F + 2*G + 6*L)/2)
+pointp((D + 2*F + 12*L)/2)
+pointp((D + 2*F + 2*G + 10*L)/2)
+pointp((D + E + 8*L)/2)
+pointp((D + E + 2*G + 6*L)/2)
+pointp((D + E + F + 10*L)/2)
+pointp((D + E + F + 2*G + 8*L)/2)
+pointp((D + E + 2*F + 14*L)/2)
+pointp((D + E + 2*F + 2*G + 12*L)/2)
+pointp((D + 2*E + 12*L)/2)
+pointp((D + 2*E + 2*G + 10*L)/2)
+pointp((D + 2*E + F + 14*L)/2)
+pointp((D + 2*E + F + 2*G + 12*L)/2)
+pointp((D + 2*E + 2*F + 18*L)/2)
+pointp((D + 2*E + 2*F + 2*G + 16*L)/2)
+pointp(D + 5*L)
+pointp(D + G + 4*L)
+pointp((2*D + F + 12*L)/2)
+pointp((2*D + F + 2*G + 10*L)/2)
+pointp(D + F + 8*L)
+pointp(D + F + G + 7*L)
+pointp((2*D + E + 12*L)/2)
+pointp((2*D + E + 2*G + 10*L)/2)
+pointp((2*D + E + F + 14*L)/2)
+pointp((2*D + E + F + 2*G + 12*L)/2)
+pointp((2*D + E + 2*F + 18*L)/2)
+pointp((2*D + E + 2*F + 2*G + 16*L)/2)
+pointp(D + E + 8*L)
+pointp(D + E + G + 7*L)
+pointp((2*D + 2*E + F + 18*L)/2)
+pointp((2*D + 2*E + F + 2*G + 16*L)/2)
+pointp(D + E + F + 11*L)
+pointp(D + E + F + G + 10*L)
+poly is: -D >= -2, -4*D - 4*E - 4*F + G + L >= -12, -4*D - 4*E - 2*F + G + L >= -9, -E >= -2, -G >= -2, -2*D - 4*E - 4*F + G + L >= -9, -4*D - 2*E - 4*F + G + L >= -9, -F >= -2, -4*D - 2*E - 2*F + G + L >= -6, 3*D + 3*E + 3*F - G - L >= 6, F >= 1, D >= 1, E >= 1, -2*D - 4*E - 2*F + G + L >= -6, G >= 1, -2*D - 2*E - 4*F + G + L >= -6, -2*D - 2*E - 2*F + G + L >= -3
+afterJ - L = 0, -4*D - 4*E - 2*F + G + J >= -9, -4*D - 2*E - 4*F + G + J >= -9, -4*D - 2*E - 2*F + G + J >= -6, -2*D - 4*E - 4*F + G + J >= -9, -2*D - 4*E - 2*F + G + J >= -6, -2*D - 2*E - 4*F + G + J >= -6, -2*D - 2*E - 2*F + G + J >= -3, -D >= -2, -E >= -2, -F >= -2, -G >= -2, G >= 1, F >= 1, E >= 1, D >= 1, 3*D + 3*E + 3*F - G - J >= 6, -4*D - 4*E - 4*F + G + J >= -12
+after1-4*D - 4*E - 4*F + G + J >= -12, -4*D - 4*E - 2*F + G + J >= -9, -4*D - 2*E - 4*F + G + J >= -9, -4*D - 2*E - 2*F + G + J >= -6, -2*D - 4*E - 4*F + G + J >= -9, -2*D - 4*E - 2*F + G + J >= -6, -2*D - 2*E - 4*F + G + J >= -6, -2*D - 2*E - 2*F + G + J >= -3, -D >= -2, -E >= -2, -F >= -2, -G >= -2, G >= 1, F >= 1, E >= 1, D >= 1, 3*D + 3*E + 3*F - G - J >= 6
+after2-D >= -2, -4*D - 4*E - 4*F + G + J >= -12, -4*D - 4*E - 2*F + G + J >= -9, -E >= -2, -G >= -2, -2*D - 4*E - 4*F + G + J >= -9, -4*D - 2*E - 4*F + G + J >= -9, -F >= -2, -4*D - 2*E - 2*F + G + J >= -6, 3*D + 3*E + 3*F - G - J >= 6, F >= 1, D >= 1, E >= 1, -2*D - 4*E - 2*F + G + J >= -6, G >= 1, -2*D - 2*E - 4*F + G + J >= -6, -2*D - 2*E - 2*F + G + J >= -3
+m 11
+m degree11
+m 11
+m degree11
+m 11
+m degree11
+m 11
+m degree11
+----------n_degree0----------n_degree0----------n_degree0----------n_degree0----------n_degree0----------n_degree0----------n_degree0----------n_degree1----------n_degree2----------n_degree1----------n_degree0
+enter ci 0 0
+ci bino: 1
+ci inv: 1
+ci lower: 1
+enter ci 2 0
+ci bino: 1
+ci inv: 1
+ci lower: 576
+enter ci 0 0
+ci bino: 576
+ci inv: 576
+ci lower: 576
+exit coef if576
+enter ci 1 0
+ci bino: -4
+ci inv: -4
+ci lower: -12
+enter ci 0 0
+ci bino: -12
+ci inv: -12
+ci lower: -12
+enter ci 1 0
+ci bino: -12
+ci inv: -12
+ci lower: -12
+exit coef if-12
+#####enter change basis help 564
+enter ci 1 0
+ci bino: -4
+ci inv: -4
+ci lower: -12
+enter ci 0 0
+ci bino: -12
+ci inv: -12
+ci lower: -12
+enter ci 1 1
+ci bino: -12
+ci inv: -120
+ci lower: -120
+exit coef if-120
+#####enter change basis help -120
+enter ci 0 0
+ci bino: 1
+ci inv: 1
+ci lower: 1
+enter ci 2 1
+ci bino: 2
+ci inv: 36
+ci lower: -864
+enter ci 0 0
+ci bino: -864
+ci inv: -864
+ci lower: -864
+exit coef if-864
+#####enter change basis help -864
+#####enter change basis help 0
+enter ci 0 0
+ci bino: 1
+ci inv: 1
+ci lower: 1
+enter ci 2 2
+ci bino: 1
+ci inv: 324
+ci lower: 324
+enter ci 0 0
+ci bino: 324
+ci inv: 324
+ci lower: 324
+exit coef if324
+#####enter change basis help 324
+#####enter change basis help 0
+enter ci 1 1
+ci bino: -4
+ci inv: -36
+ci lower: -36
+enter ci 0 0
+ci bino: -36
+ci inv: -36
+ci lower: -36
+enter ci 1 0
+ci bino: -36
+ci inv: -36
+ci lower: -36
+exit coef if-36
+#####enter change basis help -36
+enter ci 1 1
+ci bino: -4
+ci inv: -36
+ci lower: -36
+enter ci 0 0
+ci bino: -36
+ci inv: -36
+ci lower: -36
+enter ci 1 1
+ci bino: -36
+ci inv: -360
+ci lower: -360
+exit coef if-360
+#####enter change basis help -360
+#####enter change basis help 0
+#####enter change basis help 0
+#####enter change basis help 0
+#####enter change basis help 0
+pointp(564*L)
+pointp(J + 444*L)
+pointp((I + 264*L)/2)
+pointp((I + 2*J + 24*L)/2)
+pointp(I + 24*L)
+pointp(I + J - 96*L)
+pointp(H + 528*L)
+pointp(H + J + 48*L)
+pointp((2*H + I + 192*L)/2)
+pointp((2*H + I + 2*J - 768*L)/2)
+pointp(H + I - 12*L)
+pointp(H + I + J - 492*L)
+poly is: -44*H - 30*I - 48*J - L >= -384, 4*H + 12*I + 48*J + L >= 12, -H >= -12, -J >= -11, 44*H + 12*I + 12*J + L >= 96, -I >= 6, 4*H + 48*I + 48*J + L >= -528, -4*H - 30*I - 12*J - L >= 132, H >= 3, I >= -24, 44*H + 48*I + 12*J + L >= -444, J >= 1
+afterK - L = 0, -4*H - 30*I - 12*J - K >= 132, -H >= -12, -I >= 6, -J >= -11, J >= 1, I >= -24, H >= 3, 4*H + 12*I + 48*J + K >= 12, 4*H + 48*I + 48*J + K >= -528, 44*H + 12*I + 12*J + K >= 96, 44*H + 48*I + 12*J + K >= -444, -44*H - 30*I - 48*J - K >= -384
+after1-44*H - 30*I - 48*J - K >= -384, -4*H - 30*I - 12*J - K >= 132, -H >= -12, -I >= 6, -J >= -11, J >= 1, I >= -24, H >= 3, 4*H + 12*I + 48*J + K >= 12, 4*H + 48*I + 48*J + K >= -528, 44*H + 12*I + 12*J + K >= 96, 44*H + 48*I + 12*J + K >= -444
+after2-44*H - 30*I - 48*J - K >= -384, 4*H + 12*I + 48*J + K >= 12, -H >= -12, -J >= -11, 44*H + 12*I + 12*J + K >= 96, -I >= 6, 4*H + 48*I + 48*J + K >= -528, -4*H - 30*I - 12*J - K >= 132, H >= 3, I >= -24, 44*H + 48*I + 12*J + K >= -444, J >= 1

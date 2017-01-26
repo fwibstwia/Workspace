@@ -10,7 +10,9 @@ build/
 cscope.*
 *~
 proposal/
+ifloat/
 InstableFloat
+*.byte
 *.log
 *.sum
 *.out
