@@ -9,7 +9,8 @@ Output/
 build/
 cscope.*
 *~
-
+proposal/
+InstableFloat
 *.log
 *.sum
 *.out
