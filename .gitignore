@@ -84,3 +84,7 @@ boxPower
 temp
 *.cmx
 *.cmi
+/matlab/matlab
+libsvm-3.22/
+algorithm/programs/
+float/geometry_c/

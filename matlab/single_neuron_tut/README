@@ -1,0 +1,15 @@
+This code trains a single logistic neuron.
+It uses a squared error loss function on the outputs of the logistic unit.
+
+To create some data -
+> make_data;
+
+To learn a neuron on it -
+ > learn_neuron;
+
+For mnist 2s and 3s data -
+> load mnist_2_3
+> learn_neuron;
+
+To look at any data point i in the mnist data -
+> imagesc(reshape(data(i, :), 28, 28)');
